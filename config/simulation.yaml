@@ -1,0 +1,37 @@
+# Simulation configuration.
+# One round = one quarter in this MVP.
+rounds: 3
+
+# Hidden world-state base values (used as the starting point for scenario deltas).
+world_state:
+  # quarterly growth rates
+  employment_growth_base: 0.006
+  # annual-equivalent policy rate proxy for debt pricing
+  policy_rate_base: 0.053
+  # property-type level quarterly deltas: [noi_growth, cap_rate_delta]
+  base_case:
+    Industrial: [-0.010, 0.001]
+    Office: [0.010, 0.000]
+    Multifamily: [0.025, 0.0005]
+    Retail: [0.015, 0.001]
+  rate_shock:
+    Industrial: [-0.025, 0.0065]
+    Office: [-0.040, 0.008]
+    Multifamily: [0.005, 0.005]
+    Retail: [-0.020, 0.007]
+  growth_rebound:
+    Industrial: [0.040, -0.002]
+    Office: [0.030, -0.0015]
+    Multifamily: [0.040, -0.001]
+    Retail: [0.030, -0.0015]
+
+# Idiosyncratic noise standard deviation (per property, per round) for NOI growth.
+idio_noi_sigma: 0.012
+
+# Cap-rate noise by property type (annualized). Multiplicative on cap.
+cap_noise_sigma: 0.0015
+
+# Market vacancy/rent pressure used for descriptive market explorer charts.
+market_history:
+  quarters: 12
+  seed: 20240101

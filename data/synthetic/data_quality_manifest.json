@@ -1,0 +1,66 @@
+[
+  {
+    "manifest":[
+      {
+        "issue_id":"DQ-01",
+        "description":"Missing asking_price for one property.",
+        "affects_column":"asking_price",
+        "affects_rows":1,
+        "inject_mode":"set_null",
+        "reproducible":true
+      },
+      {
+        "issue_id":"DQ-02",
+        "description":"Duplicate row for one property (identical property_id appears twice).",
+        "affects_column":"property_id",
+        "affects_rows":1,
+        "inject_mode":"duplicate_row",
+        "reproducible":true
+      },
+      {
+        "issue_id":"DQ-03",
+        "description":"Inconsistent property type label: one row says 'Ind'l' instead of 'Industrial'.",
+        "affects_column":"type",
+        "affects_rows":1,
+        "inject_mode":"rename_value",
+        "reproducible":true
+      },
+      {
+        "issue_id":"DQ-04",
+        "description":"Different date format in observation_date for one row (string '03\/31\/2024' vs ISO).",
+        "affects_column":"observation_date",
+        "affects_rows":1,
+        "inject_mode":"reformat_date",
+        "reproducible":true
+      },
+      {
+        "issue_id":"DQ-05",
+        "description":"Stale observation_date for one row (2023-12-31 instead of 2024-03-31).",
+        "affects_column":"observation_date",
+        "affects_rows":1,
+        "inject_mode":"set_stale_date",
+        "reproducible":true
+      },
+      {
+        "issue_id":"DQ-06",
+        "description":"Extreme but potentially legitimate outlier: one property's asking_price is 3x the peer median.",
+        "affects_column":"asking_price",
+        "affects_rows":1,
+        "inject_mode":"multiply_by_factor",
+        "reproducible":true
+      },
+      {
+        "issue_id":"DQ-07",
+        "description":"Leakage field available only after the decision date: future_market_cap_rate_observed_q2_2026 present for all rows.",
+        "affects_column":"future_market_cap_rate_observed_q2_2026",
+        "affects_rows":null,
+        "inject_mode":"add_future_field",
+        "reproducible":true,
+        "point_in_time_note":"This field is sourced from Q2 2026 CBRE data, available after 2024-03-31. Using it for a 2024-03-31 decision is leakage."
+      }
+    ],
+    "leakage_field":"future_market_cap_rate_observed_q2_2026",
+    "decision_date":"2024-03-31",
+    "note":"The application intentionally does not auto-clean these issues. Students must identify and handle them."
+  }
+]

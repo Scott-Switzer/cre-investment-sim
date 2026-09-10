@@ -1,0 +1,7 @@
+table,row_count,is_synthetic,source_name,source_url
+properties,30,True,Semipsynthetic CRE operating cases (deterministic generator),https://github.com/chapman-real605/cre-sim
+properties_student,31,True,CRE Simulation student data copy (imperfect),https://github.com/chapman-real605/cre-sim
+market_anchors,7,False,CBRE + FRED public anchors,https://www.cbre.com/insights/figures/orange-county-office-figures-q2-2026 / FRED
+macro_history,77,False,FRED public macro series (cached sample),https://fred.stlouisfed.org/
+properties_geospatial_features,30,False,REAL605 derived geospatial features,https://github.com/chapman-real605/cre-sim
+employment_proxy,7,False,Census LEHD/LODES public-data sample (cached),https://lehd.ces.census.gov/data/

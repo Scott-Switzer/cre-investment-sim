@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CRE 605 Investment Committee Simulator</title>
+<style>
+:root {
+  --navy:#102a43; --blue:#1f5a92; --light:#eef5fa; --line:#d9e2ec;
+  --text:#172b4d; --muted:#627d98; --green:#18794e; --red:#b42318; --gold:#9a6700;
+}
+* { box-sizing:border-box; }
+body { margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--text); background:#f7f9fb; }
+header { background:var(--navy); color:white; padding:22px 28px; }
+header h1 { margin:0; font-size:24px; }
+header p { margin:6px 0 0; color:#d9eaf7; }
+main { max-width:1200px; margin:0 auto; padding:24px; }
+.grid { display:grid; gap:16px; }
+.kpis { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.card { background:white; border:1px solid var(--line); border-radius:12px; padding:16px; }
+.kpi .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+.kpi .value { margin-top:5px; font-size:22px; font-weight:700; }
+.section-title { font-size:17px; margin:0 0 12px; }
+.deals { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.deal { cursor:pointer; transition:.15s; }
+.deal:hover { border-color:#9fb3c8; transform:translateY(-1px); }
+.deal.selected { outline:3px solid #9cc3e6; border-color:var(--blue); }
+.deal-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+.tag { font-size:12px; padding:4px 8px; border-radius:999px; background:var(--light); color:var(--blue); white-space:nowrap; }
+.name { font-weight:700; }
+.sub { color:var(--muted); font-size:13px; margin-top:2px; }
+.metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+.metric { border-top:1px solid var(--line); padding-top:8px; }
+.metric span { display:block; color:var(--muted); font-size:11px; }
+.metric strong { display:block; margin-top:3px; font-size:14px; }
+.risk { margin-top:12px; font-size:13px; color:#5d4037; background:#fff8e1; padding:8px 10px; border-radius:8px; }
+.controls { grid-template-columns:1.2fr .8fr; align-items:start; margin-top:18px; }
+label { display:block; font-size:12px; font-weight:650; margin-bottom:5px; color:#334e68; }
+input, select, textarea {
+  width:100%; padding:10px 11px; border:1px solid #bcccdc; border-radius:8px; font:inherit; background:white;
+}
+textarea { min-height:80px; resize:vertical; }
+.formgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+button {
+  border:0; border-radius:9px; padding:11px 15px; font:inherit; font-weight:700; cursor:pointer;
+}
+.primary { background:var(--blue); color:white; }
+.secondary { background:#e8eef5; color:var(--text); }
+.actions { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+.output { margin-top:14px; border-top:1px solid var(--line); padding-top:14px; }
+.outgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.out { background:#f8fafc; padding:10px; border-radius:8px; }
+.out span { display:block; color:var(--muted); font-size:11px; }
+.out strong { display:block; margin-top:3px; font-size:16px; }
+.score { font-size:42px; font-weight:800; margin:5px 0; }
+.green { color:var(--green); } .red { color:var(--red); } .gold { color:var(--gold); }
+.note { color:var(--muted); font-size:12px; line-height:1.5; }
+.hidden { display:none; }
+.source-list { margin:0; padding-left:18px; }
+.source-list li { margin:7px 0; color:#486581; font-size:13px; }
+.source-list a { color:var(--blue); }
+@media (max-width:850px) {
+  .kpis,.deals,.controls,.formgrid,.outgrid { grid-template-columns:1fr; }
+  .metrics { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>CRE 605 — Investment Committee Simulator</h1>
+  <p>Orange County acquisition round • classroom MVP • market-calibrated September 2026</p>
+</header>
+<main>
+  <section class="grid kpis">
+    <div class="card kpi"><div class="label">OC Office Vacancy</div><div class="value">13.3%</div><div class="note">Q2 2026, CBRE</div></div>
+    <div class="card kpi"><div class="label">OC Industrial Vacancy</div><div class="value">5.5%</div><div class="note">Q2 2026, CBRE</div></div>
+    <div class="card kpi"><div class="label">OC Multifamily Occupancy</div><div class="value">96.4%</div><div class="note">Q2 2026, CBRE</div></div>
+    <div class="card kpi"><div class="label">10Y Treasury</div><div class="value">4.80%</div><div class="note">Sep. 8, 2026, FRED</div></div>
+  </section>
+
+  <section style="margin-top:20px">
+    <h2 class="section-title">1. Deal Room</h2>
+    <div id="dealGrid" class="grid deals"></div>
+  </section>
+
+  <section class="grid controls">
+    <div class="card">
+      <h2 class="section-title">2. Underwrite & Submit</h2>
+      <div id="selectedLabel" class="note">Select a deal above.</div>
+      <div class="formgrid" style="margin-top:12px">
+        <div><label for="decision">Decision</label><select id="decision"><option>BUY</option><option>PASS</option></select></div>
+        <div><label for="bid">Bid ($mm)</label><input id="bid" type="number" step="0.1"></div>
+        <div><label for="ltv">LTV (%)</label><input id="ltv" type="number" step="1" min="0" max="75"></div>
+        <div><label for="growth">1Y NOI growth forecast (%)</label><input id="growth" type="number" step="0.1"></div>
+        <div><label for="exitcap">1Y exit cap forecast (%)</label><input id="exitcap" type="number" step="0.05"></div>
+        <div><label for="confidence">Confidence (%)</label><input id="confidence" type="number" min="0" max="100" step="5" value="60"></div>
+      </div>
+      <div style="margin-top:12px"><label for="thesis">Investment thesis / what would make you wrong?</label><textarea id="thesis" placeholder="Example: BUY below $48M because office occupancy should recover; thesis fails if vacancy remains above 15%."></textarea></div>
+      <div class="actions">
+        <button class="primary" id="calcBtn">Calculate Underwriting</button>
+        <button class="secondary" id="passBtn">Reset Deal</button>
+      </div>
+      <div id="underwrite" class="output hidden">
+        <div class="outgrid">
+          <div class="out"><span>Equity required</span><strong id="eq"></strong></div>
+          <div class="out"><span>Annual debt service</span><strong id="ds"></strong></div>
+          <div class="out"><span>Current DSCR</span><strong id="dscr"></strong></div>
+          <div class="out"><span>Predicted Yr1 NOI</span><strong id="pnoi"></strong></div>
+          <div class="out"><span>Predicted Yr1 value</span><strong id="pval"></strong></div>
+          <div class="out"><span>Predicted 1Y equity return</span><strong id="pret"></strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">3. Professor / Market Resolution</h2>
+      <label for="scenario">Scenario</label>
+      <select id="scenario">
+        <option>Base Case</option>
+        <option>Rate Shock</option>
+        <option>Growth Rebound</option>
+      </select>
+      <p class="note">For the demo this is visible. In class, the scenario/outcome engine should be instructor-controlled and hidden until submissions lock.</p>
+      <button class="primary" style="width:100%;margin-top:10px" id="revealBtn">Lock Decision & Reveal Outcome</button>
+      <div id="result" class="output hidden">
+        <div class="note">TOTAL SCORE</div>
+        <div id="score" class="score">—</div>
+        <div class="outgrid">
+          <div class="out"><span>Actual NOI growth</span><strong id="agrowth"></strong></div>
+          <div class="out"><span>Actual exit cap</span><strong id="acap"></strong></div>
+          <div class="out"><span>Actual property value</span><strong id="aval"></strong></div>
+          <div class="out"><span>Actual 1Y equity return</span><strong id="aret"></strong></div>
+          <div class="out"><span>Forecast value error</span><strong id="ferr"></strong></div>
+          <div class="out"><span>Decision quality</span><strong id="dscore"></strong></div>
+        </div>
+        <p id="resultText" class="note" style="margin-top:12px"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px">
+    <h2 class="section-title">What is real vs. synthetic?</h2>
+    <p class="note">The market anchors below are real public observations. The eight properties are fictional teaching cases calibrated around those conditions. That is the safest MVP approach until we establish a licensed/public property-level pipeline.</p>
+    <ul class="source-list">
+      <li><a href="https://www.cbre.com/insights/figures/orange-county-office-figures-q2-2026" target="_blank">CBRE Orange County Office Q2 2026</a> — 13.3% vacancy, $2.89/SF/month FSG asking rent.</li>
+      <li><a href="https://www.cbre.com/insights/figures/orange-county-industrial-figures-q2-2026" target="_blank">CBRE Orange County Industrial Q2 2026</a> — 5.5% vacancy, $1.49/SF/month NNN asking rent.</li>
+      <li><a href="https://www.cbre.com/insights/figures/orange-county-multifamily-figures-q2-2026" target="_blank">CBRE Orange County Multifamily Q2 2026</a> — 96.4% occupancy, $2,944 average monthly rent.</li>
+      <li><a href="https://fred.stlouisfed.org/release/tables?eid=289&rid=18" target="_blank">FRED / Federal Reserve H.15</a> — 10-year Treasury 4.80% on September 8, 2026.</li>
+    </ul>
+  </section>
+</main>
+<script>
+const deals = [{"id": "OC-IND-01", "name": "Anaheim Commerce Center", "type": "Industrial", "submarket": "Anaheim", "ask": 52.0, "noi": 3.016, "cap": 0.058, "occ": 0.97, "walt": 4.8, "rent": "$1.55/SF/mo NNN", "debt": 0.0635, "maxltv": 0.7, "risk": "Rising vacancy / near-term rent pressure"}, {"id": "OC-IND-02", "name": "Irvine Spectrum Logistics", "type": "Industrial", "submarket": "Irvine", "ask": 46.0, "noi": 2.392, "cap": 0.052, "occ": 1.0, "walt": 7.1, "rent": "$1.72/SF/mo NNN", "debt": 0.0615, "maxltv": 0.7, "risk": "Tight pricing / limited upside"}, {"id": "OC-OFF-01", "name": "Jamboree Office Plaza", "type": "Office", "submarket": "Irvine", "ask": 49.0, "noi": 3.43, "cap": 0.07, "occ": 0.82, "walt": 3.2, "rent": "$3.15/SF/mo FSG", "debt": 0.0675, "maxltv": 0.6, "risk": "Lease-up and rollover exposure"}, {"id": "OC-OFF-02", "name": "Newport Gateway Offices", "type": "Office", "submarket": "Newport Beach", "ask": 61.0, "noi": 4.026, "cap": 0.066, "occ": 0.91, "walt": 5.6, "rent": "$3.75/SF/mo FSG", "debt": 0.065, "maxltv": 0.6, "risk": "Higher basis / refinance risk"}, {"id": "OC-MF-01", "name": "Orange Grove Apartments", "type": "Multifamily", "submarket": "Orange", "ask": 71.0, "noi": 3.55, "cap": 0.05, "occ": 0.965, "walt": 1.0, "rent": "$2,850/unit/mo", "debt": 0.06, "maxltv": 0.7, "risk": "Supply delivery / expense growth"}, {"id": "OC-MF-02", "name": "Santa Ana Urban Flats", "type": "Multifamily", "submarket": "Santa Ana", "ask": 84.0, "noi": 4.62, "cap": 0.055, "occ": 0.948, "walt": 1.0, "rent": "$2,680/unit/mo", "debt": 0.061, "maxltv": 0.7, "risk": "Operational turnaround execution"}, {"id": "OC-RTL-01", "name": "Costa Mesa Retail Row", "type": "Retail", "submarket": "Costa Mesa", "ask": 38.0, "noi": 2.394, "cap": 0.063, "occ": 0.95, "walt": 4.1, "rent": "$3.05/SF/mo NNN", "debt": 0.066, "maxltv": 0.65, "risk": "Tenant concentration"}, {"id": "OC-RTL-02", "name": "Fullerton Marketplace", "type": "Retail", "submarket": "Fullerton", "ask": 44.0, "noi": 2.904, "cap": 0.066, "occ": 0.93, "walt": 5.0, "rent": "$2.65/SF/mo NNN", "debt": 0.0655, "maxltv": 0.65, "risk": "Consumer slowdown / rollover"}];
+const scenarios = {"Base Case": {"Industrial": [-0.01, 0.001], "Office": [0.01, 0.0], "Multifamily": [0.025, 0.0005], "Retail": [0.015, 0.001]}, "Rate Shock": {"Industrial": [-0.025, 0.0065], "Office": [-0.04, 0.008], "Multifamily": [0.005, 0.005], "Retail": [-0.02, 0.007]}, "Growth Rebound": {"Industrial": [0.04, -0.002], "Office": [0.03, -0.0015], "Multifamily": [0.04, -0.001], "Retail": [0.03, -0.0015]}};
+let selected = null;
+let calc = null;
+
+const $ = id => document.getElementById(id);
+const money = v => '$' + Number(v).toFixed(2) + 'M';
+const pct = v => (100*Number(v)).toFixed(1) + '%';
+
+function payment(principalMM, annualRate, years=25) {
+  const r=annualRate/12, n=years*12, p=principalMM*1e6;
+  if (r===0) return (p/n)*12/1e6;
+  const pm = p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  return pm*12/1e6;
+}
+
+function renderDeals() {
+  $('dealGrid').innerHTML = deals.map((d,i)=>`
+    <div class="card deal" data-i="${i}">
+      <div class="deal-top">
+        <div><div class="name">${d.name}</div><div class="sub">${d.submarket} • ${d.id}</div></div>
+        <div class="tag">${d.type}</div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span>Ask</span><strong>${money(d.ask)}</strong></div>
+        <div class="metric"><span>NOI</span><strong>${money(d.noi)}</strong></div>
+        <div class="metric"><span>Cap</span><strong>${pct(d.cap)}</strong></div>
+        <div class="metric"><span>Occupancy</span><strong>${pct(d.occ)}</strong></div>
+        <div class="metric"><span>WALT</span><strong>${d.walt.toFixed(1)} yrs</strong></div>
+        <div class="metric"><span>Rent</span><strong>${d.rent}</strong></div>
+        <div class="metric"><span>Debt</span><strong>${pct(d.debt)}</strong></div>
+        <div class="metric"><span>Max LTV</span><strong>${pct(d.maxltv)}</strong></div>
+      </div>
+      <div class="risk">Risk: ${d.risk}</div>
+    </div>`).join('');
+  document.querySelectorAll('.deal').forEach(el=>el.addEventListener('click',()=>selectDeal(Number(el.dataset.i))));
+}
+
+function selectDeal(i) {
+  selected=deals[i]; calc=null;
+  document.querySelectorAll('.deal').forEach((e,j)=>e.classList.toggle('selected',j===i));
+  $('selectedLabel').textContent = `${selected.id} • ${selected.name} • ${selected.type}`;
+  $('bid').value = selected.ask.toFixed(1);
+  $('ltv').value = Math.min(selected.maxltv,0.60)*100;
+  $('growth').value = '2.0';
+  $('exitcap').value = (selected.cap*100).toFixed(2);
+  $('underwrite').classList.add('hidden');
+  $('result').classList.add('hidden');
+}
+
+function calculate() {
+  if(!selected) { alert('Select a deal first.'); return null; }
+  const buy=$('decision').value==='BUY';
+  const bid=Math.max(0,Number($('bid').value)||0);
+  const ltv=Math.min(selected.maxltv,Math.max(0,(Number($('ltv').value)||0)/100));
+  const growth=(Number($('growth').value)||0)/100;
+  const exitCap=Math.max(0.001,(Number($('exitcap').value)||0)/100);
+  const debt=buy?bid*ltv:0, equity=buy?bid-debt:0;
+  const ds=buy?payment(debt,selected.debt, selected.type==='Multifamily'?30:25):0;
+  const dscr=buy&&ds>0?selected.noi/ds:0;
+  const pnoi=selected.noi*(1+growth);
+  const pval=pnoi/exitCap;
+  const cash=buy?pnoi-ds:0;
+  const eqVal=buy?pval-debt:0;
+  const ret=buy&&equity>0?(eqVal+cash-equity)/equity:0;
+  calc={buy,bid,ltv,growth,exitCap,debt,equity,ds,dscr,pnoi,pval,cash,eqVal,ret};
+  $('eq').textContent=money(equity);
+  $('ds').textContent=money(ds);
+  $('dscr').textContent=dscr.toFixed(2)+'x';
+  $('pnoi').textContent=money(pnoi);
+  $('pval').textContent=money(pval);
+  $('pret').textContent=pct(ret);
+  $('pret').className = ret>=0 ? 'green' : 'red';
+  $('underwrite').classList.remove('hidden');
+  return calc;
+}
+
+function reveal() {
+  const c=calculate(); if(!c) return;
+  const scenario=$('scenario').value;
+  const [g,capShift]=scenarios[scenario][selected.type];
+  const actualNoi=selected.noi*(1+g);
+  const actualCap=Math.max(.001,selected.cap+capShift);
+  const actualVal=actualNoi/actualCap;
+  const unlev=(actualVal+actualNoi-selected.ask)/selected.ask;
+  let actualRet=0;
+  if(c.buy && c.equity>0) {
+    const cash=actualNoi-c.ds;
+    const eqVal=actualVal-c.debt;
+    actualRet=(eqVal+cash-c.equity)/c.equity;
+  }
+  const ferr=Math.abs(c.pval-actualVal)/actualVal;
+  const hurdle=.08;
+  let decisionScore;
+  if(c.buy) {
+    decisionScore=Math.max(0,Math.min(100,60*(actualRet+.20)/.40 + 40*Math.min(1,c.dscr/1.5)));
+  } else {
+    decisionScore=unlev<hurdle?80:35;
+  }
+  const forecastScore=Math.max(0,100*(1-Math.min(1,ferr)));
+  const riskScore=c.buy?Math.min(100,(c.dscr/1.2)*80):80;
+  const total=.55*decisionScore+.30*forecastScore+.15*riskScore;
+  $('score').textContent=total.toFixed(1);
+  $('score').className='score '+(total>=75?'green':total>=55?'gold':'red');
+  $('agrowth').textContent=pct(g);
+  $('acap').textContent=pct(actualCap);
+  $('aval').textContent=money(actualVal);
+  $('aret').textContent=c.buy?pct(actualRet):'PASS';
+  $('ferr').textContent=pct(ferr);
+  $('dscore').textContent=decisionScore.toFixed(1)+'/100';
+  $('resultText').textContent = c.buy
+    ? `You bought ${selected.name} in the ${scenario} scenario. The scoring separates realized return from forecast accuracy and leverage discipline so pure risk-taking does not automatically win.`
+    : `You passed on ${selected.name}. Its unlevered one-year deal return was ${pct(unlev)} versus the 8.0% hurdle; passing is rewarded when the underlying opportunity fails the hurdle.`;
+  $('result').classList.remove('hidden');
+}
+
+$('calcBtn').addEventListener('click',calculate);
+$('revealBtn').addEventListener('click',reveal);
+$('passBtn').addEventListener('click',()=>{ if(selected) selectDeal(deals.indexOf(selected)); });
+renderDeals();
+selectDeal(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Scoring weights. Must sum to 1.0.
+weights:
+  financial: 0.35
+  forecast: 0.25
+  risk: 0.15
+  decision: 0.15
+  process: 0.10
+
+# Decision quality thresholds
+hurdle_rate: 0.08
+risk_dscr_floor: 1.2
+portfolio_max_ltv: 0.70
+portfolio_min_dscr: 1.20
+
+# Concentration limits (share of portfolio value by type/submarket)
+max_type_concentration: 0.45
+max_submarket_concentration: 0.40
+
+# Forecast accuracy targets
+value_mape_cap: 0.50  # extreme errors clipped for scoring stability

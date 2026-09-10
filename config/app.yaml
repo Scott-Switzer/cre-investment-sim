@@ -1,0 +1,21 @@
+# App configuration
+app:
+  title: "REAL 605 — CRE Investment Committee Simulation"
+  header: "Chapman University · REAL 605 Real Estate Analytics · Prof. Tim Frenzel"
+  decision_date: "2024-03-31"
+  available_capital_mm: 150.0
+  starting_portfolio:
+    cash_mm: 150.0
+    assets: []
+  mandate:
+    required_return: 0.08
+    max_ltv: 0.70
+    min_dscr: 1.20
+    max_type_concentration: 0.45
+    max_submarket_concentration: 0.40
+  property_count_target: 30
+
+# Provenance defaults
+provenance:
+  app_vendor: "Chapman REAL 605 Simulation (semipsynthetic teaching app)"
+  app_url: "https://github.com/chapman-real605/cre-sim"

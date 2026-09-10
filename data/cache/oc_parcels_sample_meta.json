@@ -1,0 +1,1 @@
+{"source":"OC GIS Parcels FeatureServer/0","count":702999,"fields":"OBJECTID,ASSESSMENT_NO,SITE_ADDRESS,YEAR_BUILT,NBR_BEDROOMS,Shape__Area","note":"Live sample not cached in this MVP; available on demand from OC GIS REST."}
