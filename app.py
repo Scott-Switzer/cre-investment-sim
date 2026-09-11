@@ -492,7 +492,7 @@ def create_game_teams() -> GameManager:
                 target_ltv=float(row["target_ltv"]),
                 model_name=bot_name + " Model",
                 confidence=float(row["confidence"]),
-                predicted_exit_cap=float(row["predicted_exit_cap"]),
+                predicted_exit_cap=float(row["predicted_exit_cap"]) if "predicted_exit_cap" in row else None,
             )
         gm.add_team(bot_name, bot_name, mp)
 
