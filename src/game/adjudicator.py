@@ -531,6 +531,21 @@ class Adjudicator:
         for prop_id, prop_market in properties.items():
             prop_bids = [b for b in bids if b.property_id == prop_id]
             auction_result = self.resolve_auction(prop_id, prop_bids, prop_market, teams)
+            
+            # Practice rounds don't actually award properties
+            # Keep the auction results for UI display but mark as unsold
+            if is_practice:
+                auction_result = type(auction_result)(
+                    property_id=auction_result.property_id,
+                    winning_team_id=None,
+                    winning_bid=None,
+                    winning_ltv=None,
+                    all_bids=auction_result.all_bids,
+                    reserve_price=auction_result.reserve_price,
+                    sold=False,
+                    reason="Practice round — no actual transactions",
+                )
+            
             auction_results[prop_id] = auction_result
             
             # Generate property outcome
@@ -572,11 +587,12 @@ class Adjudicator:
                     for prop_id, auction_result in auction_results.items():
                         if (auction_result.sold and 
                             auction_result.winning_team_id == team_id and 
-                            prop_id in properties):
+                            prop_id in properties and
+                            auction_result.winning_ltv is not None):
                             eq = auction_result.winning_bid * (1 - auction_result.winning_ltv)
                             if equity_deducted + eq > team.cash:
                                 wins_to_unsell.append(prop_id)
-                        if prop_id not in wins_to_unsell:
+                        if prop_id not in wins_to_unsell and auction_result.winning_ltv is not None:
                             equity_deducted += auction_result.winning_bid * (1 - auction_result.winning_ltv)
 
                     for unsold_prop in wins_to_unsell:
