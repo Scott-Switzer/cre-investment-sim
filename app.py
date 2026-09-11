@@ -585,14 +585,23 @@ if not st.session_state.game_started:
     st.markdown('<div class="subsection-header">Investment Policy</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        edge = st.number_input("Min model edge to bid", min_value=0.0, max_value=0.20,
-                                value=0.03, step=0.01, format="%.0f%%", key="strat_edge")
+        edge_pct = st.number_input(
+            "Minimum model edge to bid (%)",
+            min_value=0.0, max_value=20.0,
+            value=3.0, step=0.5, format="%0.1f", key="strat_edge_pct")
+        edge = edge_pct / 100.0
     with c2:
-        max_ltv = st.number_input("Max LTV", min_value=0.0, max_value=0.90,
-                                   value=0.70, step=0.05, format="%.0f%%", key="strat_ltv")
+        ltv_pct = st.number_input(
+            "Maximum LTV (%)",
+            min_value=0.0, max_value=90.0,
+            value=70.0, step=5.0, format="%0.0f", key="strat_ltv_pct")
+        max_ltv = ltv_pct / 100.0
     with c3:
-        max_eq = st.number_input("Max equity in one property", min_value=0.0, max_value=1.0,
-                                  value=0.30, step=0.05, format="%.0f%%", key="strat_eq")
+        max_eq = st.number_input(
+            "Max equity in one property (%)",
+            min_value=0.0, max_value=100.0,
+            value=30.0, step=5.0, format="%0.0f", key="strat_eq_pct")
+        max_eq = max_eq / 100.0
     with c4:
         divers = st.selectbox("Diversification", ["None", "Max 1 per type", "Max 1 per submarket"],
                                index=0, key="strat_div")
@@ -1115,7 +1124,15 @@ else:
     else:
         st.info("Game in progress. Return to the main page for status.")
 
-# ── SIDEBAR ──
+# ── HIDE SIDEBAR DURING GAME ──
+if st.session_state.game_started:
+    st.markdown("""
+    <style>
+    [data-testid="stSidebar"] { display: none !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ── SIDEBAR (pre-game only) ──
 with st.sidebar:
     st.markdown('<div class="page-header" style="border-bottom:1px solid #e2e8f0;margin-bottom:12px;padding:8px 0 4px 0;">'
                 '<h1 style="font-size:1.1em;">CRE Investment Committee</h1>'
