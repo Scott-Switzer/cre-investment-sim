@@ -1,5 +1,5 @@
 """
-REAL 605 CRE Investment Committee Simulation — Game UI
+REAL 605 CRE Investment Committee Simulation — Institutional Edition
 """
 from __future__ import annotations
 
@@ -13,295 +13,423 @@ from src.simulation.engine import SCENARIOS
 from src.game.manager import GameManager, GameConfig
 from src.game.adjudicator import RoundState, Bid, ModelPrediction
 
-# ─── GLOBAL GAME STYLES ────────────────────────────────────────────────
-GAME_CSS = """
+
+# ── INSTITUTIONAL CRE STYLE — projector-optimized ──
+CRE_CSS = """
 <style>
-/* Game-style theme */
+/* Reset and base */
 :root {
-    --game-bg: #0a0e17;
-    --game-card: #111827;
-    --game-border: #1e293b;
-    --game-accent: #3b82f6;
-    --game-success: #10b981;
-    --game-warning: #f59e0b;
-    --game-danger: #ef4444;
-    --game-text: #f1f5f9;
-    --game-muted: #94a3b8;
+    --navy: #1a365d;
+    --navy-light: #2c5282;
+    --charcoal: #2d3748;
+    --gray-700: #4a5568;
+    --gray-500: #718096;
+    --gray-400: #a0aec0;
+    --gray-300: #cbd5e0;
+    --gray-200: #e2e8f0;
+    --gray-100: #edf2f7;
+    --gray-50: #f7fafc;
+    --white: #ffffff;
+    --green: #276749;
+    --green-bg: #f0fff4;
+    --red: #9b2c2c;
+    --red-bg: #fff5f5;
+    --amber: #975a16;
+    --amber-bg: #fffff0;
+    --blue: #2b6cb0;
+    --blue-bg: #ebf8ff;
 }
 
-/* Override Streamlit defaults */
 .stApp {
-    background: var(--game-bg);
-    color: var(--game-text);
+    background: var(--gray-50);
+    color: var(--charcoal);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.stApp > header,
-.stApp > footer {
-    background: var(--game-card) !important;
-    border-bottom: 1px solid var(--game-border);
+.stApp > header {
+    background: var(--white) !important;
+    border-bottom: 2px solid var(--navy) !important;
 }
 
-/* Game header */
-.game-header {
-    text-align: center;
-    padding: 20px 0;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    border-radius: 12px;
+/* Page header */
+.page-header {
+    padding: 16px 0 12px 0;
+    border-bottom: 1px solid var(--gray-200);
     margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
-
-.game-header h1 {
-    color: white;
+.page-header h1 {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 2px 0;
+    letter-spacing: -0.02em;
+}
+.page-header p {
+    font-size: 0.9em;
+    color: var(--gray-500);
     margin: 0;
-    font-size: 2.5em;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
-.game-header h2 {
-    color: #dbeafe;
-    margin: 10px 0 0 0;
-    font-size: 1.2em;
-    font-weight: 300;
+/* Status bar */
+.status-bar {
+    display: flex;
+    gap: 16px;
+    padding: 10px 14px;
+    background: var(--navy);
+    color: var(--white);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-size: 0.85em;
+    flex-wrap: wrap;
+}
+.status-bar .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.status-bar .status-label {
+    color: #a0aec0;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    letter-spacing: 0.05em;
+}
+.status-bar .status-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Round badge */
-.round-badge {
-    display: inline-block;
-    background: var(--game-accent);
-    color: white;
-    padding: 8px 24px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 1.1em;
-    margin: 10px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+/* Section headers */
+.section-header {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 4px;
+    margin: 24px 0 12px 0;
+}
+.subsection-header {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--charcoal);
+    margin: 16px 0 6px 0;
 }
 
-/* Game cards */
-.game-card {
-    background: var(--game-card);
-    border: 1px solid var(--game-border);
-    border-radius: 8px;
-    padding: 16px;
-    margin: 10px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+/* Model locked badge */
+.model-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 8px 0;
 }
 
-/* Stats grid */
-.stats-grid {
+/* Info panels */
+.info-panel {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+    padding: 14px;
+    margin: 8px 0;
+}
+.info-panel.market { border-left: 3px solid var(--gray-500); }
+.info-panel.model { border-left: 3px solid var(--blue); }
+.info-panel.decision { border-left: 3px solid var(--navy); }
+
+.info-panel h4 {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500);
+    margin: 0 0 8px 0;
+}
+.info-panel.model h4 { color: var(--blue); }
+.info-panel.decision h4 { color: var(--navy); }
+
+/* Data grid */
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.85em;
+}
+.data-row:last-child { border-bottom: none; }
+.data-label { color: var(--gray-700); }
+.data-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.data-value.positive { color: var(--green); }
+.data-value.negative { color: var(--red); }
+.data-value.neutral { color: var(--charcoal); }
+
+/* Strategy brief */
+.strategy-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin: 20px 0;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin: 12px 0;
+}
+.strategy-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+    padding: 12px;
+}
+.strategy-card h4 {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500);
+    margin: 0 0 6px 0;
+}
+.strategy-card .value {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--navy);
+}
+.strategy-card .detail {
+    font-size: 0.8em;
+    color: var(--gray-500);
+    margin-top: 2px;
 }
 
-.stat-item {
-    background: var(--game-card);
-    border: 1px solid var(--game-border);
-    border-radius: 8px;
-    padding: 12px;
+/* Deal board table */
+.deal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8em;
+    margin: 8px 0;
+}
+.deal-table th {
+    background: var(--gray-100);
+    color: var(--charcoal);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7em;
+    letter-spacing: 0.04em;
+    padding: 8px 6px;
+    border: 1px solid var(--gray-300);
     text-align: center;
 }
-
-.stat-value {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--game-accent);
+.deal-table td {
+    padding: 8px 6px;
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
 }
-
-.stat-label {
-    font-size: 0.9em;
-    color: var(--game-muted);
-    margin-top: 4px;
+.deal-table .property-name {
+    text-align: left;
+    font-weight: 600;
+    color: var(--navy);
+    min-width: 160px;
 }
+.deal-table .section-market { background: var(--gray-50); }
+.deal-table .section-model { background: #ebf8ff; }
+.deal-table .section-decision { background: var(--gray-50); }
 
-/* Property cards */
-.property-card {
-    background: var(--game-card);
-    border: 2px solid var(--game-border);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 15px 0;
-    transition: all 0.3s ease;
+/* Capital panel */
+.capital-panel {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+    padding: 14px;
 }
-
-.property-card:hover {
-    border-color: var(--game-accent);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+.capital-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.85em;
 }
-
-.property-card.possible-buy {
-    border-color: var(--game-success);
-}
-
-.property-card.overpriced {
-    border-color: var(--game-danger);
-}
+.capital-item:last-child { border-bottom: none; }
+.capital-item .label { color: var(--gray-500); }
+.capital-item .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.capital-item .value.warning { color: var(--amber); }
+.capital-item .value.danger { color: var(--red); }
 
 /* Buttons */
 .stButton > button {
-    background: var(--game-accent) !important;
-    color: white !important;
+    background: var(--navy) !important;
+    color: var(--white) !important;
     border: none !important;
-    border-radius: 8px !important;
-    padding: 12px 24px !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-size: 0.9em !important;
 }
-
 .stButton > button:hover {
-    background: #2563eb !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(59,130,246,0.4);
+    background: var(--navy-light) !important;
+}
+.stButton > button[data-testid="stBaseButton-secondary"] {
+    background: var(--gray-200) !important;
+    color: var(--charcoal) !important;
 }
 
-.stButton > button[data-testid="stBaseButton-secondary"] {
-    background: var(--game-muted) !important;
+/* Metrics */
+.stMetric > div > div:first-child {
+    color: var(--gray-500) !important;
+    font-size: 0.8em !important;
+}
+.stMetric > div > div:nth-child(2) {
+    color: var(--charcoal) !important;
+    font-size: 1.2em !important;
 }
 
 /* Tables */
 .stDataFrame {
-    background: var(--game-card);
-    border-radius: 8px;
-    border: 1px solid var(--game-border);
+    border: 1px solid var(--gray-200) !important;
+    border-radius: 4px !important;
+}
+.stDataFrame > div:first-child {
+    border: none !important;
 }
 
-/* Metrics */
-.stMetric {
-    background: var(--game-card);
-    border-radius: 8px;
+/* Leaderboard */
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+.leaderboard-table th {
+    background: var(--navy);
+    color: var(--white);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7em;
+    letter-spacing: 0.04em;
+    padding: 8px 10px;
+    border: none;
+    text-align: center;
+}
+.leaderboard-table th:first-child { text-align: center; width: 50px; }
+.leaderboard-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--gray-200);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.leaderboard-table td:first-child { font-weight: 700; }
+.leaderboard-table tr:nth-child(even) { background: var(--gray-50); }
+.leaderboard-table tr:nth-child(1) { background: #fefce8; }
+.leaderboard-table tr:nth-child(1) td { font-weight: 700; }
+
+/* Debrief sections */
+.debrief-section {
+    margin: 16px 0;
+}
+.debrief-section h4 {
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin: 0 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+/* Reflection */
+.reflection-box {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+/* Interpretation */
+.interpretation {
+    background: var(--blue-bg);
+    border: 1px solid #90cdf4;
+    border-radius: 4px;
     padding: 12px;
-    border: 1px solid var(--game-border);
+    margin: 12px 0;
+    font-size: 0.85em;
+    color: var(--blue);
+}
+
+/* Decision ticket */
+.decision-ticket {
+    background: var(--white);
+    border: 2px solid var(--navy);
+    border-radius: 4px;
+    padding: 14px;
+    margin: 8px 0;
+}
+.decision-ticket .ticket-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.85em;
+}
+.decision-ticket .ticket-label { color: var(--gray-500); }
+.decision-ticket .ticket-value { font-weight: 600; }
+
+/* Market summary */
+.market-summary {
+    background: var(--gray-100);
+    border-left: 3px solid var(--gray-500);
+    padding: 12px;
+    margin: 12px 0;
+    font-size: 0.9em;
+    color: var(--charcoal);
+    border-radius: 0 4px 4px 0;
+}
+
+/* Override indicator */
+.override-positive { color: var(--green); }
+.override-negative { color: var(--red); }
+
+/* Round badge */
+.round-badge {
+    display: inline-block;
+    background: var(--navy);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background: var(--game-card) !important;
+    background: var(--white) !important;
+    border-right: 1px solid var(--gray-200);
 }
 
-[data-testid="stSidebar"] .stButton > button {
-    width: 100% !important;
-}
-
-/* Progress bars */
-.stProgress > div > div {
-    background: var(--game-accent) !important;
-}
-
-/* Custom components */
-.bronze-medal { color: #cd7f32; }
-.silver-medal { color: #c0c0c0; }
-.gold-medal { color: #ffd700; }
-
-/* Animations */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.pulse {
-    animation: pulse 2s infinite;
-}
-
-/* Leaderboard styling */
-.leaderboard-entry {
-    background: var(--game-card);
-    border: 1px solid var(--game-border);
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.leaderboard-entry.rank-1 {
-    border-color: #ffd700;
-    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-}
-
-.leaderboard-entry.rank-2 {
-    border-color: #c0c0c0;
-}
-
-.leaderboard-entry.rank-3 {
-    border-color: #cd7f32;
-}
-
-/* Debrief sections */
-.debrief-section {
-    background: var(--game-card);
-    border-left: 4px solid var(--game-accent);
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 0 8px 8px 0;
-}
-
-/* Game log */
-.game-log {
-    background: #0f172a;
-    border: 1px solid var(--game-border);
-    border-radius: 8px;
-    padding: 15px;
-    font-family: monospace;
-    font-size: 0.9em;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.game-log-entry {
-    padding: 5px 0;
-    border-bottom: 1px solid var(--game-border);
-}
-
-.game-log-entry:last-child {
-    border-bottom: none;
-}
-
-/* Loading animation */
-.loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-}
-
-.loading-spinner::before {
-    content: '';
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--game-border);
-    border-top: 4px solid var(--game-accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* Expander */
+.stExpander {
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
 }
 </style>
 """
 
-# ─── APP CONFIG ────────────────────────────────────────────────────────
+# ── APP CONFIG ──
 st.set_page_config(
-    page_title="CRE Investment Game",
-    page_icon="🏢",
+    page_title="CRE Investment Committee",
+    page_icon="\U0001f3e2",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
-
-st.markdown(GAME_CSS, unsafe_allow_html=True)
+st.markdown(CRE_CSS, unsafe_allow_html=True)
 
 APP_CFG = load_app_config()
 DECISION_DATE = date.fromisoformat(APP_CFG.get("app", {}).get("decision_date", "2024-03-31"))
 AVAILABLE_CAPITAL = APP_CFG.get("app", {}).get("available_capital_mm", 150.0)
 
-# ─── SESSION STATE MANAGEMENT ─────────────────────────────────────────
+# ── SESSION STATE ──
 if "game_manager" not in st.session_state:
     st.session_state.game_manager = None
 if "current_team" not in st.session_state:
@@ -311,22 +439,28 @@ if "game_started" not in st.session_state:
 if "game_complete" not in st.session_state:
     st.session_state.game_complete = False
 if "demo_mode" not in st.session_state:
-    st.session_state.demo_mode = True  # Default to demo mode
-if "game_log" not in st.session_state:
-    st.session_state.game_log = []
+    st.session_state.demo_mode = False
+if "model_locked" not in st.session_state:
+    st.session_state.model_locked = False
+if "model_timestamp" not in st.session_state:
+    st.session_state.model_timestamp = None
+if "strategy" not in st.session_state:
+    st.session_state.strategy = {
+        "min_edge": 0.03,
+        "max_ltv": 0.70,
+        "max_equity_single": 0.30,
+        "diversification": "none",
+    }
+if "round_reflection" not in st.session_state:
+    st.session_state.round_reflection = {}
+if "practice_complete" not in st.session_state:
+    st.session_state.practice_complete = False
+if "round_decision" not in st.session_state:
+    st.session_state.round_decision = {}
+if "capital_panel_state" not in st.session_state:
+    st.session_state.capital_panel_state = {}
 
-# ─── UTILITY FUNCTIONS ────────────────────────────────────────────────
-def add_game_log(message: str, level: str = "info"):
-    """Add entry to game log."""
-    st.session_state.game_log.append({
-        "message": message,
-        "level": level,
-        "time": time.strftime("%H:%M:%S")
-    })
-    # Keep only last 100 entries
-    if len(st.session_state.game_log) > 100:
-        st.session_state.game_log = st.session_state.game_log[-100:]
-
+# ── HELPERS ──
 def create_game_teams() -> GameManager:
     """Create game with 3 bot competitors."""
     config = GameConfig(
@@ -338,14 +472,11 @@ def create_game_teams() -> GameManager:
         scenario="Base Case",
     )
     gm = GameManager(config)
-    
-    # Add human player
     gm.add_team("Buy&Hold Capital", "Buy&Hold Capital")
-    
-    # Add demo teams (bots)
+
     from scripts.create_demo_teams import create_demo_teams
     demo_preds = create_demo_teams(seed=20240331, count=120)
-    
+
     bot_names = ["Value Fund", "Growth Fund", "Risk Fund"]
     for i, (bot_name, pred_df) in enumerate(demo_preds.items()):
         if i >= 3:
@@ -364,328 +495,651 @@ def create_game_teams() -> GameManager:
                 predicted_exit_cap=float(row["predicted_exit_cap"]),
             )
         gm.add_team(bot_name, bot_name, mp)
-    
+
     return gm
 
-def show_game_header(title: str, subtitle: str = ""):
-    """Display game-style header."""
-    st.markdown(f'''
-    <div class="game-header">
-        <h1>🏢 {title}</h1>
-        {f'<h2>{subtitle}</h2>' if subtitle else ''}
-    </div>
-    ''', unsafe_allow_html=True)
 
-def show_stats_grid(stats: dict):
-    """Display stats in a grid."""
-    cols = st.columns(len(stats))
-    for i, (label, value) in enumerate(stats.items()):
-        with cols[i]:
-            st.markdown(f'''
-            <div class="stat-item">
-                <div class="stat-value">{value}</div>
-                <div class="stat-label">{label}</div>
-            </div>
-            ''', unsafe_allow_html=True)
-
-# ─── MAIN APP LOGIC ──────────────────────────────────────────────────
-# Check if we're in game mode
-if st.session_state.game_started and st.session_state.game_manager:
-    gm = st.session_state.game_manager
-    team_name = st.session_state.current_team or "Buy&Hold Capital"
+def get_team_data(gm: GameManager, team_name: str):
+    """Get team state and model predictions."""
     team_state = gm.teams.get(team_name)
-    
-    # Show game header
-    show_game_header("CRE Investment Committee", "Real Estate Analytics Simulation")
-    
-    # Game status bar
-    status_cols = st.columns(5)
-    with status_cols[0]:
-        st.markdown(f'<div class="round-badge">ROUND {gm.current_round + 1 if gm.current_round >= 0 else "PRACTICE"}</div>', unsafe_allow_html=True)
-    with status_cols[1]:
-        st.metric("Cash", f"${team_state.cash:.1f}M" if team_state else "$100M")
-    with status_cols[2]:
-        st.metric("NAV", f"${team_state.nav:.1f}M" if team_state else "$100M")
-    with status_cols[3]:
-        st.metric("Properties", len(team_state.properties) if team_state else 0)
-    with status_cols[4]:
-        st.metric("Debt", f"${team_state.debt:.1f}M" if team_state else "$0M")
-    
-    st.markdown("---")
-    
-    # Game state handling
-    if gm.game_complete:
-        # Show final results
-        st.markdown('<div class="game-header"><h1>🏆 GAME COMPLETE</h1></div>', unsafe_allow_html=True)
-        
-        # Final standings
-        leaderboard = gm.get_leaderboard()
-        if leaderboard:
-            st.subheader("🏆 Final Standings")
-            for i, entry in enumerate(leaderboard[:5]):
-                medal = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i]
-                st.markdown(f'''
-                <div class="leaderboard-entry rank-{i+1}">
-                    <div>
-                        <strong>{medal} {entry["team_name"]}</strong>
-                    </div>
-                    <div>
-                        <strong>${entry["nav"]:.2f}M NAV</strong>
-                        <span style="color: #94a3b8"> ({entry["cumulative_return"]:.1%})</span>
-                    </div>
-                </div>
-                ''', unsafe_allow_html=True)
-            
-            # Play again button
-            if st.button("🔄 PLAY AGAIN", type="primary", use_container_width=True):
-                st.session_state.game_manager = None
-                st.session_state.game_started = False
-                st.session_state.game_complete = False
-                st.session_state.game_log = []
-                st.rerun()
-        
-        # Show game log
-        with st.expander("📋 Game Log", expanded=False):
-            for entry in st.session_state.game_log[-20:]:
-                st.text(f"[{entry['time']}] {entry['message']}")
-    
-    elif gm.round_state == RoundState.OPEN:
-        # Show bidding interface
-        st.markdown('<div class="round-badge">⚡ SUBMISSIONS OPEN</div>', unsafe_allow_html=True)
-        st.caption("Make your investment decisions below")
-        
-        # Show current properties
-        st.subheader("🏢 Available Properties")
-        
-        for prop_id, prop in gm.current_properties.items():
-            with st.container():
-                st.markdown(f'''
-                <div class="property-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h3>{prop.property_name}</h3>
-                            <p style="color: #94a3b8;">{prop.property_type} · {prop.submarket}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.2em; font-weight: bold; color: #3b82f6;">${prop.asking_price:.1f}M</div>
-                            <div style="color: #94a3b8;">Cap Rate: {prop.current_cap:.1%}</div>
-                        </div>
-                    </div>
-                </div>
-                ''', unsafe_allow_html=True)
-            
-            # Decision controls
-            col1, col2 = st.columns([1, 2])
-            with col1:
-                decision = st.radio(
-                    "Your Decision",
-                    ["PASS", "BID"],
-                    key=f"dec_{prop_id}",
-                    horizontal=True
-                )
-            
-            if decision == "BID":
-                col_bid, col_ltv = st.columns(2)
-                with col_bid:
-                    bid_price = st.number_input(
-                        "Bid Price ($M)",
-                        min_value=0.0,
-                        max_value=prop.asking_price * 1.2,
-                        value=float(prop.asking_price * 0.95),
-                        step=0.5,
-                        format="%.1f",
-                        key=f"bid_{prop_id}"
-                    )
-                with col_ltv:
-                    bid_ltv = st.number_input(
-                        "LTV",
-                        min_value=0.0,
-                        max_value=prop.max_ltv,
-                        value=0.60,
-                        step=0.05,
-                        format="%.2f",
-                        key=f"ltv_{prop_id}"
-                    )
-            
-            # Show equity requirement
-            if decision == "BID":
-                bid_price_val = float(st.session_state.get(f"bid_{prop_id}", prop.asking_price))
-                bid_ltv_val = float(st.session_state.get(f"ltv_{prop_id}", 0.6))
-                eq_required = bid_price_val * (1 - bid_ltv_val)
-                if team_state and eq_required > team_state.cash:
-                    st.error(f"❌ Insufficient equity: need ${eq_required:.1f}M, have ${team_state.cash:.1f}M")
-                else:
-                    st.success(f"✅ Equity required: ${eq_required:.1f}M")
-        
-        # Submit button
-        if st.button("🔒 SUBMIT ALL DECISIONS", type="primary", use_container_width=True):
-            submitted = []
-            for prop_id in gm.current_properties.keys():
-                decision = st.session_state.get(f"dec_{prop_id}", "PASS")
-                if decision == "BID":
-                    bid = Bid(
-                        team_id=team_name,
-                        property_id=prop_id,
-                        bid_price=float(st.session_state.get(f"bid_{prop_id}", 0)),
-                        ltv=float(st.session_state.get(f"ltv_{prop_id}", 0.6)),
-                        round_number=gm.current_round,
-                        timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
-                        confidence=0.8,
-                    )
-                    try:
-                        gm.submit_bid(bid)
-                        submitted.append(prop_id)
-                    except ValueError as e:
-                        st.error(f"❌ {prop_id}: {e}")
-            
-            if submitted:
-                st.success(f"✅ {len(submitted)} decision(s) locked!")
-                add_game_log(f"Submitted {len(submitted)} bids")
-                st.rerun()
-    
-    elif gm.round_state == RoundState.LOCKED:
-        # Show locked state
-        st.markdown('<div class="game-header"><h1>🔒 ROUNDS LOCKED</h1></div>', unsafe_allow_html=True)
-        st.info("Decisions are locked. Waiting for market close...")
-        
-        # Show submitted bids
-        st.subheader("📝 Your Decisions")
-        submitted = [b for b in gm.submitted_bids if b.team_id == team_name]
-        if submitted:
-            for bid in submitted:
-                st.markdown(f'''
-                <div class="game-card">
-                    <strong>{bid.property_id}</strong> · 
-                    Bid: <span style="color: #3b82f6;">${bid.bid_price:.1f}M</span> · 
-                    LTV: {bid.ltv:.0%}
-                </div>
-                ''', unsafe_allow_html=True)
-        
-        # Auto-advance button for demo mode
-        if st.session_state.demo_mode:
-            if st.button("▶️ RESOLVE ROUND", type="primary", use_container_width=True):
-                try:
-                    result = gm.resolve_round()
-                    st.session_state.last_round_result = result
-                    add_game_log(f"Round resolved: {len(result.auction_results)} properties")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Resolve failed: {e}")
-    
-    elif gm.round_state == RoundState.RESOLVED:
-        # Show results
-        st.markdown('<div class="game-header"><h1>📊 ROUND RESULTS</h1></div>', unsafe_allow_html=True)
-        
-        result = gm.current_round_result
-        if result:
-            st.subheader("🏆 Auction Results")
-            for prop_id, auction in result.auction_results.items():
-                if auction.sold:
-                    if auction.winning_team_id == team_name:
-                        st.success(f"🎉 You won {prop_id} for ${auction.winning_bid:.1f}M")
-                    else:
-                        st.info(f"Sold to {auction.winning_team_id} for ${auction.winning_bid:.1f}M")
-                else:
-                    st.warning(f"Not sold (reserve: ${auction.reserve_price:.1f}M)")
-            
-            # Portfolio update
-            if team_state:
-                st.subheader("💼 Your Portfolio")
-                if team_state.properties:
-                    for prop_id, holding in team_state.properties.items():
-                        st.markdown(f'''
-                        <div class="game-card">
-                            <strong>{prop_id}</strong> · 
-                            Purchase: <span style="color: #3b82f6;">${holding.purchase_price:.1f}M</span> · 
-                            Current: <span style="color: #10b981;">${holding.current_value:.1f}M</span>
-                        </div>
-                        ''', unsafe_allow_html=True)
-                else:
-                    st.info("No properties acquired yet.")
-        
-        # Continue button
-        if st.button("▶️ CONTINUE TO NEXT ROUND", type="primary", use_container_width=True):
-            try:
-                gm.advance_round()
-                add_game_log("Advanced to next round")
-                st.rerun()
-            except RuntimeError as e:
-                st.error(f"Advance failed: {e}")
-    
-    else:
-        # Not started state
-        st.markdown('<div class="game-header"><h1>🏢 READY TO PLAY</h1></div>', unsafe_allow_html=True)
-        st.info("Click 'Start Practice Round' to begin the simulation.")
-        
-        if st.button("🚀 START PRACTICE ROUND", type="primary", use_container_width=True):
-            gm.start_game()
-            st.session_state.game_started = True
-            add_game_log("Practice round started")
-            st.rerun()
+    predictions = team_state.predictions if team_state else {}
+    return team_state, predictions
 
-# ─── GAME START SCREEN ───────────────────────────────────────────────
-else:
-    show_game_header("CRE Investment Committee", "Real Estate Analytics Simulation")
-    
-    st.markdown('''
-    <div class="debrief-section">
-        <h3>🎯 Mission</h3>
-        <p>Build the best real estate portfolio through 4 rounds of strategic investing. 
-        Analyze properties, make bids, and outperform 3 automated fund managers.</p>
-        
-        <h3>📊 How to Play</h3>
-        <ol>
-            <li><strong>Practice Round:</strong> Learn the interface (non-scored)</li>
-            <li><strong>Rounds 1-4:</strong> Bid on commercial properties</li>
-            <li><strong>Winning:</strong> Highest valid bid wins each property</li>
-            <li><strong>Scoring:</strong> Final NAV determines your rank</li>
-        </ol>
-        
-        <h3>🤖 Competitors</h3>
-        <ul>
-            <li><strong>Value Fund:</strong> Disciplined, value-focused bidding</li>
-            <li><strong>Growth Fund:</strong> Aggressive, growth-oriented bidding</li>
-            <li><strong>Risk Fund:</strong> Conservative, risk-averse bidding</li>
-        </ul>
+
+def fmt_currency(val: float, precision: int = 1) -> str:
+    return f"${val:,.{precision}f}M"
+
+
+def fmt_pct(val: float) -> str:
+    return f"{val:.1%}"
+
+
+def fmt_delta(val: float) -> str:
+    sign = "+" if val >= 0 else ""
+    return f"{sign}${val:.1f}M"
+
+
+def round_interpretation(prop_name: str, your_bid: float, model_max: float,
+                          market_value: float, won: bool) -> str:
+    """Deterministic interpretation of round outcome."""
+    parts = []
+    if won:
+        override = your_bid - model_max
+        if abs(override) < 0.5:
+            parts.append(f"You followed your model closely on {prop_name}.")
+        elif override > 0:
+            parts.append(f"You paid {fmt_delta(override)} above your model's max bid on {prop_name}.")
+        else:
+            parts.append(f"You beat your model's bid by {fmt_delta(override)} on {prop_name}.")
+
+        if market_value and your_bid > market_value:
+            parts.append(f"The market valued the property at {fmt_currency(market_value)}, below your bid of {fmt_currency(your_bid)}.")
+        elif market_value:
+            parts.append(f"The market valued the property at {fmt_currency(market_value)}, above your bid of {fmt_currency(your_bid)}.")
+    else:
+        parts.append(f"You did not win {prop_name}.")
+        if market_value:
+            parts.append(f"The market valued it at {fmt_currency(market_value)}.")
+
+    return ". ".join(parts) + "."
+
+
+# ── MAIN APP LOGIC ──
+
+# Not started
+if not st.session_state.game_started:
+    st.markdown("""
+    <div class="page-header">
+        <h1>CRE Investment Committee</h1>
+        <p>REAL 605 · Chapman University · Prof. Tim Frenzel</p>
     </div>
-    ''', unsafe_allow_html=True)
-    
-    # Start button
-    if st.button("🚀 START SIMULATION", type="primary", use_container_width=True, help="Start the practice round"):
+    """, unsafe_allow_html=True)
+
+    st.markdown(
+        '**Build the best real estate portfolio through four rounds of strategic investing.** '
+        'Analyze properties against your model, allocate capital efficiently, '
+        'and outperform competing fund managers.'
+    )
+
+    st.markdown('<div class="section-header">Strategy Brief</div>', unsafe_allow_html=True)
+
+    cols = st.columns(3)
+    with cols[0]:
+        st.markdown('<div class="strategy-card">'
+                    '<h4>Starting Equity</h4>'
+                    '<div class="value">$100.0M</div>'
+                    '</div>', unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown('<div class="strategy-card">'
+                    '<h4>Competition</h4>'
+                    '<div class="value">3 Funds</div>'
+                    '<div class="detail">Value Fund, Growth Fund, Risk Fund</div>'
+                    '</div>', unsafe_allow_html=True)
+    with cols[2]:
+        st.markdown('<div class="strategy-card">'
+                    '<h4>Rounds</h4>'
+                    '<div class="value">4 + Practice</div>'
+                    '<div class="detail">Rank by final NAV</div>'
+                    '</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="subsection-header">Investment Policy</div>', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        edge = st.number_input("Min model edge to bid", min_value=0.0, max_value=0.20,
+                                value=0.03, step=0.01, format="%.0f%%", key="strat_edge")
+    with c2:
+        max_ltv = st.number_input("Max LTV", min_value=0.0, max_value=0.90,
+                                   value=0.70, step=0.05, format="%.0f%%", key="strat_ltv")
+    with c3:
+        max_eq = st.number_input("Max equity in one property", min_value=0.0, max_value=1.0,
+                                  value=0.30, step=0.05, format="%.0f%%", key="strat_eq")
+    with c4:
+        divers = st.selectbox("Diversification", ["None", "Max 1 per type", "Max 1 per submarket"],
+                               index=0, key="strat_div")
+    st.session_state.strategy = {
+        "min_edge": edge, "max_ltv": max_ltv,
+        "max_equity_single": max_eq, "diversification": divers,
+    }
+
+    st.markdown("---")
+    if st.button("BEGIN PRACTICE ROUND", use_container_width=True, type="primary"):
         gm = create_game_teams()
         st.session_state.game_manager = gm
         st.session_state.current_team = "Buy&Hold Capital"
         st.session_state.game_started = True
-        add_game_log("Simulation initialized with 3 bot competitors")
+        st.session_state.model_locked = True
+        st.session_state.model_timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        st.session_state.practice_complete = False
         st.rerun()
-    
-    # Game log (if any)
-    if st.session_state.game_log:
-        with st.expander("📋 Game Log", expanded=False):
-            for entry in st.session_state.game_log[-10:]:
-                st.text(f"[{entry['time']}] {entry['message']}")
 
-# ─── SIDEBAR ──────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("### 🎮 Game Controls")
-    
-    if st.session_state.game_started:
-        if st.button("🔄 Reset Game", type="secondary"):
+# Started but no GM
+elif st.session_state.game_started and not st.session_state.game_manager:
+    st.error("Game state lost. Please restart.")
+    if st.button("RESTART"):
+        st.session_state.game_started = False
+        st.rerun()
+
+# In game
+else:
+    gm: GameManager = st.session_state.game_manager
+    team_name = st.session_state.current_team or "Buy&Hold Capital"
+    team_state, predictions = get_team_data(gm, team_name)
+
+    # Game complete
+    if gm.game_complete:
+        st.markdown("""
+        <div class="page-header">
+            <h1>Game Complete</h1>
+            <p>Final results and analysis</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        leaderboard = gm.get_leaderboard()
+        if leaderboard:
+            st.markdown('<div class="section-header">Final Standings</div>', unsafe_allow_html=True)
+            st.markdown("""
+            <table class="leaderboard-table">
+                <tr>
+                    <th>Rank</th><th>Fund</th><th>NAV</th><th>Return</th>
+                    <th>Properties</th><th>Cash</th><th>Debt</th>
+                </tr>
+            """, unsafe_allow_html=True)
+            for i, entry in enumerate(leaderboard):
+                st.markdown(
+                    f"<tr>"
+                    f"<td>{i+1}</td>"
+                    f"<td>{entry['team_name']}</td>"
+                    f"<td>${entry['nav']:.2f}M</td>"
+                    f"<td>{entry['cumulative_return']:.1%}</td>"
+                    f"<td>{entry['properties']}</td>"
+                    f"<td>${entry['cash']:.2f}M</td>"
+                    f"<td>${entry['debt']:.2f}M</td>"
+                    f"</tr>", unsafe_allow_html=True)
+            st.markdown("</table>", unsafe_allow_html=True)
+
+        if st.button("PLAY AGAIN", use_container_width=True):
             st.session_state.game_manager = None
             st.session_state.game_started = False
             st.session_state.game_complete = False
-            st.session_state.game_log = []
             st.rerun()
-        
-        if st.button("📊 Leaderboard", use_container_width=True):
-            st.switch_page("pages/leaderboard.py")
-        
-        if st.button("📋 Final Debrief", use_container_width=True):
-            st.switch_page("pages/final_debrief.py")
+
+    # Practice intro
+    elif not st.session_state.practice_complete and (gm.round_state == RoundState.NOT_STARTED or gm.round_state == RoundState.OPEN and gm.current_round == -1):
+        st.markdown("""
+        <div class="page-header">
+            <h1>Practice Round</h1>
+            <p>Guided introduction to the deal board</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div class="model-locked">&#10003; Model locked at ' +
+                    st.session_state.model_timestamp + '</div>', unsafe_allow_html=True)
+
+        prop_list = list(gm.current_properties.items())
+        if not prop_list:
+            gm.start_game()
+            prop_list = list(gm.current_properties.items())
+
+        if prop_list:
+            practice_prop_id, practice_prop = prop_list[0]
+            pred = predictions.get(practice_prop_id)
+
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                st.markdown('<div class="info-panel market">'
+                            '<h4>Market Data</h4>'
+                            '<div class="data-row"><span class="data-label">Asking</span><span class="data-value">'
+                            f'{fmt_currency(practice_prop.asking_price)}</span></div>'
+                            '<div class="data-row"><span class="data-label">Cap Rate</span><span class="data-value">'
+                            f'{fmt_pct(practice_prop.current_cap)}</span></div>'
+                            '<div class="data-row"><span class="data-label">Occupancy</span><span class="data-value">'
+                            f'{fmt_pct(practice_prop.occupancy)}</span></div>'
+                            '</div>', unsafe_allow_html=True)
+            with col2:
+                st.markdown('<div class="info-panel model">'
+                            '<h4>Your Model</h4>'
+                            '<div class="data-row"><span class="data-label">Fair Value</span><span class="data-value">'
+                            f'{fmt_currency(pred.predicted_fair_value) if pred else "N/A"}</span></div>'
+                            '<div class="data-row"><span class="data-label">Model Edge</span><span class="data-value '
+                            f"{'positive' if pred and pred.predicted_fair_value > practice_prop.asking_price else 'negative'}\">"
+                            f'{fmt_delta(pred.predicted_fair_value - practice_prop.asking_price) if pred else "N/A"}</span></div>'
+                            '<div class="data-row"><span class="data-label">Max Bid</span><span class="data-value">'
+                            f'{fmt_currency(pred.max_bid) if pred else "N/A"}</span></div>'
+                            '<div class="data-row"><span class="data-label">Target LTV</span><span class="data-value">'
+                            f'{fmt_pct(pred.target_ltv) if pred else "N/A"}</span></div>'
+                            '</div>', unsafe_allow_html=True)
+            with col3:
+                st.markdown('<div class="info-panel decision">'
+                            '<h4>Your Decision</h4>', unsafe_allow_html=True)
+                decision = st.radio("PASS or BID?", ["PASS", "BID"],
+                                     horizontal=True, key="prac_dec")
+                if decision == "BID":
+                    bid_val = st.number_input("Bid ($M)", min_value=0.0,
+                                              max_value=practice_prop.asking_price * 1.2,
+                                              value=float(practice_prop.asking_price * 0.95) if pred else 0.0,
+                                              step=0.5, format="%.1f", key="prac_bid")
+                    ltv_val = st.number_input("LTV", min_value=0.0, max_value=practice_prop.max_ltv,
+                                               value=pred.target_ltv if pred else 0.60, step=0.05,
+                                               format="%.2f", key="prac_ltv")
+                    eq_req = bid_val * (1 - ltv_val)
+                    st.markdown(f'<div class="data-row"><span class="data-label">Equity Required</span><span class="data-value">{fmt_currency(eq_req)}</span></div>',
+                                unsafe_allow_html=True)
+                    if pred:
+                        override = bid_val - pred.max_bid
+                        ov_class = "positive" if override > 0 else "negative"
+                        st.markdown(f'<div class="data-row"><span class="data-label">Override vs Model</span><span class="data-value {ov_class}">{fmt_delta(override)}</span></div>',
+                                    unsafe_allow_html=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div class="data-row"><span class="data-value">PASS</span></div></div>',
+                                unsafe_allow_html=True)
+
+            if st.button("SUBMIT PRACTICE DECISION", use_container_width=True, type="primary"):
+                if decision == "BID":
+                    bid = Bid(team_id=team_name, property_id=practice_prop_id,
+                              bid_price=bid_val, ltv=ltv_val, round_number=gm.current_round,
+                              timestamp=time.strftime("%Y-%m-%d %H:%M:%S"), confidence=0.8)
+                    try:
+                        gm.submit_bid(bid)
+                    except ValueError as e:
+                        st.error(str(e))
+                try:
+                    gm.resolve_round()
+                    st.session_state.practice_complete = True
+                    st.session_state.round_decision = {"submitted": True}
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Resolve failed: {e}")
+
+    # Practice results
+    elif st.session_state.practice_complete and gm.round_state == RoundState.RESOLVED:
+        st.markdown("""
+        <div class="page-header">
+            <h1>Practice Complete</h1>
+            <p>This round does not affect standings</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        result = gm.current_round_result
+        if result and result.auction_results:
+            for prop_id, auction in result.auction_results.items():
+                prop = gm.get_property_for_proposal(prop_id)
+                if prop:
+                    st.markdown(f'<div class="section-header">{prop.property_name}</div>', unsafe_allow_html=True)
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if auction.sold:
+                            if auction.winning_team_id == team_name:
+                                st.success(f"Won for {fmt_currency(auction.winning_bid)}")
+                            else:
+                                st.info(f"Sold to {auction.winning_team_id} for {fmt_currency(auction.winning_bid)}")
+                        else:
+                            st.warning(f"Not sold (reserve: {fmt_currency(auction.reserve_price)})")
+                    with col2:
+                        pred = predictions.get(prop_id)
+                        if pred:
+                            st.markdown(f"Model fair value: <strong>{fmt_currency(pred.predicted_fair_value)}</strong>",
+                                        unsafe_allow_html=True)
+
+        if st.button("START ROUND 1", use_container_width=True, type="primary"):
+            gm.advance_round()
+            st.session_state.round_decision = {}
+            st.rerun()
+
+    # Round market brief
+    elif gm.round_state == RoundState.NOT_STARTED and gm.current_round >= 0:
+        st.markdown("""
+        <div class="page-header">
+            <h1>Round {} Market Brief</h1>
+            <p>Current market conditions</p>
+        </div>
+        """.format(gm.current_round + 1), unsafe_allow_html=True)
+
+        st.markdown('<div class="model-locked">&#10003; Model locked at ' +
+                    st.session_state.model_timestamp + '</div>', unsafe_allow_html=True)
+
+        ms = getattr(gm, 'current_market_state', None)
+        if ms:
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("10Y Treasury", fmt_pct(ms.get('policy_rate', 0.04)))
+            c2.metric("Employment Growth", fmt_pct(ms.get('employment_growth', 0.02)))
+            c3.metric("Vacancy", fmt_pct(ms.get('vacancy', 0.08)))
+            c4.metric("Rent Growth", fmt_pct(ms.get('rent_growth', 0.03)))
+
+            summary = ms.get('summary', '')
+            if summary:
+                st.markdown(f'<div class="market-summary">{summary}</div>', unsafe_allow_html=True)
+
+        if st.button("VIEW DEALS", use_container_width=True, type="primary"):
+            st.session_state.round_decision = {}
+            st.rerun()
+
+    # Deal board (open for bidding)
+    elif gm.round_state == RoundState.OPEN and gm.current_round >= 0:
+        st.markdown("""
+        <div class="page-header">
+            <h1>Round {} — Deal Board</h1>
+            <p>Submit investment decisions for this round</p>
+        </div>
+        """.format(gm.current_round + 1), unsafe_allow_html=True)
+
+        st.markdown('<div class="model-locked">&#10003; Model locked at ' +
+                    st.session_state.model_timestamp + '</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-header">Deals Available</div>', unsafe_allow_html=True)
+
+        properties = gm.current_properties
+        if not properties:
+            st.warning("No properties available this round.")
+        else:
+            # Build deal table
+            st.markdown('<table class="deal-table">', unsafe_allow_html=True)
+
+            # Headers
+            st.markdown("<tr><th>Property</th></tr>")
+            st.markdown('<tr><th>Market</th><th>Asking</th><th>Cap</th><th>Occup</th></tr>')
+            st.markdown('<tr><th>Model</th><th>FV</th><th>Edge</th><th>Max Bid</th><th>D/Side</th><th>Target LTV</th></tr>')
+            st.markdown('<tr><th>Decision</th><th>Bid</th><th>LTV</th><th>Override</th></tr>')
+            st.markdown("</table>", unsafe_allow_html=True)
+
+            # Rows
+            for prop_id, prop in properties.items():
+                pred = predictions.get(prop_id)
+                saved = st.session_state.round_decision.get(prop_id, {})
+                dec = saved.get("decision", "PASS")
+                bid = saved.get("bid", 0.0)
+                ltv = saved.get("ltv", 0.60)
+
+                edge = pred.predicted_fair_value - prop.asking_price if pred else 0.0
+                override = bid - pred.max_bid if pred and bid > 0 else 0.0
+
+                st.markdown(
+                    f"<tr>"
+                    f"<td class='property-name'>{prop.property_name}</td>"
+                    f"<td class='section-market'>{fmt_currency(prop.asking_price)}</td>"
+                    f"<td class='section-market'>{fmt_pct(prop.current_cap)}</td>"
+                    f"<td class='section-market'>{fmt_pct(prop.occupancy)}</td>"
+                    f"<td class='section-model'>{fmt_currency(pred.predicted_fair_value) if pred else 'N/A'}</td>"
+                    f"<td class='section-model'><span class='{'positive' if edge > 0 else 'negative'}'>{fmt_delta(edge)}</span></td>"
+                    f"<td class='section-model'>{fmt_currency(pred.max_bid) if pred else 'N/A'}</td>"
+                    f"<td class='section-model'>{fmt_pct(pred.probability_of_downside) if pred else 'N/A'}</td>"
+                    f"<td class='section-model'>{fmt_pct(pred.target_ltv) if pred else 'N/A'}</td>"
+                    f"<td class='section-decision'><strong>{dec}</strong></td>"
+                    f"<td class='section-decision'>{fmt_currency(bid) if bid > 0 else '&mdash;'}</td>"
+                    f"<td class='section-decision'>{fmt_pct(ltv)}</td>"
+                    f"<td class='section-decision'><span class='{'override-positive' if override > 0 else 'override-negative'}'>{fmt_delta(override)}</span></td>"
+                    f"</tr>",
+                    unsafe_allow_html=True
+                )
+
+            # Capital allocation controls
+            st.markdown('<div class="section-header">Capital Allocation</div>', unsafe_allow_html=True)
+
+            cap_cols = st.columns([2, 1])
+            with cap_cols[0]:
+                for prop_id, prop in properties.items():
+                    pred = predictions.get(prop_id)
+                    saved = st.session_state.round_decision.get(prop_id, {})
+
+                    st.markdown(f'<div class="subsection-header">{prop.property_name}</div>', unsafe_allow_html=True)
+                    c1, c2 = st.columns([1, 1])
+                    with c1:
+                        dec = st.radio("Decision", ["PASS", "BID"],
+                                       key=f"dec_{prop_id}",
+                                       index=0 if not saved.get("decision") or saved["decision"] == "PASS" else 1,
+                                       horizontal=True)
+                    with c2:
+                        if dec == "BID":
+                            b = st.number_input("Bid ($M)", min_value=0.0,
+                                                max_value=prop.asking_price * 1.2,
+                                                value=float(st.session_state.round_decision.get(prop_id, {}).get("bid",
+                                                pred.max_bid if pred else prop.asking_price * 0.95)),
+                                                step=0.5, format="%.1f", key=f"bid_{prop_id}")
+                            l = st.number_input("LTV", min_value=0.0, max_value=prop.max_ltv,
+                                                value=float(st.session_state.round_decision.get(prop_id, {}).get("ltv",
+                                                pred.target_ltv if pred else 0.60)),
+                                                step=0.05, format="%.2f", key=f"ltv_{prop_id}")
+                            eq = b * (1 - l)
+                            if pred:
+                                ov = b - pred.max_bid
+                                st.caption(f"Override: {fmt_delta(ov)}")
+
+                    if dec == "PASS":
+                        st.session_state.round_decision[prop_id] = {"decision": "PASS"}
+                    else:
+                        st.session_state.round_decision[prop_id] = {
+                            "decision": "BID", "bid": b, "ltv": l
+                        }
+
+            with cap_cols[1]:
+                st.markdown('<div class="capital-panel">', unsafe_allow_html=True)
+                st.markdown('<h4 style="font-size:0.75em;text-transform:uppercase;letter-spacing:0.04em;color:#718096;margin:0 0 10px 0;">Capital Status</h4>', unsafe_allow_html=True)
+
+                total_equity = 0
+                for pid, sd in st.session_state.round_decision.items():
+                    if sd.get("decision") == "BID":
+                        bid_v = sd.get("bid", 0)
+                        ltv_v = sd.get("ltv", 0.6)
+                        total_equity += bid_v * (1 - ltv_v)
+
+                remaining_cash = (team_state.cash if team_state else 100.0) - total_equity
+                port_ltv = (team_state.debt / (team_state.nav if team_state.nav > 0 else 100.0)) if team_state else 0.0
+
+                st.markdown(f'<div class="capital-item"><span class="label">Available Cash</span><span class="value">{fmt_currency(team_state.cash if team_state else 100.0)}</span></div>',
+                            unsafe_allow_html=True)
+                st.markdown(f'<div class="capital-item"><span class="label">Required Equity</span><span class="value">{fmt_currency(total_equity)}</span></div>',
+                            unsafe_allow_html=True)
+                eq_class = "danger" if remaining_cash < 0 else "warning" if remaining_cash < total_equity * 0.2 else ""
+                st.markdown(f'<div class="capital-item"><span class="label">Remaining</span><span class="value {eq_class}">{fmt_currency(remaining_cash)}</span></div>',
+                            unsafe_allow_html=True)
+                st.markdown(f'<div class="capital-item"><span class="label">Portfolio LTV</span><span class="value">{fmt_pct(port_ltv)}</span></div>',
+                            unsafe_allow_html=True)
+
+                prop_count = len(team_state.properties) if team_state else 0
+                st.markdown(f'<div class="capital-item"><span class="label">Properties Owned</span><span class="value">{prop_count}</span></div>',
+                            unsafe_allow_html=True)
+
+                if remaining_cash < 0:
+                    st.markdown('<div style="color:#9b2c2c;font-size:0.8em;margin-top:8px;">&#9888; Capital exceeded</div>',
+                                unsafe_allow_html=True)
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.button("REVIEW & SUBMIT ROUND", use_container_width=True, type="primary"):
+            st.rerun()
+
+    # Waiting / market closed
+    elif gm.round_state == RoundState.LOCKED:
+        st.markdown("""
+        <div class="page-header">
+            <h1>Round {} — Decisions Locked</h1>
+            <p>Your decisions have been submitted</p>
+        </div>
+        """.format(gm.current_round + 1), unsafe_allow_html=True)
+
+        st.markdown('<div class="section-header">Your Decisions</div>', unsafe_allow_html=True)
+
+        for prop_id, sd in st.session_state.round_decision.items():
+            prop = gm.current_properties.get(prop_id)
+            pred = predictions.get(prop_id)
+            if prop:
+                st.markdown(f'<div class="decision-ticket">', unsafe_allow_html=True)
+                st.markdown(f'<div class="ticket-row"><span class="ticket-label">{prop.property_name}</span></div>')
+                if sd.get("decision") == "BID":
+                    st.markdown(f'<div class="ticket-row"><span class="ticket-label">Bid</span><span class="ticket-value">{fmt_currency(sd["bid"])}</span></div>')
+                    st.markdown(f'<div class="ticket-row"><span class="ticket-label">LTV</span><span class="ticket-value">{fmt_pct(sd["ltv"])}</span></div>')
+                    if pred:
+                        st.markdown(f'<div class="ticket-row"><span class="ticket-label">Model Max</span><span class="ticket-value">{fmt_currency(pred.max_bid)}</span></div>')
+                        ov_class = "override-positive" if sd["bid"] - pred.max_bid > 0 else "override-negative"
+                        st.markdown(f'<div class="ticket-row"><span class="ticket-label">Override</span><span class="ticket-value {ov_class}">{fmt_delta(sd["bid"]-pred.max_bid)}</span></div>')
+                else:
+                    st.markdown(f'<div class="ticket-row"><span class="ticket-label">PASS</span></div>')
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.session_state.demo_mode:
+            if st.button("REVEAL MARKET RESULTS", use_container_width=True, type="primary"):
+                try:
+                    gm.resolve_round()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Resolve failed: {e}")
+        else:
+            st.info("Waiting for professor to close market and reveal results.")
+
+    # Round results
+    elif gm.round_state == RoundState.RESOLVED:
+        st.markdown("""
+        <div class="page-header">
+            <h1>Round {} Results</h1>
+            <p>Auction and investment outcomes</p>
+        </div>
+        """.format(gm.current_round + 1), unsafe_allow_html=True)
+
+        result = gm.current_round_result
+        if result:
+            for prop_id, auction in result.auction_results.items():
+                prop = gm.get_property_for_proposal(prop_id)
+                pred = predictions.get(prop_id) if prop else None
+                if not prop:
+                    continue
+
+                st.markdown(f'<div class="section-header">{prop.property_name}</div>', unsafe_allow_html=True)
+
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown('<h4 style="margin:0 0 8px 0;font-size:0.8em;text-transform:uppercase;color:#4a5568;">Auction Result</h4>', unsafe_allow_html=True)
+                    your_bid = st.session_state.round_decision.get(prop_id, {}).get("bid", 0)
+                    st.markdown(f'Your bid: <strong>{fmt_currency(your_bid)}</strong>', unsafe_allow_html=True)
+                    if pred:
+                        st.markdown(f'Model max: <strong>{fmt_currency(pred.max_bid)}</strong>', unsafe_allow_html=True)
+                    st.markdown(f'Winning bid: <strong>{fmt_currency(auction.winning_bid)}</strong>', unsafe_allow_html=True)
+                    won = auction.winning_team_id == team_name
+                    if won:
+                        st.markdown(f'Result: <strong style="color:#276749">Won</strong>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f'Result: <strong style="color:#9b2c2c">Lost</strong>', unsafe_allow_html=True)
+
+                with c2:
+                    st.markdown('<h4 style="margin:0 0 8px 0;font-size:0.8em;text-transform:uppercase;color:#4a5568;">Market Result</h4>', unsafe_allow_html=True)
+                    if pred:
+                        st.markdown(f'Model FV: <strong>{fmt_currency(pred.predicted_fair_value)}</strong>', unsafe_allow_html=True)
+                    mkt_val = auction.current_value if auction.sold else pred.predicted_fair_value if pred else None
+                    if mkt_val:
+                        st.markdown(f'Current value: <strong>{fmt_currency(mkt_val)}</strong>', unsafe_allow_html=True)
+                        if auction.sold:
+                            ret = (mkt_val - auction.winning_bid) / auction.winning_bid if auction.winning_bid > 0 else 0
+                            ret_class = 'color:#276749' if ret >= 0 else 'color:#9b2c2c'
+                            st.markdown(f'Trade return: <strong style="{ret_class}">{fmt_pct(ret)}</strong>', unsafe_allow_html=True)
+
+                # Interpretation
+                interp = round_interpretation(
+                    prop.property_name,
+                    your_bid,
+                    pred.max_bid if pred else 0,
+                    mkt_val if mkt_val else None,
+                    won
+                )
+                st.markdown(f'<div class="interpretation">{interp}</div>', unsafe_allow_html=True)
+
+        # Portfolio update
+        st.markdown('<div class="section-header">Portfolio Update</div>', unsafe_allow_html=True)
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
+        if team_state:
+            c1.metric("NAV", f"${team_state.nav:.2f}M")
+            c2.metric("Cash", f"${team_state.cash:.2f}M")
+            c3.metric("Debt", f"${team_state.debt:.2f}M")
+            c4.metric("LTV", f"{fmt_pct(team_state.debt / team_state.nav if team_state.nav > 0 else 0)}")
+            c5.metric("Properties", len(team_state.properties))
+            prev_nav = st.session_state.capital_panel_state.get("prev_nav", team_state.nav)
+            nav_chg = team_state.nav - prev_nav
+            nav_class = 'color:#276749' if nav_chg >= 0 else 'color:#9b2c2c'
+            c6.metric("NAV Change", f"<span style='{nav_class}'>{fmt_delta(nav_chg)}</span>", unsafe_allow_html=True)
+
+        if team_state.properties:
+            st.markdown('<div class="subsection-header">Holdings</div>', unsafe_allow_html=True)
+            for pid, holding in team_state.properties.items():
+                st.markdown(
+                    f'<div class="data-row"><span class="data-label">{pid}</span>'
+                    f'<span class="data-value">Purchased: {fmt_currency(holding.purchase_price)}</span></div>'
+                    f'<div class="data-row"><span class="data-label"></span>'
+                    f'<span class="data-value">Value: {fmt_currency(holding.current_value)}</span></div>',
+                    unsafe_allow_html=True)
+            st.session_state.capital_panel_state["prev_nav"] = team_state.nav
+
+        # Portfolio table
+        if team_state.properties:
+            import pandas as pd
+            portfolio_df = pd.DataFrame([
+                {
+                    "Property": h.property_id,
+                    "Purchase": f"${h.purchase_price:.2f}M",
+                    "Value": f"${h.current_value:.2f}M",
+                    "NOI": f"${h.current_noi:.2f}M",
+                    "Type": h.property_type,
+                    "Submarket": h.submarket,
+                }
+                for h in team_state.properties.values()
+            ])
+            st.dataframe(portfolio_df, use_container_width=True, hide_index=True)
+
+        # Reflection question
+        st.markdown('<div class="reflection-box">', unsafe_allow_html=True)
+        st.markdown('<h4 style="margin:0 0 8px 0;font-size:0.9em;">Round Reflection</h4>')
+        st.markdown('<p style="font-size:0.85em;color:#4a5568;">What will you change next round?</p>', unsafe_allow_html=True)
+        reflection = st.radio(
+            "",
+            ["Trust model more", "Trust model less", "Bid more aggressively",
+             "Bid less aggressively", "Use less leverage", "Use more leverage", "No change"],
+            horizontal=True, key=f"reflection_r{gm.current_round}"
+        )
+        st.session_state.round_reflection[gm.current_round] = reflection
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.button(f"CONTINUE TO ROUND {gm.current_round + 2}" if gm.current_round + 1 < gm.config.total_rounds else "CONTINUE TO FINAL RESULTS",
+                      use_container_width=True, type="primary"):
+            try:
+                gm.advance_round()
+                st.session_state.round_decision = {}
+                st.session_state.capital_panel_state["prev_nav"] = team_state.nav
+                if gm.current_round >= gm.config.total_rounds - 1 and gm.round_state != RoundState.NOT_STARTED:
+                    pass
+                st.rerun()
+            except RuntimeError as e:
+                if "complete" in str(e).lower():
+                    gm.game_complete = True
+                    st.session_state.game_complete = True
+                    st.rerun()
+                else:
+                    st.error(str(e))
+
     else:
-        st.info("Start a simulation to see game controls")
-    
-    st.markdown("---")
-    st.markdown("### ℹ️ About")
-    st.caption("REAL 605 CRE Investment Committee Simulation")
-    st.caption("Chapman University · Prof. Tim Frenzel")
+        st.info("Game in progress. Return to the main page for status.")
+
+# ── SIDEBAR ──
+with st.sidebar:
+    st.markdown('<div class="page-header" style="border-bottom:1px solid #e2e8f0;margin-bottom:12px;padding:8px 0 4px 0;">'
+                '<h1 style="font-size:1.1em;">CRE Investment Committee</h1>'
+                '<p style="font-size:0.75em;color:#718096;">REAL 605 · Chapman</p>'
+                '</div>', unsafe_allow_html=True)
+
+    if st.session_state.game_started and st.session_state.game_manager:
+        gm = st.session_state.game_manager
+        team_name = st.session_state.current_team
+        team_state = gm.teams.get(team_name)
+        if team_state:
+            st.metric("Your Fund NAV", f"${team_state.nav:.2f}M")
+            st.metric("Properties", len(team_state.properties))
+        st.caption(f"Round {gm.current_round + 1 if gm.current_round >= 0 else 'Practice'} of {gm.config.total_rounds}")
+        st.caption(f"State: {gm.round_state.value.replace('_', ' ').title()}")
+        st.markdown("---")
+
+        if st.button("Reset Game"):
+            st.session_state.game_manager = None
+            st.session_state.game_started = False
+            st.session_state.game_complete = False
+            st.rerun()
+
+        st.markdown("---")
+        st.markdown('<div style="font-size:0.75em;color:#718096;">Demo mode: ' + str(st.session_state.demo_mode) + '</div>')
+    else:
+        st.caption("Start a simulation to see details")

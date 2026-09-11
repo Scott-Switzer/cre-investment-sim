@@ -5,12 +5,9 @@ port = 8501
 enableCORS = false
 enableXsrfProtection = false
 
-[browser]
-gatherUsageStats = false
-
 [theme]
-primaryColor = "#1f77b4"
-backgroundColor = "#0e1117"
-secondaryBackgroundColor = "#161b22"
-textColor = "#ffffff"
+primaryColor = "#1a365d"
+backgroundColor = "#f7fafc"
+secondaryBackgroundColor = "#edf2f7"
+textColor = "#2d3748"
 font = "sans serif"
