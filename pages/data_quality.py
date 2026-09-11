@@ -70,4 +70,4 @@ The injected issues are:
         db2.close()
 
     st.markdown("---")
-    st.link("?market=1", label="→ Next: Market Explorer", use_container_width=True)
+    st.page_link("pages/market_explorer.py", label="→ Next: Market Explorer", icon="")

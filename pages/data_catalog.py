@@ -85,4 +85,4 @@ This simulation uses multiple data sources, each with provenance metadata:
         db.close()
 
     st.markdown("---")
-    st.link("?data-quality=1", label="→ Next: Data Quality Challenge", use_container_width=True)
+    st.page_link("pages/data_quality.py", label="→ Next: Data Quality Challenge", icon="")

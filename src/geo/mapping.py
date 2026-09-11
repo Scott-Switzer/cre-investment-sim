@@ -62,7 +62,6 @@ def pydeck_property_map(
         layers=[layer],
         initial_view_state=view_state,
         tooltip=tooltip,
-        title=title,
         map_style="mapbox://styles/mapbox/light-v9",
     )
     return deck

@@ -55,4 +55,4 @@ def show():
         st.warning(f"Parcel sample unavailable right now: {e}")
 
     st.markdown("---")
-    st.link("?deals=1", label="→ Next: Deal Room", use_container_width=True)
+    st.page_link("pages/deal_room.py", label="→ Next: Deal Room", icon="")

@@ -72,6 +72,7 @@ class PropertyRow:
     property_quality: float
     leasable_area_sf: int
     lease_expiry_profile: str
+    primary_risk: str
     is_synthetic: bool
     provenance: Provenance
     observation_date: date
@@ -268,6 +269,7 @@ def generate_properties(seed: int = 20240331, count: int = 30) -> pd.DataFrame:
             property_quality=quality,
             leasable_area_sf=size_sf,
             lease_expiry_profile=expiry_profile,
+            primary_risk="Market / Lease-up Risk",
             is_synthetic=True,
             provenance=_SYNTH_PROP_PROV,
             observation_date=date(2024, 3, 31),
@@ -305,6 +307,7 @@ def generate_properties(seed: int = 20240331, count: int = 30) -> pd.DataFrame:
             "property_quality": r.property_quality,
             "leasable_area_sf": r.leasable_area_sf,
             "lease_expiry_profile": r.lease_expiry_profile,
+            "primary_risk": r.primary_risk,
             "is_synthetic": r.is_synthetic,
             "source_name": r.provenance.source_name,
             "source_url": r.provenance.source_url,
@@ -323,7 +326,7 @@ def generate_properties(seed: int = 20240331, count: int = 30) -> pd.DataFrame:
         "tenant_concentration", "opex_ratio", "capex_need", "debt_rate",
         "amortization_years", "max_ltv", "property_quality", "leasable_area_sf",
         "lease_expiry_profile", "is_synthetic", "source_name", "source_url",
-        "observation_date", "available_at", "data_type", "notes",
+        "observation_date", "available_at", "data_type", "notes", "primary_risk",
     ]
     return df[cols]
 

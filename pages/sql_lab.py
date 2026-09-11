@@ -76,4 +76,4 @@ def show():
         db.close()
 
     st.markdown("---")
-    st.link("?valuation=1", label="→ Next: Valuation Lab", use_container_width=True)
+    st.page_link("pages/valuation_lab.py", label="→ Next: Valuation Lab", icon="")
