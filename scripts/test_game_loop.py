@@ -2,7 +2,7 @@
 """Game loop integration test — Practice → Round 1 → Round 2 end-to-end."""
 
 import sys
-sys.path.insert(0, "/Users/scottthomasswitzer/Documents/Fenrix_RE")
+sys.path.insert(0, ".")
 
 from src.game.manager import GameManager, GameConfig
 from src.game.adjudicator import Bid, RoundState
