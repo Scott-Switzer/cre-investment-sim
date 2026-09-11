@@ -2,7 +2,7 @@
 name = "real605-cre-sim"
 version = "0.1.0"
 description = "Chapman REAL 605 commercial real estate analytics simulation"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 dependencies = [
   "streamlit>=1.37,<2.0",
   "duckdb>=1.0,<2.0",

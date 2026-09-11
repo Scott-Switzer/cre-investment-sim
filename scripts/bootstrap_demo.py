@@ -167,7 +167,7 @@ def main(seed: int = 20240331, count: int = 30):
     print("provenance_summary.csv written.")
 
     print("Bootstrap complete.")
-    print("\nNext: streamlit run app.py")
+    print("\nNext: uv run python -m streamlit run app.py")
 
 
 if __name__ == "__main__":

@@ -59,3 +59,21 @@ def build_demo_state(seed: int = 20240331, db_path: Optional[str] = None) -> App
     state = AppState(game=game, db=db, demo_mode=True)
     state.log("demo state built", seed=seed, property_count=30)
     return state
+
+
+def restart_demo():
+    """Reset app state to fresh demo defaults."""
+    import streamlit as st
+    keys_to_remove = [
+        k for k in st.session_state
+        if not k.startswith("_") and k not in ("_demo_teams_loaded",)
+    ]
+    for k in keys_to_remove:
+        del st.session_state[k]
+    st.session_state.app_state = build_demo_state()
+    st.session_state._demo_teams_loaded = False
+    st.session_state.game_manager = None
+    st.session_state.game_started = False
+    st.session_state.game_complete = False
+    st.session_state.demo_mode = True
+    st.session_state.current_team = "Your Fund"

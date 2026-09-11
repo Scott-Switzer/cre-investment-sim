@@ -1,0 +1,289 @@
+"""
+Create demo team bots with different model archetypes.
+
+For professor demonstration without real students:
+- Value Model: good fair-value estimates, conservative bids
+- Growth Model: aggressive NOI assumptions
+- Risk Model: conservative downside forecasts
+- Noisy Model: weaker predictions / inconsistent bids
+"""
+
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import sys
+
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.data.properties import generate_properties
+
+
+def generate_value_model_predictions(properties: pd.DataFrame, seed: int = 20240331) -> pd.DataFrame:
+    """
+    Value Model: Good fair-value estimates, conservative bids.
+    
+    Characteristics:
+    - Accurate valuation (small error around true value)
+    - Conservative bid discipline (bids at 85-90% of predicted value)
+    - Moderate LTV (55-65%)
+    - Reasonable downside risk estimates
+    """
+    np.random.seed(seed)
+    
+    predictions = []
+    for _, row in properties.iterrows():
+        # Good valuation accuracy (±5% error)
+        valuation_error = np.random.normal(0, 0.05)
+        predicted_value = row["asking_price"] * (1 + valuation_error)
+        
+        # Conservative NOI growth (1-3%)
+        predicted_noi_growth = np.random.uniform(0.01, 0.03)
+        
+        # Conservative max bid (85-90% of predicted value)
+        max_bid = predicted_value * np.random.uniform(0.85, 0.90)
+        
+        # Moderate LTV
+        target_ltv = np.random.uniform(0.55, 0.65)
+        
+        # Reasonable downside risk (15-25%)
+        probability_of_downside = np.random.uniform(0.15, 0.25)
+        
+        predictions.append({
+            "property_id": row["property_id"],
+            "predicted_fair_value": round(predicted_value, 3),
+            "predicted_noi": round(row["current_noi"] * (1 + predicted_noi_growth), 3),
+            "predicted_noi_growth": round(predicted_noi_growth, 4),
+            "probability_of_downside": round(probability_of_downside, 3),
+            "max_bid": round(max_bid, 3),
+            "target_ltv": round(target_ltv, 3),
+            "model_name": "Value Model",
+            "model_version": "1.0",
+            "confidence": np.random.uniform(0.7, 0.9),
+        })
+    
+    return pd.DataFrame(predictions)
+
+
+def generate_growth_model_predictions(properties: pd.DataFrame, seed: int = 20240332) -> pd.DataFrame:
+    """
+    Growth Model: Aggressive NOI assumptions.
+    
+    Characteristics:
+    - Optimistic valuation (assumes growth)
+    - Aggressive bids (90-95% of predicted value)
+    - Higher LTV (65-75%)
+    - Low downside risk estimates (overconfident)
+    """
+    np.random.seed(seed)
+    
+    predictions = []
+    for _, row in properties.iterrows():
+        # Optimistic valuation (±8% error, biased upward)
+        valuation_error = np.random.normal(0.02, 0.06)
+        predicted_value = row["asking_price"] * (1 + valuation_error)
+        
+        # Aggressive NOI growth (4-7%)
+        predicted_noi_growth = np.random.uniform(0.04, 0.07)
+        
+        # Aggressive max bid (90-95% of predicted value)
+        max_bid = predicted_value * np.random.uniform(0.90, 0.95)
+        
+        # Higher LTV
+        target_ltv = np.random.uniform(0.65, 0.75)
+        
+        # Low downside risk (overconfident)
+        probability_of_downside = np.random.uniform(0.05, 0.15)
+        
+        predictions.append({
+            "property_id": row["property_id"],
+            "predicted_fair_value": round(predicted_value, 3),
+            "predicted_noi": round(row["current_noi"] * (1 + predicted_noi_growth), 3),
+            "predicted_noi_growth": round(predicted_noi_growth, 4),
+            "probability_of_downside": round(probability_of_downside, 3),
+            "max_bid": round(max_bid, 3),
+            "target_ltv": round(target_ltv, 3),
+            "model_name": "Growth Model",
+            "model_version": "1.0",
+            "confidence": np.random.uniform(0.8, 0.95),
+        })
+    
+    return pd.DataFrame(predictions)
+
+
+def generate_risk_model_predictions(properties: pd.DataFrame, seed: int = 20240333) -> pd.DataFrame:
+    """
+    Risk Model: Conservative downside forecasts.
+    
+    Characteristics:
+    - Conservative valuation (biased downward)
+    - Very conservative bids (75-85% of predicted value)
+    - Low LTV (45-55%)
+    - High downside risk estimates (cautious)
+    """
+    np.random.seed(seed)
+    
+    predictions = []
+    for _, row in properties.iterrows():
+        # Conservative valuation (biased downward)
+        valuation_error = np.random.normal(-0.03, 0.04)
+        predicted_value = row["asking_price"] * (1 + valuation_error)
+        
+        # Conservative NOI growth (0-2%)
+        predicted_noi_growth = np.random.uniform(0.0, 0.02)
+        
+        # Very conservative max bid (75-85% of predicted value)
+        max_bid = predicted_value * np.random.uniform(0.75, 0.85)
+        
+        # Low LTV
+        target_ltv = np.random.uniform(0.45, 0.55)
+        
+        # High downside risk (cautious)
+        probability_of_downside = np.random.uniform(0.30, 0.45)
+        
+        predictions.append({
+            "property_id": row["property_id"],
+            "predicted_fair_value": round(predicted_value, 3),
+            "predicted_noi": round(row["current_noi"] * (1 + predicted_noi_growth), 3),
+            "predicted_noi_growth": round(predicted_noi_growth, 4),
+            "probability_of_downside": round(probability_of_downside, 3),
+            "max_bid": round(max_bid, 3),
+            "target_ltv": round(target_ltv, 3),
+            "model_name": "Risk Model",
+            "model_version": "1.0",
+            "confidence": np.random.uniform(0.6, 0.8),
+        })
+    
+    return pd.DataFrame(predictions)
+
+
+def generate_noisy_model_predictions(properties: pd.DataFrame, seed: int = 20240334) -> pd.DataFrame:
+    """
+    Noisy Model: Weaker predictions / inconsistent bids.
+    
+    Characteristics:
+    - Poor valuation accuracy (high variance, ±15% error)
+    - Inconsistent bid discipline (70-95% of predicted value)
+    - Variable LTV (40-75%)
+    - Random downside risk estimates
+    - Lower confidence
+    """
+    np.random.seed(seed)
+    
+    predictions = []
+    for _, row in properties.iterrows():
+        # Poor valuation accuracy (high variance)
+        valuation_error = np.random.normal(0, 0.15)
+        predicted_value = row["asking_price"] * (1 + valuation_error)
+        
+        # Variable NOI growth (-2% to 6%)
+        predicted_noi_growth = np.random.uniform(-0.02, 0.06)
+        
+        # Inconsistent bid discipline (70-95% of predicted value)
+        max_bid = predicted_value * np.random.uniform(0.70, 0.95)
+        
+        # Variable LTV
+        target_ltv = np.random.uniform(0.40, 0.75)
+        
+        # Random downside risk
+        probability_of_downside = np.random.uniform(0.10, 0.50)
+        
+        predictions.append({
+            "property_id": row["property_id"],
+            "predicted_fair_value": round(predicted_value, 3),
+            "predicted_noi": round(row["current_noi"] * (1 + predicted_noi_growth), 3),
+            "predicted_noi_growth": round(predicted_noi_growth, 4),
+            "probability_of_downside": round(probability_of_downside, 3),
+            "max_bid": round(max_bid, 3),
+            "target_ltv": round(target_ltv, 3),
+            "model_name": "Noisy Model",
+            "model_version": "1.0",
+            "confidence": np.random.uniform(0.4, 0.7),
+        })
+    
+    return pd.DataFrame(predictions)
+
+
+def create_demo_teams(seed: int = 20240331, count: int = 100):
+    """Create all demo team predictions and save to files."""
+    print("Generating demo team predictions...")
+    
+    # Generate properties
+    properties = generate_properties(seed=seed, count=count)
+    
+    # Create output directory
+    output_dir = Path("demo_teams")
+    output_dir.mkdir(exist_ok=True)
+    
+    # Generate predictions for each model archetype
+    print("  - Generating Value Model predictions...")
+    value_predictions = generate_value_model_predictions(properties, seed)
+    value_predictions.to_csv(output_dir / "value_model_predictions.csv", index=False)
+    print(f"    Generated {len(value_predictions)} predictions")
+    
+    print("  - Generating Growth Model predictions...")
+    growth_predictions = generate_growth_model_predictions(properties, seed + 1)
+    growth_predictions.to_csv(output_dir / "growth_model_predictions.csv", index=False)
+    print(f"    Generated {len(growth_predictions)} predictions")
+    
+    print("  - Generating Risk Model predictions...")
+    risk_predictions = generate_risk_model_predictions(properties, seed + 2)
+    risk_predictions.to_csv(output_dir / "risk_model_predictions.csv", index=False)
+    print(f"    Generated {len(risk_predictions)} predictions")
+    
+    print("  - Generating Noisy Model predictions...")
+    noisy_predictions = generate_noisy_model_predictions(properties, seed + 3)
+    noisy_predictions.to_csv(output_dir / "noisy_model_predictions.csv", index=False)
+    print(f"    Generated {len(noisy_predictions)} predictions")
+    
+    # Generate summary
+    print("\nDemo Team Summary:")
+    print(f"  Value Model: Conservative, accurate valuations, 85-90% bid discipline")
+    print(f"  Growth Model: Aggressive, optimistic forecasts, 90-95% bid discipline")
+    print(f"  Risk Model: Cautious, downside-focused, 75-85% bid discipline")
+    print(f"  Noisy Model: Inconsistent, high variance, 70-95% bid discipline")
+    
+    print(f"\nDemo team predictions saved to {output_dir}/")
+    print("Files created:")
+    print("  - value_model_predictions.csv")
+    print("  - growth_model_predictions.csv")
+    print("  - risk_model_predictions.csv")
+    print("  - noisy_model_predictions.csv")
+    
+    return {
+        "Value Model": value_predictions,
+        "Growth Model": growth_predictions,
+        "Risk Model": risk_predictions,
+        "Noisy Model": noisy_predictions,
+    }
+
+
+def load_demo_team_predictions(team_name: str, properties: pd.DataFrame) -> pd.DataFrame:
+    """Load predictions for a specific demo team."""
+    demo_dir = Path("demo_teams")
+    
+    team_files = {
+        "Value Model": "value_model_predictions.csv",
+        "Growth Model": "growth_model_predictions.csv",
+        "Risk Model": "risk_model_predictions.csv",
+        "Noisy Model": "noisy_model_predictions.csv",
+    }
+    
+    if team_name not in team_files:
+        raise ValueError(f"Unknown demo team: {team_name}")
+    
+    file_path = demo_dir / team_files[team_name]
+    if not file_path.exists():
+        raise FileNotFoundError(f"Demo team file not found: {file_path}")
+    
+    predictions = pd.read_csv(file_path)
+    
+    # Filter to only properties in the current game
+    property_ids = properties["property_id"].tolist()
+    predictions = predictions[predictions["property_id"].isin(property_ids)]
+    
+    return predictions
+
+
+if __name__ == "__main__":
+    create_demo_teams(seed=20240331, count=100)

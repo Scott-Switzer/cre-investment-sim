@@ -21,6 +21,11 @@ from pages import (
     professor_control,
     results,
     provenance,
+    model_checkin,
+    strategy_card,
+    live_game,
+    leaderboard,
+    final_debrief,
 )
 
 __all__ = [
@@ -37,4 +42,9 @@ __all__ = [
     "professor_control",
     "results",
     "provenance",
+    "model_checkin",
+    "strategy_card",
+    "live_game",
+    "leaderboard",
+    "final_debrief",
 ]

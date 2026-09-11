@@ -12,10 +12,10 @@ uv venv --python 3.11 .venv
 uv pip install --python .venv/bin/python -e ".[dev]"
 
 # 2. build the cached demo dataset (idempotent)
-python scripts/bootstrap_demo.py
+uv run python scripts/bootstrap_demo.py
 
 # 3. launch
-streamlit run app.py
+uv run python -m streamlit run app.py
 ```
 
 Open the app, pick **Demo mode** in the professor controls, and follow `docs/DEMO_SCRIPT.md`.

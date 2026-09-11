@@ -217,7 +217,7 @@ def generate_properties(seed: int = 20240331, count: int = 30) -> pd.DataFrame:
             potential_gross = mrent * size_sf * 12
         effective_gross = potential_gross * occ * (0.98 if quality > 0.5 else 0.95)
         opex = effective_gross * opex_ratio
-        noi = round(effective_gross - opex, 4)
+        noi = round((effective_gross - opex) / 1e6, 4)
         asking = round(noi / cap, 4)
 
         # rent jitter for in-place

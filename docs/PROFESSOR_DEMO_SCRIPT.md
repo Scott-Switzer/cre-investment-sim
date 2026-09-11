@@ -16,7 +16,7 @@ Do **not** open by listing features. Open with the investment-committee problem.
 
 1. Launch the app:
    ```bash
-   streamlit run app.py
+   uv run python -m streamlit run app.py
    ```
 2. Confirm the sidebar shows:
    - Demo mode checked

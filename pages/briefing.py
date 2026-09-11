@@ -63,8 +63,12 @@ def show():
     st.markdown("---")
     st.subheader("Current Market Snapshot (public anchors)")
     anchors = build_market_anchors()
-    st.dataframe(anchors[["market_metric", "property_type", "as_of", "value", "units", "source_name", "tag"]].rename(
-        columns={"tag": "data_status"}), hide_index=True, use_container_width=True)
+    # Select available columns
+    available_cols = [col for col in ["market_metric", "property_type", "as_of", "value", "units", "source_name", "tag"] if col in anchors.columns]
+    if available_cols:
+        st.dataframe(anchors[available_cols].rename(columns={"tag": "data_status"}), hide_index=True, width="stretch")
+    else:
+        st.dataframe(anchors, hide_index=True, width="stretch")
     st.caption("REAL PUBLIC DATA — sourced from CBRE and FRED. Used as market anchors only.")
 
     st.markdown("---")

@@ -99,23 +99,23 @@ class DuckDBBackend:
 
     def query(self, sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
         if params:
-            return self.con.execute(sql, params).df()
-        return self.con.execute(sql).df()
+            return self.con.execute(sql, params).fetchdf()
+        return self.con.execute(sql).fetchdf()
 
     def safe_query(self, sql: str) -> pd.DataFrame:
         """Allow SELECT queries only. Raise on mutations."""
         up = sql.strip().upper()
         if up.startswith("SELECT") or up.startswith("WITH"):
-            return self.con.execute(sql).df()
+            return self.con.execute(sql).fetchdf()
         if up.startswith("SHOW") or up.startswith("DESCRIBE") or up.startswith("EXPLAIN"):
-            return self.con.execute(sql).df()
+            return self.con.execute(sql).fetchdf()
         raise PermissionError("In-app SQL console allows SELECT / WITH / SHOW / DESCRIBE / EXPLAIN only.")
 
     def list_tables(self) -> List[str]:
         return self.con.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='main' ORDER BY table_name").fetchdf()["table_name"].tolist()
 
     def table_schema(self, table: str) -> pd.DataFrame:
-        return self.con.execute(f"DESCRIBE {table}").df()
+        return self.con.execute(f"DESCRIBE {table}").fetchdf()
 
     def example_tasks(self) -> List[Dict[str, str]]:
         return [

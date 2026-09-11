@@ -1,6 +1,6 @@
 # Demo Script — REAL 605 CRE Simulation (≤ 8 minutes)
 
-Run after `streamlit run app.py`. Demo mode is on by default.
+Run after `uv run python -m streamlit run app.py`. Demo mode is on by default.
 
 ## 0. Launch (≈ 30s)
 1. Open the app in a browser.
