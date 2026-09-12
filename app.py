@@ -473,15 +473,38 @@ def create_game_teams() -> GameManager:
         scenario="Base Case",
     )
     gm = GameManager(config)
-    gm.add_team("Buy&Hold Capital", "Buy&Hold Capital")
-
+    
+    # Load demo predictions
     from scripts.create_demo_teams import create_demo_teams
     demo_preds = create_demo_teams(seed=20240331, count=120)
+    
+    # Give human team (Buy&Hold Capital) the Noisy Model as their demo model
+    human_df = demo_preds.get("Noisy Model")
+    human_preds = {}
+    if human_df is not None:
+        for _, row in human_df.iterrows():
+            human_preds[str(row["property_id"])] = ModelPrediction(
+                property_id=str(row["property_id"]),
+                predicted_fair_value=float(row["predicted_fair_value"]),
+                predicted_noi_growth=float(row["predicted_noi_growth"]),
+                probability_of_downside=float(row["probability_of_downside"]),
+                max_bid=float(row["max_bid"]),
+                target_ltv=float(row["target_ltv"]),
+                model_name="Noisy Model",
+                confidence=float(row["confidence"]),
+                predicted_exit_cap=float(row["predicted_exit_cap"]) if "predicted_exit_cap" in row else None,
+            )
+    gm.add_team("Buy&Hold Capital", "Buy&Hold Capital", human_preds)
 
-    bot_names = ["Value Fund", "Growth Fund", "Risk Fund"]
-    for i, (bot_name, pred_df) in enumerate(demo_preds.items()):
-        if i >= 3:
+    bot_mapping = ["Value Model", "Growth Model", "Risk Model"]
+    bot_team_names = ["Value Fund", "Growth Fund", "Risk Fund"]
+    for bot_idx, csv_key in enumerate(bot_mapping):
+        if bot_idx >= 3:
             break
+        pred_df = demo_preds.get(csv_key)
+        if pred_df is None:
+            continue
+        bot_name = bot_team_names[bot_idx]
         mp = {}
         for _, row in pred_df.iterrows():
             mp[str(row["property_id"])] = ModelPrediction(
@@ -491,7 +514,7 @@ def create_game_teams() -> GameManager:
                 probability_of_downside=float(row["probability_of_downside"]),
                 max_bid=float(row["max_bid"]),
                 target_ltv=float(row["target_ltv"]),
-                model_name=bot_name + " Model",
+                model_name=csv_key,
                 confidence=float(row["confidence"]),
                 predicted_exit_cap=float(row["predicted_exit_cap"]) if "predicted_exit_cap" in row else None,
             )
@@ -503,7 +526,7 @@ def create_game_teams() -> GameManager:
 def get_team_data(gm: GameManager, team_name: str):
     """Get team state and model predictions."""
     team_state = gm.teams.get(team_name)
-    predictions = team_state.predictions if team_state else {}
+    predictions = team_state.model_predictions if team_state else {}
     return team_state, predictions
 
 
@@ -584,9 +607,11 @@ def _submit_bot_bids(gm: GameManager, predictions: Dict) -> None:
             if ltv > prop.max_ltv:
                 continue
             
-            # Check round constraint
+            # Check round/property constraint — bot can bid once per property, not once per round
             submitted = any(
-                b.team_id == team_id and b.round_number == gm.current_round
+                b.team_id == team_id
+                and b.property_id == prop_id
+                and b.round_number == gm.current_round
                 for b in gm.submitted_bids
             )
             if submitted:
@@ -915,7 +940,7 @@ else:
         result = gm.current_round_result
         if result and result.auction_results:
             for prop_id, auction in result.auction_results.items():
-                prop = gm.get_property_for_proposal(prop_id)
+                prop = gm.current_properties.get(prop_id)
                 if prop:
                     st.markdown(f'<div class="section-header">{prop.property_name}</div>', unsafe_allow_html=True)
                     col1, col2 = st.columns(2)
@@ -1178,7 +1203,7 @@ else:
         result = gm.current_round_result
         if result:
             for prop_id, auction in result.auction_results.items():
-                prop = gm.get_property_for_proposal(prop_id)
+                prop = gm.current_properties.get(prop_id)
                 pred = predictions.get(prop_id) if prop else None
                 if not prop:
                     continue
@@ -1192,22 +1217,26 @@ else:
                     st.markdown(f'Your bid: <strong>{fmt_currency(your_bid)}</strong>', unsafe_allow_html=True)
                     if pred:
                         st.markdown(f'Model max: <strong>{fmt_currency(pred.max_bid)}</strong>', unsafe_allow_html=True)
-                    st.markdown(f'Winning bid: <strong>{fmt_currency(auction.winning_bid)}</strong>', unsafe_allow_html=True)
+                    winning_bid_text = fmt_currency(auction.winning_bid) if auction.winning_bid is not None else "No Sale"
+                    st.markdown(f'Winning bid: <strong>{winning_bid_text}</strong>', unsafe_allow_html=True)
                     won = auction.winning_team_id == team_name
                     if won:
                         st.markdown(f'Result: <strong style="color:#276749">Won</strong>', unsafe_allow_html=True)
                     else:
-                        st.markdown(f'Result: <strong style="color:#9b2c2c">Lost</strong>', unsafe_allow_html=True)
+                        st.markdown(f'Result: <strong style="color:#9b2c2c">{auction.reason if auction.reason else "Lost"}</strong>', unsafe_allow_html=True)
 
                 with c2:
                     st.markdown('<h4 style="margin:0 0 8px 0;font-size:0.8em;text-transform:uppercase;color:#4a5568;">Market Result</h4>', unsafe_allow_html=True)
                     if pred:
                         st.markdown(f'Model FV: <strong>{fmt_currency(pred.predicted_fair_value)}</strong>', unsafe_allow_html=True)
-                    mkt_val = auction.current_value if auction.sold else pred.predicted_fair_value if pred else None
+                    outcome = result.property_outcomes.get(prop_id)
+                    mkt_val = outcome.exit_value if outcome else None
+                    if not auction.sold:
+                        st.markdown(f'Outcome: <strong style="color:#9b2c2c">No Sale — {auction.reason}</strong>', unsafe_allow_html=True)
                     if mkt_val:
                         st.markdown(f'Current value: <strong>{fmt_currency(mkt_val)}</strong>', unsafe_allow_html=True)
-                        if auction.sold:
-                            ret = (mkt_val - auction.winning_bid) / auction.winning_bid if auction.winning_bid > 0 else 0
+                        if auction.sold and auction.winning_bid:
+                            ret = (mkt_val - auction.winning_bid) / auction.winning_bid
                             ret_class = 'color:#276749' if ret >= 0 else 'color:#9b2c2c'
                             st.markdown(f'Trade return: <strong style="{ret_class}">{fmt_pct(ret)}</strong>', unsafe_allow_html=True)
 
