@@ -86,9 +86,12 @@ class GameManager:
         # Generate properties using existing property generator
         props_df = generate_properties(seed=self.config.seed, count=120)
         
+        # Use a seeded RNG for deterministic reserve prices
+        rng = np.random.default_rng(self.config.seed)
+        
         for _, row in props_df.iterrows():
-            # Calculate reserve price (90-95% of asking price)
-            reserve_price = row["asking_price"] * np.random.uniform(0.90, 0.95)
+            # Calculate reserve price (90-95% of asking price) - deterministic
+            reserve_price = row["asking_price"] * rng.uniform(0.90, 0.95)
             
             self.all_properties[row["property_id"]] = PropertyMarket(
                 property_id=row["property_id"],

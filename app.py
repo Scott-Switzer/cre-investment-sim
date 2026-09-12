@@ -6,6 +6,7 @@ from __future__ import annotations
 import streamlit as st
 import time
 from datetime import date
+from typing import Dict
 import pages
 from src.utils.state import AppState, build_demo_state
 from src.utils.config import load_app_config
@@ -419,9 +420,9 @@ CRE_CSS = """
 # ── APP CONFIG ──
 st.set_page_config(
     page_title="CRE Investment Committee",
-    page_icon="\U0001f3e2",
+    page_icon="🏢",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 st.markdown(CRE_CSS, unsafe_allow_html=True)
 
@@ -544,6 +545,140 @@ def round_interpretation(prop_name: str, your_bid: float, model_max: float,
     return ". ".join(parts) + "."
 
 
+def _submit_bot_bids(gm: GameManager, predictions: Dict) -> None:
+    """Submit deterministic bot bids for all teams in the game.
+    
+    Each bot uses its model predictions and a strategy-specific policy.
+    Bots obey the same constraints as the human player.
+    """
+    for team_id, team in gm.teams.items():
+        # Skip the human team
+        if team_id == "Buy&Hold Capital":
+            continue
+        
+        team_preds = team.model_predictions
+        if not team_preds:
+            continue
+        
+        for prop_id, prop in gm.current_properties.items():
+            pred = team_preds.get(prop_id)
+            if not pred:
+                continue
+            
+            # Determine bid strategy based on team archetype
+            strategy = _bot_strategy(team_id, pred, prop)
+            
+            # Check if bot should bid (not PASS)
+            if not strategy["should_bid"]:
+                continue
+            
+            # Check cash constraints
+            bid_price = strategy["bid_price"]
+            ltv = strategy["ltv"]
+            equity_required = bid_price * (1 - ltv)
+            
+            if team.cash < equity_required:
+                continue
+            
+            # Check LTV constraint
+            if ltv > prop.max_ltv:
+                continue
+            
+            # Check round constraint
+            submitted = any(
+                b.team_id == team_id and b.round_number == gm.current_round
+                for b in gm.submitted_bids
+            )
+            if submitted:
+                continue
+            
+            # Submit bid
+            bid = Bid(
+                team_id=team_id,
+                property_id=prop_id,
+                bid_price=bid_price,
+                ltv=ltv,
+                round_number=gm.current_round,
+                timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+                confidence=strategy.get("confidence", 0.8),
+            )
+            try:
+                gm.submit_bid(bid)
+            except (ValueError, RuntimeError):
+                pass  # Bot bid failed validation, skip
+
+
+def _bot_strategy(team_id: str, pred: ModelPrediction, prop) -> dict:
+    """Determine bid strategy for a bot team.
+    
+    Strategies:
+    - Value Fund: Conservative, bids near but below max_bid, high edge required
+    - Growth Fund: Aggressive, bids close to max_bid or slightly above
+    - Risk Fund: Very conservative, requires high edge, low LTV
+    """
+    # Default policy
+    should_bid = True
+    ltv = pred.target_ltv
+    confidence = 0.8
+    
+    if "Value" in team_id:
+        # Value fund: disciplined, needs clear edge
+        edge = pred.predicted_fair_value - prop.asking_price
+        edge_pct = edge / prop.asking_price if prop.asking_price > 0 else 0
+        if edge_pct < 0.05:  # Less than 5% edge
+            should_bid = False
+        else:
+            # Bid near max_bid, slightly below
+            bid_price = pred.max_bid * 0.98
+            ltv = min(pred.target_ltv, 0.70)  # Cap LTV at 70%
+            confidence = 0.85
+    
+    elif "Growth" in team_id:
+        # Growth fund: more aggressive
+        edge = pred.predicted_fair_value - prop.asking_price
+        if edge < -0.02 * prop.asking_price:  # More than 2% below fair value
+            should_bid = False
+        else:
+            # Bid at or slightly above max_bid
+            bid_price = min(pred.max_bid * 1.02, pred.predicted_fair_value * 0.99)
+            ltv = min(pred.target_ltv + 0.05, prop.max_ltv)  # Slightly higher LTV
+            confidence = 0.75
+    
+    elif "Risk" in team_id:
+        # Risk fund: very conservative
+        edge = pred.predicted_fair_value - prop.asking_price
+        edge_pct = edge / prop.asking_price if prop.asking_price > 0 else 0
+        prob_down = pred.probability_of_downside
+        
+        if edge_pct < 0.08 or prob_down > 0.35:
+            should_bid = False
+        else:
+            # Bid well below max_bid
+            bid_price = pred.max_bid * 0.92
+            ltv = min(pred.target_ltv - 0.10, 0.60)  # Lower LTV
+            confidence = 0.90
+    
+    else:
+        # Unknown team: use model predictions with moderate aggressiveness
+        edge = pred.predicted_fair_value - prop.asking_price
+        if edge < 0:
+            should_bid = False
+        else:
+            bid_price = pred.max_bid * 0.97
+            ltv = pred.target_ltv
+            confidence = 0.80
+    
+    if not should_bid:
+        return {"should_bid": False, "bid_price": 0.0, "ltv": 0.0, "confidence": 0.0}
+    
+    return {
+        "should_bid": True,
+        "bid_price": bid_price,
+        "ltv": ltv,
+        "confidence": confidence,
+    }
+
+
 # ── MAIN APP LOGIC ──
 
 # Not started
@@ -619,6 +754,7 @@ if not st.session_state.game_started:
         st.session_state.model_locked = True
         st.session_state.model_timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         st.session_state.practice_complete = False
+        st.session_state.demo_mode = True
         st.rerun()
 
 # Started but no GM
@@ -752,6 +888,13 @@ else:
                         gm.submit_bid(bid)
                     except ValueError as e:
                         st.error(str(e))
+                        st.rerun()
+                # Lock the round before resolving (required by GameManager)
+                try:
+                    gm.lock_round()
+                except RuntimeError as e:
+                    st.error(f"Lock failed: {e}")
+                    st.rerun()
                 try:
                     gm.resolve_round()
                     st.session_state.practice_complete = True
@@ -955,6 +1098,34 @@ else:
                 st.markdown('</div>', unsafe_allow_html=True)
 
         if st.button("REVIEW & SUBMIT ROUND", use_container_width=True, type="primary"):
+            # 1. Submit human bids from the decision table
+            for prop_id, sd in st.session_state.round_decision.items():
+                if sd.get("decision") == "BID":
+                    bid = Bid(
+                        team_id=team_name,
+                        property_id=prop_id,
+                        bid_price=sd["bid"],
+                        ltv=sd["ltv"],
+                        round_number=gm.current_round,
+                        timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+                        confidence=0.8,
+                    )
+                    try:
+                        gm.submit_bid(bid)
+                    except (ValueError, RuntimeError) as e:
+                        st.error(f"Bid error for {prop_id}: {e}")
+                        st.rerun()
+
+            # 2. Submit deterministic bot bids for all competing funds
+            _submit_bot_bids(gm, predictions)
+
+            # 3. Lock the round (required before resolve)
+            try:
+                gm.lock_round()
+            except RuntimeError as e:
+                st.error(f"Lock failed: {e}")
+                st.rerun()
+
             st.rerun()
 
     # Waiting / market closed
@@ -1061,8 +1232,14 @@ else:
             c5.metric("Properties", len(team_state.properties))
             prev_nav = st.session_state.capital_panel_state.get("prev_nav", team_state.nav)
             nav_chg = team_state.nav - prev_nav
-            nav_class = 'color:#276749' if nav_chg >= 0 else 'color:#9b2c2c'
-            c6.metric("NAV Change", f"<span style='{nav_class}'>{fmt_delta(nav_chg)}</span>", unsafe_allow_html=True)
+            nav_color = '#276749' if nav_chg >= 0 else '#9b2c2c'
+            nav_arrow = 'up' if nav_chg >= 0 else 'down'
+            c6.metric(
+                "NAV Change",
+                f"${nav_chg:+.1f}M",
+                delta=f"{nav_chg:+.1f}M",
+                delta_color='normal' if nav_chg >= 0 else 'inverse',
+            )
 
         if team_state.properties:
             st.markdown('<div class="subsection-header">Holdings</div>', unsafe_allow_html=True)
@@ -1140,6 +1317,7 @@ with st.sidebar:
                 '</div>', unsafe_allow_html=True)
 
     if st.session_state.game_started and st.session_state.game_manager:
+        # Only show sidebar content after game ends (or during setup)
         gm = st.session_state.game_manager
         team_name = st.session_state.current_team
         team_state = gm.teams.get(team_name)
