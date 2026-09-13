@@ -3,6 +3,8 @@ from __future__ import annotations
 import streamlit as st
 import pandas as pd
 
+from src.utils.state import get_state
+
 
 def show():
     st.title("11 · Results / Debrief")
@@ -174,3 +176,7 @@ def show():
 
     import pages.navigation as navigation
     st.page_link(navigation.page("methodology"), label="→ Appendix: Provenance & Methodology", use_container_width=True)
+
+
+if __name__ == "__main__":
+    show()

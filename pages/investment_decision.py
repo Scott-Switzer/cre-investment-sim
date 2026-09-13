@@ -189,3 +189,7 @@ def show():
     st.markdown("---")
     import pages.navigation as navigation
     st.page_link(navigation.page("professor"), label="→ Next: Professor Control", use_container_width=True)
+
+
+if __name__ == "__main__":
+    show()

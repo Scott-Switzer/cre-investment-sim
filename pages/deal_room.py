@@ -36,7 +36,10 @@ def show():
             "occupancy": "Occupancy (%)",
             "market_rent": "Market Rent",
             "in_place_rent": "In-Place Rent",
+            "walt": "WALT",
+            "tenant_concentration": "Tenant Concentration",
             "debt_rate": "Debt Rate (%)",
+            "amortization_years": "Amort. (yrs)",
             "max_ltv": "Max LTV (%)",
             "property_quality": "Quality (0-1)",
             "primary_risk": "Primary Risk",
@@ -130,7 +133,7 @@ def show():
     compare = st.multiselect("Compare properties", pids, default=[pids[0], pids[min(1, len(pids)-1)]], key="deal_compare")
     if compare:
         sub = props[props["property_id"].isin(compare)]
-        st.dataframe(sub[["property_id", "property_name", "type", "submarket", "asking_price", "current_noi", "going_in_cap", "occupancy", "walt", "tenant_concentration", "debt_rate", "max_ltv"]].assign(
+        st.dataframe(sub[["property_id", "property_name", "type", "submarket", "asking_price", "current_noi", "going_in_cap", "occupancy", "walt", "tenant_concentration", "debt_rate", "amortization_years", "max_ltv"]].assign(
             asking_price=lambda d: d["asking_price"].round(2),
             current_noi=lambda d: d["current_noi"].round(3),
             going_in_cap=lambda d: (d["going_in_cap"] * 100).round(2),
@@ -139,10 +142,17 @@ def show():
             max_ltv=lambda d: (d["max_ltv"] * 100).round(0),
         ).rename(columns={
             "asking_price": "Ask ($MM)", "current_noi": "NOI ($MM)", "going_in_cap": "Cap (%)",
-            "occupancy": "Occ (%)", "debt_rate": "Debt (%)", "max_ltv": "MaxLTV (%)",
+            "occupancy": "Occ (%)", "walt": "WALT",
+            "tenant_concentration": "Tenant Concentration",
+            "debt_rate": "Debt (%)", "amortization_years": "Amort. (yrs)",
+            "max_ltv": "MaxLTV (%)",
         })[["property_id", "property_name", "type", "submarket", "Ask ($MM)", "NOI ($MM)", "Cap (%)", "Occ (%)", "WALT", "Tenant Concentration", "Debt (%)", "Amort. (yrs)", "MaxLTV (%)"]],
         hide_index=True, use_container_width=True)
 
     st.markdown("---")
     import pages.navigation as navigation
     st.page_link(navigation.page("decision"), label="→ Next: Investment Decision", use_container_width=True)
+
+
+if __name__ == "__main__":
+    show()

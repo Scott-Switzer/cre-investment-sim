@@ -469,3 +469,7 @@ def _render_top_bar(gm: GameManager, team_name: str, team_state):
         st.metric("Holdings", holdings)
 
     st.markdown("---")
+
+
+if __name__ == "__main__":
+    show()

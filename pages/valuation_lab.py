@@ -104,4 +104,10 @@ def show():
 
     st.markdown("---")
     st.info("Future extension: probabilistic forecasts (prediction intervals / quantile scoring) can plug into the same submission interface.")
-    st.page_link("pages/geospatial.py", label="→ Next: Geospatial View", icon="")
+    import pages.navigation as navigation
+
+    st.page_link(navigation.page("geo"), label="→ Next: Geospatial View")
+
+
+if __name__ == "__main__":
+    show()

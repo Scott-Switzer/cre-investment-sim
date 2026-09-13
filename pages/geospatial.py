@@ -55,4 +55,10 @@ def show():
         st.warning(f"Parcel sample unavailable right now: {e}")
 
     st.markdown("---")
-    st.page_link("pages/deal_room.py", label="→ Next: Deal Room", icon="")
+    import pages.navigation as navigation
+
+    st.page_link(navigation.page("deals"), label="→ Next: Deal Room")
+
+
+if __name__ == "__main__":
+    show()

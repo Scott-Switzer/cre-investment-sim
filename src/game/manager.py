@@ -20,7 +20,7 @@ import pandas as pd
 import numpy as np
 
 from src.game.adjudicator import Adjudicator, RoundState, BidStatus, TeamState, Bid, PropertyMarket, MarketState, RoundResult, ModelPrediction, PropertyOutcome
-from src.data.properties import generate_properties
+from src.data.properties import generate_properties, synthetic_year_built
 
 
 @dataclass
@@ -32,6 +32,72 @@ class GameConfig:
     properties_per_round: int = 4
     practice_round: bool = True
     scenario: str = "Base Case"
+
+
+@dataclass
+class ClassroomTiming:
+    """Classroom time budget for a preset. Advisory only -- there are no timers.
+
+    The instructor opens and locks rounds manually; these numbers exist so the
+    game can print a realistic agenda and so the two class formats are explicit
+    configuration rather than tribal knowledge.
+    """
+    name: str
+    practice_minutes: int
+    round_minutes: int
+    debrief_minutes: int
+    total_rounds: int
+
+    @property
+    def scored_minutes(self) -> int:
+        return self.round_minutes * self.total_rounds
+
+    @property
+    def total_minutes(self) -> int:
+        return (
+            5  # rules / briefing
+            + self.practice_minutes
+            + self.scored_minutes
+            + self.debrief_minutes
+        )
+
+
+CLASSROOM_TIMINGS: Dict[str, ClassroomTiming] = {
+    "QUICK CLASS": ClassroomTiming(
+        name="QUICK CLASS",
+        practice_minutes=6,
+        round_minutes=9,
+        debrief_minutes=18,
+        total_rounds=4,
+    ),
+    "EXTENDED CLASS": ClassroomTiming(
+        name="EXTENDED CLASS",
+        practice_minutes=8,
+        round_minutes=12,
+        debrief_minutes=25,
+        total_rounds=6,
+    ),
+}
+
+DEFAULT_TIMING_PRESET = "QUICK CLASS"
+
+
+def game_config_for_timing(
+    preset: str = DEFAULT_TIMING_PRESET,
+    seed: int = 20240331,
+    starting_equity: float = 100.0,
+    scenario: str = "Base Case",
+) -> GameConfig:
+    """Build a GameConfig for a named classroom timing preset."""
+    timing = CLASSROOM_TIMINGS[preset]
+    return GameConfig(
+        seed=seed,
+        starting_equity=starting_equity,
+        total_rounds=timing.total_rounds,
+        properties_per_round=4,
+        practice_round=True,
+        scenario=scenario,
+    )
 
 
 @dataclass
@@ -102,8 +168,13 @@ class GameManager:
                 current_noi=row["current_noi"],
                 current_cap=row["going_in_cap"],
                 occupancy=row["occupancy"],
-                building_sf=row.get("building_sf", 100000),
-                year_built=row.get("year_built", 1995),
+                # The generator column is `size_sf`; `building_sf` is accepted only
+                # as a fallback so no caller silently gets a defaulted size.
+                building_sf=float(row.get("size_sf", row.get("building_sf", 100000))),
+                year_built=row.get(
+                    "year_built",
+                    synthetic_year_built(row["property_id"], row.get("property_quality", 0.5)),
+                ),
                 max_ltv=row["max_ltv"],
                 debt_rate=row["debt_rate"],
                 amortization_years=row["amortization_years"],

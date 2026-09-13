@@ -70,4 +70,10 @@ The injected issues are:
         db2.close()
 
     st.markdown("---")
-    st.page_link("pages/market_explorer.py", label="→ Next: Market Explorer", icon="")
+    import pages.navigation as navigation
+
+    st.page_link(navigation.page("market"), label="→ Next: Market Explorer")
+
+
+if __name__ == "__main__":
+    show()

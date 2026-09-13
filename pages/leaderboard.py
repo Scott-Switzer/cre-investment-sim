@@ -231,3 +231,7 @@ def show():
     st.markdown("---")
     if st.button("Back to Game", use_container_width=True):
         st.switch_page("app.py")
+
+
+if __name__ == "__main__":
+    show()

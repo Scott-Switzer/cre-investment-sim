@@ -60,3 +60,7 @@ professor controls, debrief, and a provenance page. Full demonstration is possib
 """
     )
     st.page_link(navigation.page("professor"), label="Skip ahead to Professor Control", use_container_width=True)
+
+
+if __name__ == "__main__":
+    show()

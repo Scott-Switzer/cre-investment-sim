@@ -423,3 +423,7 @@ def _render_leaderboard(gm):
         st.dataframe(df, hide_index=True, use_container_width=True)
     else:
         st.info("No team data available. Start a game to see standings.")
+
+
+if __name__ == "__main__":
+    show()

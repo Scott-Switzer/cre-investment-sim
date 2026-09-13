@@ -10,6 +10,10 @@ Every synthetic field is flagged is_synthetic=True in the provenance schema.
 The same generator is used to create:
 - the pristine INSTRUCTOR truth dataset
 - the deliberately imperfect STUDENT COPY (with injected data-quality issues)
+
+One derived attribute -- construction year -- is NOT produced by the generator and is
+instead derived deterministically from the property id and quality score, so that the
+student game packet and the live game engine agree on the same value for a property.
 """
 
 from __future__ import annotations
@@ -17,6 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Dict, List, Optional
+import hashlib
 import numpy as np
 import pandas as pd
 
@@ -154,6 +159,24 @@ _PROPERTY_NAMES_BY_TYPE = {
     "Multifamily": ["Orange Grove Apartments", "Santa Ana Urban Flats", "Anaheim Garden Apartments", "Irvine Park Courts", "Fullerton Square Apartments", "Costa Mesa Midtown Flats", "Tustin Station Apartments", "Newport Shores Apartments"],
     "Retail": ["Costa Mesa Retail Row", "Fullerton Marketplace", "Irvine Spectrum Retail Pad", "Anaheim Plaza Retail", "Garden Grove Shopping Center", "Santa Ana Retail Commons", "Newport Beach Retail Corner", "Tustin Village Shops"],
 }
+
+
+def synthetic_year_built(property_id: str, property_quality: float, reference_year: int = 2026) -> int:
+    """Deterministic synthetic construction year for a property.
+
+    The property generator does not model construction year. Rather than invent a
+    second, disagreeing value in the student packet, both the live game
+    (:meth:`GameManager._generate_property_pool`) and the student packet call this
+    function, so a student modelling on the packet sees the same number the game
+    shows during play.
+
+    Derived only from the property id (for stable jitter) and the generated
+    ``property_quality`` score (higher quality => newer asset).
+    """
+    digest = hashlib.sha256(f"year_built:{property_id}".encode()).digest()
+    jitter = int.from_bytes(digest[:4], "big") % 15
+    age = int(round(72 - 52 * max(0.0, min(1.0, float(property_quality)))))
+    return int(max(1955, min(reference_year, reference_year - age - jitter)))
 
 
 def _rent_for_type(ptype: str, profile: dict, rng: np.random.Generator, size_sf: int, units: Optional[int]) -> float:

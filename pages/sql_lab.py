@@ -76,4 +76,10 @@ def show():
         db.close()
 
     st.markdown("---")
-    st.page_link("pages/valuation_lab.py", label="→ Next: Valuation Lab", icon="")
+    import pages.navigation as navigation
+
+    st.page_link(navigation.page("valuation"), label="→ Next: Valuation Lab")
+
+
+if __name__ == "__main__":
+    show()

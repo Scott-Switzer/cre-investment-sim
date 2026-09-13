@@ -568,140 +568,32 @@ def round_interpretation(prop_name: str, your_bid: float, model_max: float,
     return ". ".join(parts) + "."
 
 
-def _submit_bot_bids(gm: GameManager, predictions: Dict) -> None:
-    """Submit deterministic bot bids for all teams in the game.
-    
-    Each bot uses its model predictions and a strategy-specific policy.
-    Bots obey the same constraints as the human player.
+# Demo-bot policies live in src/game/bots.py so the app, the verification script
+# and the tests all run the same strategy. These wrappers keep the historical
+# call signature used across the app and the test suite.
+from src.game.bots import submit_bot_bids as _submit_bot_bids_impl
+
+
+HUMAN_TEAM_ID = "Buy&Hold Capital"
+
+
+def _submit_bot_bids(gm: GameManager, predictions: Dict = None) -> int:
+    """Submit deterministic bot bids for every non-human team.
+
+    ``predictions`` is accepted for backward compatibility and ignored: each bot
+    bids from its own stored model predictions so that no team can be handed
+    another team's model.
     """
-    for team_id, team in gm.teams.items():
-        # Skip the human team
-        if team_id == "Buy&Hold Capital":
-            continue
-        
-        team_preds = team.model_predictions
-        if not team_preds:
-            continue
-        
-        for prop_id, prop in gm.current_properties.items():
-            pred = team_preds.get(prop_id)
-            if not pred:
-                continue
-            
-            # Determine bid strategy based on team archetype
-            strategy = _bot_strategy(team_id, pred, prop)
-            
-            # Check if bot should bid (not PASS)
-            if not strategy["should_bid"]:
-                continue
-            
-            # Check cash constraints
-            bid_price = strategy["bid_price"]
-            ltv = strategy["ltv"]
-            equity_required = bid_price * (1 - ltv)
-            
-            if team.cash < equity_required:
-                continue
-            
-            # Check LTV constraint
-            if ltv > prop.max_ltv:
-                continue
-            
-            # Check round/property constraint — bot can bid once per property, not once per round
-            submitted = any(
-                b.team_id == team_id
-                and b.property_id == prop_id
-                and b.round_number == gm.current_round
-                for b in gm.submitted_bids
-            )
-            if submitted:
-                continue
-            
-            # Submit bid
-            bid = Bid(
-                team_id=team_id,
-                property_id=prop_id,
-                bid_price=bid_price,
-                ltv=ltv,
-                round_number=gm.current_round,
-                timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
-                confidence=strategy.get("confidence", 0.8),
-            )
-            try:
-                gm.submit_bid(bid)
-            except (ValueError, RuntimeError):
-                pass  # Bot bid failed validation, skip
+    return _submit_bot_bids_impl(gm, HUMAN_TEAM_ID)
 
 
 def _bot_strategy(team_id: str, pred: ModelPrediction, prop) -> dict:
-    """Determine bid strategy for a bot team.
-    
-    Strategies:
-    - Value Fund: Conservative, bids near but below max_bid, high edge required
-    - Growth Fund: Aggressive, bids close to max_bid or slightly above
-    - Risk Fund: Very conservative, requires high edge, low LTV
-    """
-    # Default policy
-    should_bid = True
-    ltv = pred.target_ltv
-    confidence = 0.8
-    
-    if "Value" in team_id:
-        # Value fund: disciplined, needs clear edge
-        edge = pred.predicted_fair_value - prop.asking_price
-        edge_pct = edge / prop.asking_price if prop.asking_price > 0 else 0
-        if edge_pct < 0.05:  # Less than 5% edge
-            should_bid = False
-        else:
-            # Bid near max_bid, slightly below
-            bid_price = pred.max_bid * 0.98
-            ltv = min(pred.target_ltv, 0.70)  # Cap LTV at 70%
-            confidence = 0.85
-    
-    elif "Growth" in team_id:
-        # Growth fund: more aggressive
-        edge = pred.predicted_fair_value - prop.asking_price
-        if edge < -0.02 * prop.asking_price:  # More than 2% below fair value
-            should_bid = False
-        else:
-            # Bid at or slightly above max_bid
-            bid_price = min(pred.max_bid * 1.02, pred.predicted_fair_value * 0.99)
-            ltv = min(pred.target_ltv + 0.05, prop.max_ltv)  # Slightly higher LTV
-            confidence = 0.75
-    
-    elif "Risk" in team_id:
-        # Risk fund: very conservative
-        edge = pred.predicted_fair_value - prop.asking_price
-        edge_pct = edge / prop.asking_price if prop.asking_price > 0 else 0
-        prob_down = pred.probability_of_downside
-        
-        if edge_pct < 0.08 or prob_down > 0.35:
-            should_bid = False
-        else:
-            # Bid well below max_bid
-            bid_price = pred.max_bid * 0.92
-            ltv = min(pred.target_ltv - 0.10, 0.60)  # Lower LTV
-            confidence = 0.90
-    
-    else:
-        # Unknown team: use model predictions with moderate aggressiveness
-        edge = pred.predicted_fair_value - prop.asking_price
-        if edge < 0:
-            should_bid = False
-        else:
-            bid_price = pred.max_bid * 0.97
-            ltv = pred.target_ltv
-            confidence = 0.80
-    
-    if not should_bid:
-        return {"should_bid": False, "bid_price": 0.0, "ltv": 0.0, "confidence": 0.0}
-    
-    return {
-        "should_bid": True,
-        "bid_price": bid_price,
-        "ltv": ltv,
-        "confidence": confidence,
-    }
+    """Bid policy for a demo bot. See :mod:`src.game.bots`."""
+    from src.game.bots import bot_strategy
+
+    return bot_strategy(
+        team_id, pred, prop.asking_price, getattr(prop, "max_ltv", None)
+    )
 
 
 # ── MAIN APP LOGIC ──
@@ -721,7 +613,53 @@ if not st.session_state.game_started:
         'and outperform competing fund managers.'
     )
 
-    st.markdown('<div class="section-header">Strategy Brief</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">1 · Prep — build your model before class</div>',
+                unsafe_allow_html=True)
+    st.markdown(
+        'This app does **not** build the model for you. Download the data, build your model '
+        'externally with whatever tool you like, and bring your predictions in. Your model is '
+        'the analytical engine; this app is the decision environment.'
+    )
+    prep_cols = st.columns(3)
+    with prep_cols[0]:
+        st.page_link("pages/datasets.py", label="Dataset Downloads",
+                     use_container_width=True)
+    with prep_cols[1]:
+        st.page_link("pages/model_checkin.py", label="Model Check-In",
+                     use_container_width=True)
+    with prep_cols[2]:
+        st.page_link("pages/strategy_card.py", label="Strategy Card",
+                     use_container_width=True)
+
+    with st.expander("Analytics labs — course preparation tools (not part of the timed game)"):
+        st.caption(
+            "These pages exist to support REAL 605 coursework. They are deliberately "
+            "separate from live gameplay so nobody has to navigate eleven analytical "
+            "pages while the clock is running."
+        )
+        lab_cols = st.columns(4)
+        labs = [
+            ("pages/briefing.py", "Briefing"),
+            ("pages/data_catalog.py", "Data Catalog"),
+            ("pages/data_quality.py", "Data Quality"),
+            ("pages/market_explorer.py", "Market Explorer"),
+            ("pages/sql_lab.py", "SQL Lab"),
+            ("pages/valuation_lab.py", "Valuation Lab"),
+            ("pages/geospatial.py", "Geospatial View"),
+            ("pages/deal_room.py", "Deal Room"),
+            ("pages/investment_decision.py", "Investment Decision"),
+            ("pages/leaderboard.py", "Analytics Leaderboard"),
+            ("pages/final_debrief.py", "Final Debrief"),
+            ("pages/provenance.py", "Provenance"),
+        ]
+        for i, (path, label) in enumerate(labs):
+            with lab_cols[i % 4]:
+                st.page_link(path, label=label, use_container_width=True)
+
+    st.markdown('<div class="section-header">2 · Live Game — compete for capital</div>',
+                unsafe_allow_html=True)
+
+    st.markdown('<div class="subsection-header">Strategy Brief</div>', unsafe_allow_html=True)
 
     cols = st.columns(3)
     with cols[0]:

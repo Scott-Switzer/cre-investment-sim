@@ -49,6 +49,24 @@ def _mod(key: str):
     if key == "methodology":
         import pages.provenance as m
         return m
+    if key == "datasets":
+        import pages.datasets as m
+        return m
+    if key == "model-checkin":
+        import pages.model_checkin as m
+        return m
+    if key == "strategy-card":
+        import pages.strategy_card as m
+        return m
+    if key == "live-game":
+        import pages.live_game as m
+        return m
+    if key == "leaderboard":
+        import pages.leaderboard as m
+        return m
+    if key == "final-debrief":
+        import pages.final_debrief as m
+        return m
     raise KeyError(key)
 
 PAGES = {
@@ -65,7 +83,43 @@ PAGES = {
     "professor": _mod("professor"),
     "results": _mod("results"),
     "methodology": _mod("methodology"),
+    # PREP mode
+    "datasets": _mod("datasets"),
+    "model-checkin": _mod("model-checkin"),
+    "strategy-card": _mod("strategy-card"),
+    # LIVE GAME mode
+    "live-game": _mod("live-game"),
+    "leaderboard": _mod("leaderboard"),
+    "final-debrief": _mod("final-debrief"),
 }
+
+# Page groups drive the two top-level modes in the app shell.
+PREP_PAGES = [
+    "datasets",
+    "model-checkin",
+    "strategy-card",
+    "briefing",
+    "data",
+    "data-quality",
+    "market",
+    "sql",
+    "valuation",
+    "geo",
+    "deals",
+    "decision",
+    "methodology",
+]
+
+LIVE_GAME_PAGES = [
+    "live-game",
+    "leaderboard",
+    "final-debrief",
+    "results",
+]
+
+INSTRUCTOR_PAGES = [
+    "professor",
+]
 
 _url_path_to_key = {
     "": "home",
@@ -81,6 +135,12 @@ _url_path_to_key = {
     "professor": "professor",
     "results": "results",
     "methodology": "methodology",
+    "datasets": "datasets",
+    "model-checkin": "model-checkin",
+    "strategy-card": "strategy-card",
+    "live-game": "live-game",
+    "leaderboard": "leaderboard",
+    "final-debrief": "final-debrief",
 }
 
 
@@ -95,3 +155,28 @@ def page(key: str):
         title=mod.__dict__.get("__page_title__", key),
         url_path=_url_path_to_key.get(key, key),
     )
+
+
+def all_page_files() -> dict[str, str]:
+    """Map every registered navigation key to its source file, for tests."""
+    return {
+        "home": "app.py",
+        "briefing": "pages/briefing.py",
+        "data": "pages/data_catalog.py",
+        "data-quality": "pages/data_quality.py",
+        "market": "pages/market_explorer.py",
+        "sql": "pages/sql_lab.py",
+        "valuation": "pages/valuation_lab.py",
+        "geo": "pages/geospatial.py",
+        "deals": "pages/deal_room.py",
+        "decision": "pages/investment_decision.py",
+        "professor": "pages/professor_control.py",
+        "results": "pages/results.py",
+        "methodology": "pages/provenance.py",
+        "datasets": "pages/datasets.py",
+        "model-checkin": "pages/model_checkin.py",
+        "strategy-card": "pages/strategy_card.py",
+        "live-game": "pages/live_game.py",
+        "leaderboard": "pages/leaderboard.py",
+        "final-debrief": "pages/final_debrief.py",
+    }

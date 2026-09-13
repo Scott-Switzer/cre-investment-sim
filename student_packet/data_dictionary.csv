@@ -1,0 +1,34 @@
+column,description,type,appears_in,notes
+property_id,Unique property identifier,string,Historical and candidates,Matches the ids the live game offers
+date,Vintage / transaction date,date,Historical only,Historical rows represent transactions that already closed
+property_type,Asset class,category,Historical and candidates,Industrial | Office | Multifamily | Retail
+submarket,Orange County submarket,category,Historical and candidates,Anaheim | Irvine | Newport Beach | Orange | Santa Ana | Costa Mesa | Fullerton
+building_sf,Rentable building area,numeric,Historical and candidates,Square feet
+year_built,Synthetic construction year,integer,Historical and candidates,SYNTHETIC DERIVED - not produced by the generator; derived from property id and quality
+occupancy,Current occupancy rate,numeric,Historical and candidates,Decimal 0-1
+noi,Current annual net operating income,numeric,Historical and candidates,Millions of dollars
+market_rent,Market rent,numeric,Historical and candidates,"$/SF/month, or $/unit/month for Multifamily"
+in_place_rent,Contract in-place rent,numeric,Historical and candidates,Same units as market_rent
+going_in_cap,Cap rate implied by the current asking price,numeric,Historical and candidates,Decimal - equals noi / asking_price
+opex_ratio,Operating expense ratio,numeric,Historical and candidates,Decimal share of gross revenue
+walt,Weighted average lease term,numeric,Historical and candidates,Years
+tenant_concentration,Largest-tenant revenue share,numeric,Historical and candidates,Decimal 0-1
+capex_need,Estimated near-term capital need,numeric,Historical and candidates,Millions of dollars
+property_quality,Generated quality score,numeric,Historical and candidates,Decimal 0-1; higher is better
+units,Number of units,numeric,Historical and candidates,Populated for Multifamily only
+primary_risk,Generator's labelled principal risk,category,Historical and candidates,"Market / Lease-up Risk, etc."
+employment_density,Submarket employment density,numeric,Historical and candidates,"DERIVED FEATURE - jobs per square mile, submarket level"
+treasury_rate,10-year Treasury rate at the observation date,numeric,Historical and candidates,REAL PUBLIC DATA (FRED DGS10). For candidates this is the game's opening market rate
+market_vacancy,Market vacancy for the property type,numeric,Historical and candidates,SIMULATED MARKET STATE - per-type baseline plus seeded deviation
+transaction_cap_rate,Cap rate the property traded at,numeric,Historical only - TARGET,Decimal
+transaction_price,Price the property transacted at,numeric,Historical only - TARGET,Millions of dollars
+noi_growth_realized,Realized following-year NOI growth,numeric,Historical only - TARGET,Decimal; the quantity the game rewards you for forecasting
+next_year_noi,NOI one year after the transaction,numeric,Historical only - TARGET,Millions of dollars
+next_year_cap_rate,Cap rate one year after the transaction,numeric,Historical only - TARGET,Decimal
+next_year_value,Value one year after the transaction,numeric,Historical only - TARGET,Millions of dollars; the analogue of realized game value
+asking_price,Current asking price,numeric,Candidates only,"Millions of dollars - what the seller is asking NOW, not a future value"
+debt_rate,All-in debt interest rate offered on the asset,numeric,Candidates only,Decimal
+max_ltv,Lender maximum loan-to-value for this asset,numeric,Candidates only,Decimal; a binding game constraint
+amortization_years,Loan amortization term,integer,Candidates only,Years
+property_name,Display name,string,Candidates only,"Descriptor only, not a model feature"
+data_tag,Provenance tag,string,Candidates only,Real public context layered over a synthetic operating case

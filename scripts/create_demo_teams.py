@@ -25,7 +25,7 @@ def generate_value_model_predictions(properties: pd.DataFrame, seed: int = 20240
     
     Characteristics:
     - Accurate valuation (small error around true value)
-    - Conservative bid discipline (bids at 85-90% of predicted value)
+    - Disciplined bid ceiling: will pay up to 95-99% of its own fair value
     - Moderate LTV (55-65%)
     - Reasonable downside risk estimates
     """
@@ -41,7 +41,7 @@ def generate_value_model_predictions(properties: pd.DataFrame, seed: int = 20240
         predicted_noi_growth = np.random.uniform(0.01, 0.03)
         
         # Conservative max bid (85-90% of predicted value)
-        max_bid = predicted_value * np.random.uniform(0.85, 0.90)
+        max_bid = predicted_value * np.random.uniform(0.95, 0.99)
         
         # Moderate LTV
         target_ltv = np.random.uniform(0.55, 0.65)
@@ -87,7 +87,7 @@ def generate_growth_model_predictions(properties: pd.DataFrame, seed: int = 2024
         predicted_noi_growth = np.random.uniform(0.04, 0.07)
         
         # Aggressive max bid (90-95% of predicted value)
-        max_bid = predicted_value * np.random.uniform(0.90, 0.95)
+        max_bid = predicted_value * np.random.uniform(1.00, 1.06)
         
         # Higher LTV
         target_ltv = np.random.uniform(0.65, 0.75)
@@ -133,7 +133,7 @@ def generate_risk_model_predictions(properties: pd.DataFrame, seed: int = 202403
         predicted_noi_growth = np.random.uniform(0.0, 0.02)
         
         # Very conservative max bid (75-85% of predicted value)
-        max_bid = predicted_value * np.random.uniform(0.75, 0.85)
+        max_bid = predicted_value * np.random.uniform(0.90, 0.95)
         
         # Low LTV
         target_ltv = np.random.uniform(0.45, 0.55)
@@ -163,7 +163,7 @@ def generate_noisy_model_predictions(properties: pd.DataFrame, seed: int = 20240
     
     Characteristics:
     - Poor valuation accuracy (high variance, ±15% error)
-    - Inconsistent bid discipline (70-95% of predicted value)
+    - Inconsistent bid discipline (90-102% of predicted value)
     - Variable LTV (40-75%)
     - Random downside risk estimates
     - Lower confidence
@@ -179,8 +179,8 @@ def generate_noisy_model_predictions(properties: pd.DataFrame, seed: int = 20240
         # Variable NOI growth (-2% to 6%)
         predicted_noi_growth = np.random.uniform(-0.02, 0.06)
         
-        # Inconsistent bid discipline (70-95% of predicted value)
-        max_bid = predicted_value * np.random.uniform(0.70, 0.95)
+        # Inconsistent bid discipline (90-102% of predicted value)
+        max_bid = predicted_value * np.random.uniform(0.90, 1.02)
         
         # Variable LTV
         target_ltv = np.random.uniform(0.40, 0.75)
@@ -204,52 +204,79 @@ def generate_noisy_model_predictions(properties: pd.DataFrame, seed: int = 20240
     return pd.DataFrame(predictions)
 
 
-def create_demo_teams(seed: int = 20240331, count: int = 100):
-    """Create all demo team predictions and save to files."""
-    print("Generating demo team predictions...")
-    
+def create_demo_teams(
+    seed: int = 20240331,
+    count: int = 100,
+    save: bool = True,
+    verbose: bool = True,
+):
+    """Create all demo team predictions.
+
+    ``save=False`` keeps the call side-effect free, which matters anywhere the
+    demo teams are needed in-process (the app, tests, verification scripts)
+    rather than as a build step. ``verbose=False`` silences progress output.
+    """
+    def say(*args) -> None:
+        if verbose:
+            print(*args)
+
+    say("Generating demo team predictions...")
+
     # Generate properties
     properties = generate_properties(seed=seed, count=count)
-    
-    # Create output directory
+
     output_dir = Path("demo_teams")
-    output_dir.mkdir(exist_ok=True)
-    
-    # Generate predictions for each model archetype
-    print("  - Generating Value Model predictions...")
-    value_predictions = generate_value_model_predictions(properties, seed)
-    value_predictions.to_csv(output_dir / "value_model_predictions.csv", index=False)
-    print(f"    Generated {len(value_predictions)} predictions")
-    
-    print("  - Generating Growth Model predictions...")
-    growth_predictions = generate_growth_model_predictions(properties, seed + 1)
-    growth_predictions.to_csv(output_dir / "growth_model_predictions.csv", index=False)
-    print(f"    Generated {len(growth_predictions)} predictions")
-    
-    print("  - Generating Risk Model predictions...")
-    risk_predictions = generate_risk_model_predictions(properties, seed + 2)
-    risk_predictions.to_csv(output_dir / "risk_model_predictions.csv", index=False)
-    print(f"    Generated {len(risk_predictions)} predictions")
-    
-    print("  - Generating Noisy Model predictions...")
-    noisy_predictions = generate_noisy_model_predictions(properties, seed + 3)
-    noisy_predictions.to_csv(output_dir / "noisy_model_predictions.csv", index=False)
-    print(f"    Generated {len(noisy_predictions)} predictions")
-    
+    if save:
+        output_dir.mkdir(exist_ok=True)
+
+    def emit(frame: pd.DataFrame, filename: str) -> pd.DataFrame:
+        if save:
+            frame.to_csv(output_dir / filename, index=False)
+        return frame
+
+    say("  - Generating Value Model predictions...")
+    value_predictions = emit(
+        generate_value_model_predictions(properties, seed),
+        "value_model_predictions.csv",
+    )
+    say(f"    Generated {len(value_predictions)} predictions")
+
+    say("  - Generating Growth Model predictions...")
+    growth_predictions = emit(
+        generate_growth_model_predictions(properties, seed + 1),
+        "growth_model_predictions.csv",
+    )
+    say(f"    Generated {len(growth_predictions)} predictions")
+
+    say("  - Generating Risk Model predictions...")
+    risk_predictions = emit(
+        generate_risk_model_predictions(properties, seed + 2),
+        "risk_model_predictions.csv",
+    )
+    say(f"    Generated {len(risk_predictions)} predictions")
+
+    say("  - Generating Noisy Model predictions...")
+    noisy_predictions = emit(
+        generate_noisy_model_predictions(properties, seed + 3),
+        "noisy_model_predictions.csv",
+    )
+    say(f"    Generated {len(noisy_predictions)} predictions")
+
     # Generate summary
-    print("\nDemo Team Summary:")
-    print(f"  Value Model: Conservative, accurate valuations, 85-90% bid discipline")
-    print(f"  Growth Model: Aggressive, optimistic forecasts, 90-95% bid discipline")
-    print(f"  Risk Model: Cautious, downside-focused, 75-85% bid discipline")
-    print(f"  Noisy Model: Inconsistent, high variance, 70-95% bid discipline")
-    
-    print(f"\nDemo team predictions saved to {output_dir}/")
-    print("Files created:")
-    print("  - value_model_predictions.csv")
-    print("  - growth_model_predictions.csv")
-    print("  - risk_model_predictions.csv")
-    print("  - noisy_model_predictions.csv")
-    
+    say("\nDemo Team Summary:")
+    say("  Value Model: Conservative, accurate valuations, 95-99% bid ceiling")
+    say("  Growth Model: Aggressive, optimistic forecasts, 100-106% bid ceiling")
+    say("  Risk Model: Cautious, downside-focused, 90-95% bid ceiling")
+    say("  Noisy Model: Inconsistent, high variance, 90-102% bid ceiling")
+
+    if save:
+        say(f"\nDemo team predictions saved to {output_dir}/")
+        say("Files created:")
+        say("  - value_model_predictions.csv")
+        say("  - growth_model_predictions.csv")
+        say("  - risk_model_predictions.csv")
+        say("  - noisy_model_predictions.csv")
+
     return {
         "Value Model": value_predictions,
         "Growth Model": growth_predictions,

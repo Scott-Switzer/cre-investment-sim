@@ -27,6 +27,114 @@ def _stable_seed(base_seed: int, salt: str, modifier: int = 0) -> int:
     return int.from_bytes(digest[:8], "big")
 
 
+# ── MARKET BASELINES AND ECONOMIC COEFFICIENTS ────────────────────────────
+#
+# These constants are the game's economic rules. They are declared here, in one
+# place, so that a reviewer can read every number that determines an outcome.
+# The student game packet imports them too, which guarantees that a model trained
+# on the packet's historical data is learning the same process the game runs.
+
+PROPERTY_TYPES: Tuple[str, ...] = ("Industrial", "Office", "Multifamily", "Retail")
+
+# Starting market conditions per property type (round 0 of a Base Case game).
+BASE_VACANCY: Dict[str, float] = {
+    "Industrial": 0.055,
+    "Office": 0.133,
+    "Multifamily": 0.036,
+    "Retail": 0.065,
+}
+BASE_CAP_RATE: Dict[str, float] = {
+    "Industrial": 0.055,
+    "Office": 0.072,
+    "Multifamily": 0.052,
+    "Retail": 0.065,
+}
+BASE_RENT_INDEX: Dict[str, float] = {
+    "Industrial": 1.49,
+    "Office": 2.89,
+    "Multifamily": 2944.0,
+    "Retail": 3.05,
+}
+
+# Starting macro environment.
+BASE_POLICY_RATE = 0.053
+BASE_UNEMPLOYMENT = 0.039
+BASE_EMPLOYMENT_GROWTH = 0.006
+BASE_INFLATION = 0.028
+BASE_CREDIT_CONDITIONS = 0.5
+
+# NOI growth: a base rate per year, plus a bonus when the market is tight.
+NOI_GROWTH_BASE = 0.020
+NOI_GROWTH_TIGHT_VACANCY_BONUS = 0.010
+TIGHT_VACANCY_THRESHOLD = 0.08
+NOI_GROWTH_SIGMA = 0.015
+MIN_NOI_GROWTH = -0.10
+MAX_NOI_GROWTH = 0.15
+
+# Cap-rate noise and bounds.
+CAP_NOISE_SIGMA = 0.0005
+MIN_CAP_RATE = 0.03
+MAX_CAP_RATE = 0.12
+
+# Scenario deltas (rate environment, employment growth).
+SCENARIO_DELTAS: Dict[str, Dict[str, float]] = {
+    "Base Case": {"rate_delta": 0.0, "growth_delta": 0.0},
+    "Rate Shock": {"rate_delta": 0.02, "growth_delta": -0.01},
+    "Growth Rebound": {"rate_delta": -0.005, "growth_delta": 0.015},
+}
+
+
+def realized_year_outcome(
+    property_id: str,
+    property_type: str,
+    noi: float,
+    market_vacancy: float,
+    market_cap_rate: float,
+    seed: int,
+    round_number: int,
+) -> Dict[str, float]:
+    """One simulated year for a single property. Pure and reproducible.
+
+    This is the ONLY place a property's NOI growth, cap rate and value are
+    determined. Portfolio revaluation and the round-feedback figures both call
+    it, so what a team is told happened is exactly what the engine applied.
+
+    Rules
+    -----
+    noi_growth   = NOI_GROWTH_BASE (+ tight-vacancy bonus) + seeded noise,
+                   clipped to [MIN_NOI_GROWTH, MAX_NOI_GROWTH]
+    cap_rate     = market cap rate for the type + seeded noise,
+                   clipped to [MIN_CAP_RATE, MAX_CAP_RATE]
+    next_noi     = noi * (1 + noi_growth)
+    value        = next_noi / cap_rate
+    """
+    rng = np.random.default_rng(_stable_seed(seed, property_id, round_number))
+
+    base_growth = NOI_GROWTH_BASE + (
+        NOI_GROWTH_TIGHT_VACANCY_BONUS if market_vacancy <= TIGHT_VACANCY_THRESHOLD else 0.0
+    )
+    noi_growth = float(
+        np.clip(base_growth + rng.normal(0, NOI_GROWTH_SIGMA), MIN_NOI_GROWTH, MAX_NOI_GROWTH)
+    )
+    cap_rate = float(
+        np.clip(market_cap_rate + rng.normal(0, CAP_NOISE_SIGMA), MIN_CAP_RATE, MAX_CAP_RATE)
+    )
+    next_noi = noi * (1 + noi_growth)
+
+    return {
+        "property_id": property_id,
+        "property_type": property_type,
+        "noi_growth": noi_growth,
+        "cap_rate": cap_rate,
+        "next_noi": next_noi,
+        "value": next_noi / cap_rate,
+        # Occupancy drifts with NOI performance; used for narrative feedback only.
+        "occupancy_change": float(
+            np.clip(-noi_growth * 0.5 + rng.normal(0, 0.003), -0.05, 0.05)
+        ),
+    }
+
+
 class RoundState(Enum):
     """Round state machine."""
     NOT_STARTED = "not_started"
@@ -286,13 +394,26 @@ class Adjudicator:
                 reason=f"Highest bid ${winning_bid.bid_price:.2f}M below reserve ${property_market.reserve_price:.2f}M",
             )
         
-        # Handle exact bid price ties with deterministic seed
+        # Tie-break, in the documented order:
+        #   1. lowest LTV (highest certainty of close)
+        #   2. then a seeded deterministic draw
+        # `valid_bids` is already sorted by (-bid_price, ltv), so any exact price
+        # tie is led by the lowest-LTV bid.
         tied_bids = [b for b in valid_bids if abs(b.bid_price - winning_bid.bid_price) < 0.001]
         if len(tied_bids) > 1:
-            # Use SHA-256-derived seed for deterministic cross-process tie-break
-            tie_seed = _stable_seed(self.seed, property_id, round_number)
-            tie_rng = np.random.default_rng(tie_seed)
-            winning_bid = tied_bids[tie_rng.integers(0, len(tied_bids))]
+            lowest_ltv = tied_bids[0].ltv
+            certainty_group = [
+                b for b in tied_bids if abs(b.ltv - lowest_ltv) < 1e-9
+            ]
+            if len(certainty_group) > 1:
+                # Still tied on price AND leverage: SHA-256-derived seeded draw.
+                tie_seed = _stable_seed(self.seed, property_id, round_number)
+                tie_rng = np.random.default_rng(tie_seed)
+                winning_bid = certainty_group[int(tie_rng.integers(0, len(certainty_group)))]
+            else:
+                winning_bid = certainty_group[0]
+        else:
+            winning_bid = tied_bids[0]
         
         return AuctionResult(
             property_id=property_id,
@@ -311,6 +432,7 @@ class Adjudicator:
         auction_result: AuctionResult,
         property_market: PropertyMarket,
         round_number: int,
+        opening_noi: Optional[float] = None,
     ) -> TeamState:
         """
         Update team's portfolio after auction resolution.
@@ -319,6 +441,11 @@ class Adjudicator:
         - If won: deduct equity, add debt, add property to portfolio
         - If lost: no change
         - Track human override vs model prediction
+
+        ``opening_noi`` is the property's NOI at the START of the round. It is
+        passed explicitly because the market loop has already advanced the
+        property's NOI to year-end by the time portfolios are updated; without
+        it a newly acquired asset would be revalued twice in its first year.
         """
         if not auction_result.sold or auction_result.winning_team_id != team.team_id:
             return team
@@ -340,7 +467,9 @@ class Adjudicator:
             debt_amount=debt_amount,
             debt_rate=property_market.debt_rate,
             amortization_years=property_market.amortization_years,
-            current_noi=property_market.current_noi,
+            current_noi=(
+                opening_noi if opening_noi is not None else property_market.current_noi
+            ),
             current_value=property_market.asking_price,
             property_type=property_market.property_type,
             submarket=property_market.submarket,
@@ -378,22 +507,15 @@ class Adjudicator:
         - Property-type specific vacancy, rent, cap rates evolve
         - All randomness is seeded and reproducible
         """
-        # Scenario-based deltas (simplified for MVP)
-        scenario_deltas = {
-            "Base Case": {"rate_delta": 0.0, "growth_delta": 0.0},
-            "Rate Shock": {"rate_delta": 0.02, "growth_delta": -0.01},
-            "Growth Rebound": {"rate_delta": -0.005, "growth_delta": 0.015},
-        }
-        
-        delta = scenario_deltas.get(scenario, scenario_deltas["Base Case"])
+        delta = SCENARIO_DELTAS.get(scenario, SCENARIO_DELTAS["Base Case"])
         
         if previous_market is None:
             # Initialize base market
-            policy_rate = 0.053
-            unemployment = 0.039
-            employment_growth = 0.006
-            inflation = 0.028
-            credit_conditions = 0.5
+            policy_rate = BASE_POLICY_RATE
+            unemployment = BASE_UNEMPLOYMENT
+            employment_growth = BASE_EMPLOYMENT_GROWTH
+            inflation = BASE_INFLATION
+            credit_conditions = BASE_CREDIT_CONDITIONS
         else:
             # Evolve from previous
             policy_rate = max(0.01, previous_market.policy_rate + delta["rate_delta"] + self.rng.normal(0, 0.002))
@@ -403,29 +525,25 @@ class Adjudicator:
             credit_conditions = max(0.0, min(1.0, previous_market.credit_conditions + self.rng.normal(0, 0.05)))
         
         # Property-type specific market conditions
-        base_vacancy = {"Industrial": 0.055, "Office": 0.133, "Multifamily": 0.036, "Retail": 0.065}
-        base_cap_rate = {"Industrial": 0.055, "Office": 0.072, "Multifamily": 0.052, "Retail": 0.065}
-        base_rent_index = {"Industrial": 1.49, "Office": 2.89, "Multifamily": 2944.0, "Retail": 3.05}
-        
         vacancy = {}
         cap_rate = {}
         asking_rent_index = {}
         
-        for ptype in ["Industrial", "Office", "Multifamily", "Retail"]:
+        for ptype in PROPERTY_TYPES:
             if previous_market is None:
-                vacancy[ptype] = base_vacancy[ptype]
-                cap_rate[ptype] = base_cap_rate[ptype]
-                asking_rent_index[ptype] = base_rent_index[ptype]
+                vacancy[ptype] = BASE_VACANCY[ptype]
+                cap_rate[ptype] = BASE_CAP_RATE[ptype]
+                asking_rent_index[ptype] = BASE_RENT_INDEX[ptype]
             else:
                 # Evolve with scenario influence + noise
                 vac_change = -delta["growth_delta"] * 0.5 + self.rng.normal(0, 0.005)
                 vacancy[ptype] = max(0.01, min(0.30, previous_market.vacancy[ptype] + vac_change))
                 
                 cap_change = delta["rate_delta"] * 0.3 + self.rng.normal(0, 0.001)
-                cap_rate[ptype] = max(0.03, min(0.12, previous_market.cap_rate[ptype] + cap_change))
+                cap_rate[ptype] = max(MIN_CAP_RATE, min(MAX_CAP_RATE, previous_market.cap_rate[ptype] + cap_change))
                 
                 rent_change = delta["growth_delta"] * 0.4 + self.rng.normal(0, 0.02)
-                asking_rent_index[ptype] = base_rent_index[ptype] * (1 + rent_change)
+                asking_rent_index[ptype] = BASE_RENT_INDEX[ptype] * (1 + rent_change)
         
         return MarketState(
             round_number=round_number,
@@ -447,37 +565,26 @@ class Adjudicator:
         round_number: int,
     ) -> TeamState:
         """
-        Update property values based on market evolution.
-        
-        Rules:
-        - NOI changes based on property type + market conditions + idiosyncratic noise
-        - Cap rates update based on market state
-        - Property values = NOI / Cap Rate
-        - All randomness is seeded
+        Revalue a team's holdings for the round.
+
+        Delegates to :func:`realized_year_outcome`, the same pure function that
+        produces the reported round feedback, so a holding's new value and the
+        "current realized value" shown to the student are always identical.
         """
         for prop_id, holding in team.properties.items():
-            # Get property-type specific market conditions
             ptype = holding.property_type
-            market_vacancy = market_state.vacancy[ptype]
-            market_cap = market_state.cap_rate[ptype]
-            market_rent_growth = market_state.asking_rent_index[ptype]
-            
-            # NOI growth: market conditions + idiosyncratic noise
-            rng = np.random.default_rng(_stable_seed(self.seed, prop_id, round_number))
-            base_noi_growth = 0.02 + (0.0 if market_vacancy > 0.08 else 0.01)
-            noi_growth = base_noi_growth + rng.normal(0, 0.015)
-            noi_growth = max(-0.10, min(0.15, noi_growth))
-            
-            # Update NOI
-            holding.current_noi = holding.current_noi * (1 + noi_growth)
-            
-            # Update cap rate (market cap + small property-specific noise)
-            prop_cap = market_cap + rng.normal(0, 0.0005)
-            prop_cap = max(0.03, min(0.12, prop_cap))
-            
-            # Update value
-            holding.current_value = holding.current_noi / prop_cap
-        
+            outcome = realized_year_outcome(
+                property_id=prop_id,
+                property_type=ptype,
+                noi=holding.current_noi,
+                market_vacancy=market_state.vacancy[ptype],
+                market_cap_rate=market_state.cap_rate[ptype],
+                seed=self.seed,
+                round_number=round_number,
+            )
+            holding.current_noi = outcome["next_noi"]
+            holding.current_value = outcome["value"]
+
         return team
 
     def calculate_nav(self, team: TeamState) -> float:
@@ -527,8 +634,11 @@ class Adjudicator:
         # Resolve auctions
         auction_results = {}
         property_outcomes = {}
+        # NOI at the start of the round, captured before the market advances.
+        opening_noi: Dict[str, float] = {}
         
         for prop_id, prop_market in properties.items():
+            opening_noi[prop_id] = prop_market.current_noi
             prop_bids = [b for b in bids if b.property_id == prop_id]
             auction_result = self.resolve_auction(prop_id, prop_bids, prop_market, teams)
             
@@ -548,22 +658,32 @@ class Adjudicator:
             
             auction_results[prop_id] = auction_result
             
-            # Generate property outcome
-            rng = np.random.default_rng(_stable_seed(self.seed, prop_id, round_number))
+            # One pure function determines this property's year. It is the same
+            # function that revalues any team's holding of this property, so the
+            # market's view and the owner's books cannot drift apart.
             ptype = prop_market.property_type
-            noi_growth = 0.02 + rng.normal(0, 0.015)
-            cap_rate = market_state.cap_rate[ptype] + rng.normal(0, 0.0005)
-            exit_noi = prop_market.current_noi * (1 + noi_growth)
-            exit_value = exit_noi / cap_rate
+            outcome = realized_year_outcome(
+                property_id=prop_id,
+                property_type=ptype,
+                noi=prop_market.current_noi,
+                market_vacancy=market_state.vacancy[ptype],
+                market_cap_rate=market_state.cap_rate[ptype],
+                seed=self.seed,
+                round_number=round_number,
+            )
             
             property_outcomes[prop_id] = PropertyOutcome(
                 property_id=prop_id,
-                noi_growth_actual=round(noi_growth, 6),
-                cap_rate_actual=round(cap_rate, 6),
-                exit_value=round(exit_value, 6),
-                exit_noi=round(exit_noi, 6),
-                occupancy_change=round(-noi_growth * 0.5 + rng.normal(0, 0.003), 6),
+                noi_growth_actual=round(outcome["noi_growth"], 6),
+                cap_rate_actual=round(outcome["cap_rate"], 6),
+                exit_value=round(outcome["value"], 6),
+                exit_noi=round(outcome["next_noi"], 6),
+                occupancy_change=round(outcome["occupancy_change"], 6),
             )
+            
+            # Advance the market's own NOI for this property into next year.
+            if not is_practice:
+                prop_market.current_noi = outcome["next_noi"]
         
         # Update team portfolios (skip for practice)
         updated_teams = {}
@@ -610,7 +730,11 @@ class Adjudicator:
                 for prop_id, auction_result in auction_results.items():
                     if prop_id in properties:
                         updated_team = self.update_team_portfolio(
-                            updated_team, auction_result, properties[prop_id], round_number
+                            updated_team,
+                            auction_result,
+                            properties[prop_id],
+                            round_number,
+                            opening_noi=opening_noi.get(prop_id),
                         )
                 # Update property values for existing holdings
                 updated_team = self.update_property_values(updated_team, market_state, round_number)

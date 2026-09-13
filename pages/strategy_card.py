@@ -264,3 +264,7 @@ def show():
     
     if st.button("Proceed to Live Game", type="primary", use_container_width=True):
         st.info("Navigate to the Live Game section when the instructor starts the game.")
+
+
+if __name__ == "__main__":
+    show()

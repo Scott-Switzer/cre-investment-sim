@@ -71,3 +71,7 @@ def show():
     )
     import pages.navigation as navigation
     st.page_link(navigation.page("home"), label="← Back to Home", use_container_width=True)
+
+
+if __name__ == "__main__":
+    show()

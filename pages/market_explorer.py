@@ -55,7 +55,7 @@ def show():
 
     st.markdown("---")
     st.subheader("Public market anchors")
-    st.dataframe(anchors[["market_metric", "property_type", "as_of", "value", "units", "source_name", "tag"]], hide_index=True, use_container_width=True)
+    st.dataframe(anchors[["market_metric", "property_type", "as_of", "value", "units", "tag"]], hide_index=True, use_container_width=True)
     st.caption("REAL PUBLIC DATA — CBRE and FRED. These are aggregate market figures, not property-level.")
 
     st.markdown("---")
@@ -70,3 +70,7 @@ def show():
     st.info("This page gives you enough to form hypotheses. It does NOT tell you which property is best.")
     import pages.navigation as navigation
     st.page_link(navigation.page("deals"), label="→ Next: Deal Room", use_container_width=True)
+
+
+if __name__ == "__main__":
+    show()
