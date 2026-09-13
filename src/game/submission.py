@@ -292,3 +292,101 @@ def to_model_predictions(
 def load_submission(path: str, team_id: Optional[str] = None) -> Dict[str, ModelPrediction]:
     """Load a prediction CSV from disk and convert it for one team."""
     return to_model_predictions(pd.read_csv(path), team_id=team_id)
+
+
+def check_pool_alignment(
+    predictions: Dict[str, ModelPrediction],
+    property_asking_prices: Dict[str, float],
+    *,
+    tolerance: float = 0.15,
+) -> tuple[bool, str]:
+    """Check that a submission was built against THIS property pool.
+
+    Why this exists: a property id is only meaningful relative to the pool that
+    generated it. The packet and the live game are both built from a seeded
+    property generator, so changing the game seed reuses ids like ``OC-INDU-01``
+    for a *different building* with a different NOI and asking price. A model
+    trained on the shipped packet then silently forecasts the wrong assets and
+    looks incompetent for a reason that has nothing to do with its quality.
+
+    This is the loud failure that prevents that: if a team's fair values are not
+    broadly commensurate with the offers on the table, the pool and the model
+    disagree and the run is not interpretable.
+
+    Returns ``(ok, message)``.
+    """
+    shared = [pid for pid in predictions if pid in property_asking_prices]
+    if not shared:
+        return False, (
+            "No overlap between the submission's property ids and the offered "
+            "properties — the model was built against a different pool."
+        )
+
+    ratios = [
+        predictions[pid].predicted_fair_value / property_asking_prices[pid]
+        for pid in shared
+        if property_asking_prices[pid] > 0
+    ]
+    if not ratios:
+        return False, "Offered properties have no usable asking prices."
+
+    median_ratio = float(np.median(ratios))
+    if abs(median_ratio - 1.0) > tolerance:
+        return False, (
+            f"Submission looks misaligned with the offered pool: median "
+            f"predicted fair value is {median_ratio:.2f}x the asking price across "
+            f"{len(ratios)} shared properties. The model was most likely trained "
+            f"against a different game seed, so its property ids refer to other "
+            f"buildings."
+        )
+    return True, (
+        f"Aligned: median fair value/ask {median_ratio:.3f} across "
+        f"{len(ratios)} shared properties."
+    )
+
+
+def check_candidates_match_pool(
+    candidates: pd.DataFrame,
+    property_asking_prices: Dict[str, float],
+    property_nois: Dict[str, float],
+    *,
+    tolerance: float = 0.01,
+) -> tuple[bool, str]:
+    """Verify that ``game_candidates.csv`` describes the pool the game will offer.
+
+    This is the exact version of the check above, and it is the one that matters.
+    A team's fair value can be close to the asking price and still be attached to
+    the wrong building: the median ratio test cannot see that, but comparing the
+    candidate file's own NOI and asking price against the live pool can.
+
+    Returns ``(ok, message)``.
+    """
+    shared = [pid for pid in candidates["property_id"].astype(str) if pid in property_asking_prices]
+    if not shared:
+        return False, "Packet candidates share no ids with the offered property pool."
+
+    rows = candidates.set_index(candidates["property_id"].astype(str)).loc[shared]
+    worst_id, worst_gap = None, 0.0
+    for pid in shared:
+        row = rows.loc[pid]
+        for packet_value, live_value, label in (
+            (float(row["asking_price"]), property_asking_prices[pid], "asking price"),
+            (float(row["noi"]), property_nois[pid], "NOI"),
+        ):
+            if live_value in (0, None) or not np.isfinite(live_value):
+                continue
+            gap = abs(packet_value - live_value) / abs(live_value)
+            if gap > worst_gap:
+                worst_id, worst_gap = f"{pid} {label}", float(gap)
+
+    if worst_gap > tolerance:
+        return False, (
+            f"Packet does not describe this game's property pool: worst mismatch is "
+            f"{worst_id} at {worst_gap:.1%} off. The packet and the live game are "
+            f"built from the same seeded generator, so a different game seed reuses "
+            f"the same ids for different buildings."
+        )
+    return True, (
+        f"Packet matches the live pool on {len(shared)} properties "
+        f"(worst deviation {worst_gap:.4%})."
+    )

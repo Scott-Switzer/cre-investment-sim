@@ -32,15 +32,22 @@ from typing import Optional
 from src.game.adjudicator import ModelPrediction
 
 # How much above/below the asking price each archetype is willing to reach.
-VALUE_ASK_MULTIPLE = 0.98
-GROWTH_ASK_MULTIPLE = 1.02
-RISK_ASK_MULTIPLE = 0.93
+# These are the *contested* bid levels: they decide who wins when more than one
+# fund wants the same asset. They are deliberately close together -- a demo in
+# which one archetype outbids everyone on every deal teaches nothing about
+# analysis, only about aggression.
+VALUE_ASK_MULTIPLE = 0.99
+GROWTH_ASK_MULTIPLE = 1.03
+RISK_ASK_MULTIPLE = 0.955
 
 # Minimum model edge (discount to ask) before the archetype will act at all.
-VALUE_MIN_EDGE = 0.02
+# These are conviction filters, so each fund sits out deals it cannot price.
+# They are kept comparable: the archetypes should disagree about *which* assets
+# are attractive, not about whether to participate in the market at all.
+VALUE_MIN_EDGE = -0.03
 GROWTH_MIN_EDGE = -0.02
-RISK_MIN_EDGE = 0.05
-RISK_MAX_DOWNSIDE = 0.35
+RISK_MIN_EDGE = -0.02
+RISK_MAX_DOWNSIDE = 0.45
 
 LTV_CAP_VALUE = 0.70
 LTV_CAP_RISK = 0.60

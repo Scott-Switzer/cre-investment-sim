@@ -432,19 +432,19 @@ def _submit_all(gm: GameManager, team_name: str):
 # ─── Top bar ──────────────────────────────────────────────────────────────
 
 def _render_top_bar(gm: GameManager, team_name: str, team_state):
-    """Persistent top bar."""
+    """Persistent top bar: where we are, who we are, and what we have."""
+    from src.game.manager import game_stage
+    from src.utils.ui import render_stage_bar
+
+    render_stage_bar(gm)
+
     cols = st.columns(6)
 
     with cols[0]:
         st.markdown(f"**{team_name}**")
 
     with cols[1]:
-        if gm.game_complete:
-            st.caption("GAME COMPLETE")
-        elif gm.current_round == -1:
-            st.caption("Practice")
-        else:
-            st.caption(f"Round {gm.current_round + 1} of {gm.config.total_rounds}")
+        st.caption(game_stage(gm))
 
     with cols[2]:
         rs = gm.round_state

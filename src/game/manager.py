@@ -82,6 +82,29 @@ CLASSROOM_TIMINGS: Dict[str, ClassroomTiming] = {
 DEFAULT_TIMING_PRESET = "QUICK CLASS"
 
 
+def game_stage(game_manager) -> str:
+    """The single authoritative label for where a game currently is.
+
+    Used by the instructor progress bar and the live screen so both always agree
+    on whether the class is in practice, in round N, or in the debrief.
+    """
+    if getattr(game_manager, "game_complete", False):
+        return "DEBRIEF"
+    if game_manager.current_round < 0:
+        return "PRACTICE"
+    return f"ROUND {game_manager.current_round + 1}"
+
+
+def stage_steps(game_manager) -> List[str]:
+    """The full ordered agenda for this game."""
+    steps: List[str] = []
+    if game_manager.config.practice_round:
+        steps.append("PRACTICE")
+    steps.extend(f"ROUND {i + 1}" for i in range(game_manager.config.total_rounds))
+    steps.append("DEBRIEF")
+    return steps
+
+
 def game_config_for_timing(
     preset: str = DEFAULT_TIMING_PRESET,
     seed: int = 20240331,
@@ -142,6 +165,10 @@ class GameManager:
         # History
         self.round_history: Dict[int, RoundResult] = {}
         self.market_history: List[MarketState] = []
+
+        # Human-readable event log. Instructors use it to see what happened
+        # without reading state, and it is the audit trail for round control.
+        self.event_log: List[Dict[str, object]] = []
         
         # Property pool
         self.all_properties: Dict[str, PropertyMarket] = {}
@@ -181,6 +208,20 @@ class GameManager:
                 reserve_price=reserve_price,
             )
     
+    def log(self, message: str, **details) -> None:
+        """Append an entry to the game's event log.
+
+        Deliberately simple: an inspectable, ordered record of what the operator
+        did and when, so a round control action can always be traced.
+        """
+        self.event_log.append({
+            "round": self.current_round,
+            "state": self.round_state.value,
+            "message": message,
+            "at": datetime.now().isoformat(timespec="seconds"),
+            **details,
+        })
+
     def add_team(self, team_id: str, team_name: str, model_predictions: Optional[Dict[str, ModelPrediction]] = None):
         """Add a team to the game."""
         self.teams[team_id] = TeamState(

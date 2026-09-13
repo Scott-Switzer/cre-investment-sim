@@ -24,8 +24,10 @@ def show():
     if game_manager is None:
         st.markdown("### Start Game")
         st.markdown(
-            "Choose **Try Demo** to play as Your Fund against 3 bots, "
-            "or **Setup Custom Game** for instructor mode."
+            "**TRY DEMO** starts a ready-to-play game: you are Buy&Hold Capital "
+            "with a model already loaded, up against Value Fund, Growth Fund and "
+            "Risk Fund. No upload, no setup.\n\n"
+            "**Setup Custom Game** is the instructor path."
         )
         if st.button("TRY DEMO", type="primary", use_container_width=True,
                       key="pc_try_demo"):
@@ -88,59 +90,40 @@ def show():
 
 
 def _init_demo():
-    """Initialize a demo game with 3 bots + Your Fund."""
-    from src.game.manager import GameManager, GameConfig
-    from scripts.create_demo_teams import create_demo_teams
-    from src.game.adjudicator import ModelPrediction
+    """Initialize the standard demo game: the human seat plus three bot funds.
 
-    config = GameConfig(
-        seed=20240331,
-        starting_equity=100.0,
-        total_rounds=4,
-        properties_per_round=4,
-        practice_round=True,
-        scenario="Base Case",
-    )
+    Uses the shared builder so the control panel, the app shell and the
+    verification script all produce an identical game. The human seat carries the
+    preloaded student model, so a reviewer never has to upload a CSV.
+    """
+    from src.game.demo_setup import HUMAN_TEAM_ID, build_demo_game, pool_is_aligned
 
-    gm = GameManager(config)
-
-    demo_preds = create_demo_teams(seed=20240331, count=120)
-
-    bot_count = 0
-    for team_name, predictions_df in demo_preds.items():
-        if bot_count >= 3:
-            break
-        model_preds = {}
-        for _, row in predictions_df.iterrows():
-            model_preds[str(row["property_id"])] = ModelPrediction(
-                property_id=str(row["property_id"]),
-                predicted_fair_value=float(row["predicted_fair_value"]),
-                predicted_noi_growth=float(row["predicted_noi_growth"]),
-                probability_of_downside=float(
-                    row.get("probability_of_downside", 0.2) or 0.2
-                ),
-                max_bid=float(row["max_bid"]),
-                target_ltv=float(row["target_ltv"]),
-                model_name=str(row["model_name"]),
-                confidence=float(row.get("confidence", 0.8) or 0.8),
-                predicted_exit_cap=float(
-                    row.get("predicted_exit_cap", 0.06) or 0.06
-                ),
-            )
-        gm.add_team(team_name, team_name, model_preds)
-        bot_count += 1
-
-    # Add Your Fund
-    gm.add_team("Your Fund", "Your Fund")
-
+    gm = build_demo_game()
     gm.start_game()
+
+    aligned, message = pool_is_aligned(gm)
 
     st.session_state["game_manager"] = gm
     st.session_state["game_started"] = True
     st.session_state["game_complete"] = False
     st.session_state["demo_mode"] = True
-    st.session_state["current_team"] = "Your Fund"
-    st.success("Demo started! Play as **Your Fund** on the Live Game page.")
+    st.session_state["current_team"] = HUMAN_TEAM_ID
+    st.session_state["model_locked"] = True
+    st.session_state["practice_complete"] = False
+
+    if not aligned:
+        st.warning(f"Data packet does not match this game's property pool: {message}")
+    if not gm.teams[HUMAN_TEAM_ID].model_predictions:
+        st.error(
+            "Preloaded student model is missing. Run "
+            "`uv run python scripts/build_realistic_student_submission.py`, or "
+            "upload a model on the Model Check-In page."
+        )
+    else:
+        st.success(
+            f"Demo started — you are **{HUMAN_TEAM_ID}**, playing against "
+            f"Value Fund, Growth Fund and Risk Fund with your model preloaded."
+        )
 
 
 def _auto_advance(gm):
@@ -301,11 +284,12 @@ def _render_setup_form():
 
 
 def _render_round_status(gm):
-    """Display current round status."""
-    round_display = (
-        "Practice" if gm.current_round == -1
-        else f"Round {gm.current_round + 1}"
-    )
+    """Display the class progress strip and the current round state."""
+    from src.game.manager import game_stage
+    from src.utils.ui import render_stage_bar
+
+    render_stage_bar(gm, caption=f"Class progress — currently {game_stage(gm)}")
+
     total_display = (
         f"{gm.config.total_rounds + 1}"
         if gm.config.practice_round
@@ -313,10 +297,10 @@ def _render_round_status(gm):
     )
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Round", f"{round_display} of {total_display}")
+    col1.metric("Stage", game_stage(gm))
     col2.metric("State", gm.round_state.value.replace("_", " ").title())
     col3.metric("Teams", len(gm.teams))
-    col4.metric("Scenario", gm.config.scenario)
+    col4.metric("Rounds", total_display)
 
 
 def _render_professor_actions(gm):

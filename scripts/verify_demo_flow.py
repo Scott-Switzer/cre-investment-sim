@@ -139,6 +139,7 @@ def main() -> int:
             if best is None or edge > best:
                 best, target = edge, prop_id
 
+        human_bid_price = None
         if target is not None:
             pred = gm.teams[HUMAN].model_predictions[target]
             pm = gm.current_properties[target]
@@ -147,9 +148,13 @@ def main() -> int:
             ltv = min(pred.target_ltv, pm.max_ltv)
             if price * (1 - ltv) <= gm.teams[HUMAN].cash:
                 gm.submit_bid(Bid(HUMAN, target, price, ltv, gm.current_round, "human"))
-        check(f"R{round_index + 1} human bid accepted", True,
-              f"{target} @ {gm.teams[HUMAN].model_predictions.get(target).max_bid:.2f}"
-              if target else "no bid")
+                human_bid_price = price
+        # Report the bid actually submitted and the model ceiling it came from,
+        # not the model ceiling alone -- the two differ whenever a team deviates.
+        check(f"R{round_index + 1} human bid accepted", human_bid_price is not None,
+              f"{target} @ ${human_bid_price:.2f}M (model max "
+              f"${gm.teams[HUMAN].model_predictions[target].max_bid:.2f}M)"
+              if target and human_bid_price is not None else "no bid")
 
         # The same shared policy the app uses.
         from src.game.bots import submit_bot_bids

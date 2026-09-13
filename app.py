@@ -463,64 +463,17 @@ if "capital_panel_state" not in st.session_state:
 
 # ── HELPERS ──
 def create_game_teams() -> GameManager:
-    """Create game with 3 bot competitors."""
-    config = GameConfig(
-        seed=20240331,
-        starting_equity=100.0,
-        total_rounds=4,
-        properties_per_round=4,
-        practice_round=True,
-        scenario="Base Case",
-    )
-    gm = GameManager(config)
-    
-    # Load demo predictions
-    from scripts.create_demo_teams import create_demo_teams
-    demo_preds = create_demo_teams(seed=20240331, count=120)
-    
-    # Give human team (Buy&Hold Capital) the Noisy Model as their demo model
-    human_df = demo_preds.get("Noisy Model")
-    human_preds = {}
-    if human_df is not None:
-        for _, row in human_df.iterrows():
-            human_preds[str(row["property_id"])] = ModelPrediction(
-                property_id=str(row["property_id"]),
-                predicted_fair_value=float(row["predicted_fair_value"]),
-                predicted_noi_growth=float(row["predicted_noi_growth"]),
-                probability_of_downside=float(row["probability_of_downside"]),
-                max_bid=float(row["max_bid"]),
-                target_ltv=float(row["target_ltv"]),
-                model_name="Noisy Model",
-                confidence=float(row["confidence"]),
-                predicted_exit_cap=float(row["predicted_exit_cap"]) if "predicted_exit_cap" in row else None,
-            )
-    gm.add_team("Buy&Hold Capital", "Buy&Hold Capital", human_preds)
+    """Build the standard demo game.
 
-    bot_mapping = ["Value Model", "Growth Model", "Risk Model"]
-    bot_team_names = ["Value Fund", "Growth Fund", "Risk Fund"]
-    for bot_idx, csv_key in enumerate(bot_mapping):
-        if bot_idx >= 3:
-            break
-        pred_df = demo_preds.get(csv_key)
-        if pred_df is None:
-            continue
-        bot_name = bot_team_names[bot_idx]
-        mp = {}
-        for _, row in pred_df.iterrows():
-            mp[str(row["property_id"])] = ModelPrediction(
-                property_id=str(row["property_id"]),
-                predicted_fair_value=float(row["predicted_fair_value"]),
-                predicted_noi_growth=float(row["predicted_noi_growth"]),
-                probability_of_downside=float(row["probability_of_downside"]),
-                max_bid=float(row["max_bid"]),
-                target_ltv=float(row["target_ltv"]),
-                model_name=csv_key,
-                confidence=float(row["confidence"]),
-                predicted_exit_cap=float(row["predicted_exit_cap"]) if "predicted_exit_cap" in row else None,
-            )
-        gm.add_team(bot_name, bot_name, mp)
+    Delegates to src.game.demo_setup so the app shell, the professor control
+    panel and scripts/verify_demo_flow.py cannot drift apart. The human seat now
+    carries the real preloaded student model (loaded through the public
+    submission contract) rather than the throwaway Noisy Model stub, so what a
+    reviewer sees is what a student's own upload produces.
+    """
+    from src.game.demo_setup import build_demo_game
 
-    return gm
+    return build_demo_game()
 
 
 def get_team_data(gm: GameManager, team_name: str):
@@ -639,6 +592,7 @@ if not st.session_state.game_started:
         )
         lab_cols = st.columns(4)
         labs = [
+            ("pages/home.py", "Home"),
             ("pages/briefing.py", "Briefing"),
             ("pages/data_catalog.py", "Data Catalog"),
             ("pages/data_quality.py", "Data Quality"),
@@ -708,11 +662,42 @@ if not st.session_state.game_started:
         "max_equity_single": max_eq, "diversification": divers,
     }
 
+    st.markdown('<div class="section-header">3 · Professor / Classroom Mode</div>',
+                unsafe_allow_html=True)
+    st.caption(
+        "Instructor entry point: start and control rounds, open and lock bidding, "
+        "resolve the market, reveal standings, and open the final debrief. "
+        "Everything here works with on-screen controls — no terminal."
+    )
+    instr_cols = st.columns(3)
+    with instr_cols[0]:
+        st.page_link("pages/professor_control.py", label="Professor Control",
+                     use_container_width=True)
+    with instr_cols[1]:
+        st.page_link("pages/leaderboard.py", label="Leaderboard",
+                     use_container_width=True)
+    with instr_cols[2]:
+        st.page_link("pages/final_debrief.py", label="Final Debrief",
+                     use_container_width=True)
+
     st.markdown("---")
+    st.markdown('<div class="subsection-header">TRY DEMO</div>', unsafe_allow_html=True)
+    st.caption(
+        "No account, no upload, no instructor: a model is preloaded for you. "
+        "You are **Buy&Hold Capital**, up against Value Fund, Growth Fund and "
+        "Risk Fund. Start with the practice round, then play four scored years."
+    )
     if st.button("BEGIN PRACTICE ROUND", use_container_width=True, type="primary"):
+        from src.game.demo_setup import HUMAN_TEAM_ID, pool_is_aligned
+
         gm = create_game_teams()
+        gm.start_game()
+        aligned, message = pool_is_aligned(gm)
+        if not aligned:
+            st.warning(f"Data packet does not match this game's property pool: {message}")
+
         st.session_state.game_manager = gm
-        st.session_state.current_team = "Buy&Hold Capital"
+        st.session_state.current_team = HUMAN_TEAM_ID
         st.session_state.game_started = True
         st.session_state.model_locked = True
         st.session_state.model_timestamp = time.strftime("%Y-%m-%d %H:%M:%S")

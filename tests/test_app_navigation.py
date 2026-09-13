@@ -86,6 +86,33 @@ class TestAppLaunch:
         assert "BEGIN PRACTICE ROUND" in button_labels, f"BEGIN PRACTICE ROUND not found in {button_labels}"
 
 
+class TestEveryPageIsReachable:
+    """A page nobody can navigate to is a dead page.
+
+    ``.streamlit/config.toml`` sets ``showSidebarNavigation = false``, so the only
+    way to reach a page is an explicit ``st.page_link``. Professor Control was
+    once link-free and therefore unreachable from the UI, which broke the whole
+    instructor flow while every existing test still passed.
+    """
+
+    def test_landing_page_links_to_every_page(self):
+        source = APP_PATH.read_text()
+        must_be_linked = [
+            "pages/professor_control.py",
+            "pages/leaderboard.py",
+            "pages/final_debrief.py",
+            "pages/datasets.py",
+            "pages/model_checkin.py",
+            "pages/strategy_card.py",
+        ]
+        missing = [p for p in must_be_linked if p not in source]
+        assert not missing, f"unreachable from the landing page: {missing}"
+
+    def test_sidebar_navigation_is_off_so_links_are_mandatory(self):
+        cfg = (REPO_ROOT / ".streamlit" / "config.toml").read_text()
+        assert "showSidebarNavigation = false" in cfg
+
+
 class TestPageLoads:
     """Each registered page must load and render without uncaught exception."""
 

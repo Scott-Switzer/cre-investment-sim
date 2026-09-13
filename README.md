@@ -18,10 +18,19 @@ The Data Catalog, SQL Lab, Valuation Lab and Geospatial View remain available as
 
 ## Two modes
 
-The landing page splits the app in two:
+The landing page splits the app in three:
 
 - **1 · Prep** — Dataset Downloads, Model Check-In, Strategy Card, plus the analytics labs.
 - **2 · Live Game** — practice round, four scored rounds, sealed-bid auctions, portfolio, feedback, leaderboard.
+- **3 · Professor / Classroom Mode** — Professor Control, Leaderboard, Final Debrief.
+
+There is also a one-click **TRY DEMO**: no account, no CSV upload, no instructor.
+A model is preloaded for the reviewer, who plays Buy&Hold Capital against Value
+Fund, Growth Fund and Risk Fund.
+
+> `.streamlit/config.toml` sets `showSidebarNavigation = false`, so a page is
+> reachable **only** through an explicit `st.page_link`. `tests/test_app_navigation.py`
+> asserts every page is linked from the landing page.
 
 ## Quick start (demo mode)
 
@@ -36,7 +45,10 @@ uv run python scripts/bootstrap_demo.py
 # 3. build the pre-class student packet
 uv run python scripts/build_student_game_packet.py
 
-# 4. launch
+# 4. build the realistic student submission fixture (trains a model on the packet)
+uv run python scripts/build_realistic_student_submission.py
+
+# 5. launch
 uv run python -m streamlit run app.py
 ```
 
@@ -45,11 +57,23 @@ No API keys are required for the cached demo. To refresh live public data, set `
 ## Verify the whole game loop
 
 ```bash
-uv run python scripts/verify_demo_flow.py   # practice -> 4 rounds -> winner -> debrief
+uv run python scripts/verify_demo_flow.py     # practice -> 4 rounds -> winner -> debrief
+uv run python scripts/verify_ui_flows.py      # professor / student / debrief screens, no terminal
+uv run python scripts/verify_student_override.py  # human overrides + the ten-question debrief
+uv run python scripts/model_skill_gradient.py # NAIVE vs BASIC vs STRONG vs ORACLE
 uv run python -m pytest tests/ -q
 ```
 
-`verify_demo_flow.py` walks the exact professor demonstration sequence with the real demo teams and the real adjudicator, and fails loudly if any step breaks.
+Each script fails loudly rather than reporting a soft pass:
+
+| Script | What it proves |
+| --- | --- |
+| `verify_demo_flow.py` | the professor demonstration sequence, with the real teams and the real adjudicator |
+| `verify_ui_flows.py` | the actual Streamlit screens: the professor can play four rounds with on-screen controls only, a student screen shows its own model and leaks nobody else's, and the debrief answers all ten questions |
+| `verify_student_override.py` | the human seat overrides its own policy on purpose and the debrief classifies the result |
+| `model_skill_gradient.py` | the modelling task has a real skill gradient and is not solved by a naive benchmark |
+
+See `docs/FRENZEL_DEMO_SCRIPT.md` for the ten-minute walkthrough.
 
 ## The student packet
 
@@ -75,7 +99,21 @@ uv run python -m pytest tests/ -q
 - **Reserve:** the seller has a hidden reserve price; if the top bid is below it, nothing sells.
 - **Tie-break:** lower LTV (more certainty of close) wins; if still tied, a seeded deterministic draw.
 - **Persistence:** assets bought in Round 1 are revalued and held through Round 4.
+- **Property economics:** an asset you own pays its **NOI** in cash each year, changes in **value** (`next-year NOI / cap rate`), and costs **interest** on its loan at the asset's `debt_rate` (interest-only). So `change in NAV = value change + NOI received - interest paid`, and those are the only three terms. Leverage therefore only creates value when the return on cost beats the debt rate.
 - **Two leaderboards:** the game is won on **ending NAV**. Analytical quality is scored separately (valuation MAE, NOI MAE, Brier calibration, value added vs a naive benchmark, override contribution).
+
+### The ten-question debrief
+
+The final screen answers, from recorded game history and with no LLM adjudication:
+who won; who had the best model; whether those were the same team; who overrode
+their model most; whether those overrides helped or hurt; who used the most
+leverage; whether leverage created or destroyed value; which decision was right
+ex *ante* but went wrong; which team got lucky; and what a student should conclude.
+
+Decision quality is judged **ex ante** — against what was knowable before the
+outcome — so exceeding your own model's ceiling is recorded and discussed rather
+than automatically marked wrong. `docs/STUDENT_PACKET_README.md` explains the
+student side.
 
 ## Adjudicator principle
 

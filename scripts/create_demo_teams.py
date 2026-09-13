@@ -28,6 +28,15 @@ def generate_value_model_predictions(properties: pd.DataFrame, seed: int = 20240
     - Disciplined bid ceiling: will pay up to 95-99% of its own fair value
     - Moderate LTV (55-65%)
     - Reasonable downside risk estimates
+
+    Note on bid levels
+    ------------------
+    The seller's hidden reserve is drawn from 90-95% of the asking price. A model
+    whose bid ceiling sits *below* that band never transacts, never tests its
+    forecast, and finishes at exactly its starting NAV -- which makes for a flat,
+    uninformative classroom demo. Each archetype's bid ceiling is therefore set so
+    that its discipline is visible in *contested* deals rather than silently
+    pricing it out of the market entirely.
     """
     np.random.seed(seed)
     
@@ -79,15 +88,15 @@ def generate_growth_model_predictions(properties: pd.DataFrame, seed: int = 2024
     
     predictions = []
     for _, row in properties.iterrows():
-        # Optimistic valuation (±8% error, biased upward)
-        valuation_error = np.random.normal(0.02, 0.06)
+        # Optimistic valuation (mild upward bias, wider error than Value)
+        valuation_error = np.random.normal(0.01, 0.05)
         predicted_value = row["asking_price"] * (1 + valuation_error)
         
         # Aggressive NOI growth (4-7%)
         predicted_noi_growth = np.random.uniform(0.04, 0.07)
         
-        # Aggressive max bid (90-95% of predicted value)
-        max_bid = predicted_value * np.random.uniform(1.00, 1.06)
+        # Aggressive max bid (99-103% of predicted value)
+        max_bid = predicted_value * np.random.uniform(0.99, 1.03)
         
         # Higher LTV
         target_ltv = np.random.uniform(0.65, 0.75)
@@ -116,24 +125,26 @@ def generate_risk_model_predictions(properties: pd.DataFrame, seed: int = 202403
     Risk Model: Conservative downside forecasts.
     
     Characteristics:
-    - Conservative valuation (biased downward)
-    - Very conservative bids (75-85% of predicted value)
-    - Low LTV (45-55%)
-    - High downside risk estimates (cautious)
+    - Cautious valuation (mild downward bias)
+    - Conservative bid ceiling (96-99% of its own fair value) -- this is what
+      makes it disciplined: it will not chase an asset past its estimate
+    - Low LTV (45-55%), the lowest leverage of the four
+    - High downside risk estimates, and it sits out deals it cannot price
     """
     np.random.seed(seed)
     
     predictions = []
     for _, row in properties.iterrows():
-        # Conservative valuation (biased downward)
-        valuation_error = np.random.normal(-0.03, 0.04)
+        # Cautious valuation (mild downward bias)
+        valuation_error = np.random.normal(-0.01, 0.04)
         predicted_value = row["asking_price"] * (1 + valuation_error)
         
         # Conservative NOI growth (0-2%)
         predicted_noi_growth = np.random.uniform(0.0, 0.02)
         
-        # Very conservative max bid (75-85% of predicted value)
-        max_bid = predicted_value * np.random.uniform(0.90, 0.95)
+        # Conservative max bid (96-99% of predicted value). Discipline is shown
+        # by refusing to chase, not by bidding below every possible reserve.
+        max_bid = predicted_value * np.random.uniform(0.96, 0.99)
         
         # Low LTV
         target_ltv = np.random.uniform(0.45, 0.55)

@@ -139,7 +139,36 @@ class TestBotPredictionsAndBidding:
         assert first_pred.predicted_fair_value > 0
         assert first_pred.max_bid > 0
         assert first_pred.target_ltv > 0
-        assert first_pred.model_name == "Noisy Model"
+        # The human seat now carries the real preloaded student model, loaded
+        # through the public submission contract, rather than a throwaway stub.
+        assert first_pred.model_name
+        # A submitted policy must never authorise paying above its own valuation.
+        assert all(p.max_bid <= p.predicted_fair_value for p in human.model_predictions.values())
+
+    def test_human_model_is_aligned_with_the_game_pool(self):
+        """The preloaded model must describe the buildings this game offers."""
+        from app import create_game_teams
+        from src.game.submission import check_pool_alignment
+
+        gm = create_game_teams()
+        human = gm.teams["Buy&Hold Capital"]
+        ok, message = check_pool_alignment(
+            human.model_predictions,
+            {pid: p.asking_price for pid, p in gm.all_properties.items()},
+        )
+        assert ok, message
+
+    def test_all_four_funds_have_their_own_model(self):
+        """No team may be handed another team's predictions."""
+        from app import create_game_teams
+
+        gm = create_game_teams()
+        assert len(gm.teams) == 4
+        for team in gm.teams.values():
+            assert team.model_predictions, f"{team.team_name} has no model"
+        names = {t.model_predictions and next(iter(t.model_predictions.values())).model_name
+                 for t in gm.teams.values()}
+        assert len(names) == 4, f"teams share a model: {names}"
     
     def test_multi_property_bot_bidding_scored_round(self):
         """Bots can bid on multiple properties in a scored round (4 props)."""

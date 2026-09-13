@@ -170,6 +170,16 @@ class TeamState:
     # Human override tracking
     override_history: List[OverrideRecord] = field(default_factory=list)
 
+    # Cumulative cash-flow channels. These make the NAV decomposition exact:
+    #     NAV - starting_equity == sum(current_value - purchase_price)
+    #                             + cumulative_income
+    #                             - cumulative_interest
+    # which is what lets the debrief answer "did leverage create or destroy value"
+    # with arithmetic instead of opinion.
+    cumulative_income: float = 0.0
+    cumulative_interest: float = 0.0
+    cumulative_purchase_price: float = 0.0
+
 
 @dataclass
 class ModelPrediction:
@@ -457,6 +467,7 @@ class Adjudicator:
         # Update cash
         team.cash -= equity_invested
         team.debt += debt_amount
+        team.cumulative_purchase_price += auction_result.winning_bid
         
         # Add property to portfolio
         holding = PropertyHolding(
@@ -585,6 +596,57 @@ class Adjudicator:
             holding.current_noi = outcome["next_noi"]
             holding.current_value = outcome["value"]
 
+        return team
+
+    def collect_property_income(self, team: TeamState) -> TeamState:
+        """Credit a year of net operating income from every holding to cash.
+
+        Rules
+        -----
+        income       = sum of each holding's current_noi
+        team.cash   += income
+
+        Every holding is credited, including one bought this round, so the rule is
+        straightforward to state and to audit: *each year, each property you own
+        pays its NOI.*
+
+        Why this exists: an acquisition's return is the NOI yield plus any
+        appreciation, and the cost of financing is a real drag. Without income the
+        only credit was appraisal, so any borrowing at the loan rate destroyed
+        value and leverage swamped every other decision in the game. With income
+        modelled, a team that wins an asset below fair value earns its yield and
+        can carry debt; a team that overpays does not.
+        """
+        income = sum(holding.current_noi for holding in team.properties.values())
+        team.cash += income
+        team.cumulative_income += income
+        return team
+
+    def accrue_debt_interest(self, team: TeamState) -> TeamState:
+        """Charge one year of interest on each holding's outstanding debt.
+
+        Rules
+        -----
+        interest      = sum over holdings of (debt_amount * debt_rate)
+        team.cash    -= interest
+
+        Debt is interest-only; there is no amortization in the MVP.
+
+        Why this exists: NAV is ``cash + property values - debt``, and debt is
+        otherwise a static offset, so leverage would be exactly NAV-neutral and
+        the question "did borrowing create or destroy value?" would have no
+        answer in the data. Charging interest makes the trade-off real and
+        explicit: borrowing at the loan rate only adds value when the asset's
+        return on purchase price exceeds that rate. A team that pays close to the
+        asking price and levers up therefore destroys value, while a team that
+        wins near the seller's reserve and levers up creates it.
+        """
+        interest = sum(
+            holding.debt_amount * holding.debt_rate
+            for holding in team.properties.values()
+        )
+        team.cash -= interest
+        team.cumulative_interest += interest
         return team
 
     def calculate_nav(self, team: TeamState) -> float:
@@ -736,8 +798,13 @@ class Adjudicator:
                             round_number,
                             opening_noi=opening_noi.get(prop_id),
                         )
-                # Update property values for existing holdings
+                # Order matters and is deliberate:
+                #   1. collect this year's NOI at the NOI the asset carried
+                #   2. then revalue (which advances each holding's NOI to next year)
+                #   3. then pay interest on the debt that financed it
+                updated_team = self.collect_property_income(updated_team)
                 updated_team = self.update_property_values(updated_team, market_state, round_number)
+                updated_team = self.accrue_debt_interest(updated_team)
                 # Calculate NAV and returns
                 updated_team.nav = self.calculate_nav(updated_team)
                 updated_team.cumulative_return = self.calculate_cumulative_return(updated_team)
