@@ -197,7 +197,7 @@ def _show_ten_questions(d) -> None:
 
 
 def _show_channels(d, starting_equity: float) -> None:
-    """Where each fund's NAV change came from. The three channels sum exactly."""
+    """Where each fund's NAV change came from. The channels sum exactly."""
     rows = []
     for c in d.channels:
         rows.append({
@@ -207,6 +207,8 @@ def _show_channels(d, starting_equity: float) -> None:
             "Value change": f"${c.value_channel:+,.2f}M",
             "NOI income": f"${c.noi_income:+,.2f}M",
             "Interest paid": f"${-c.interest_paid:+,.2f}M",
+            "Deal costs": f"${-c.acquisition_costs:+,.2f}M",
+            "Reserves": f"${-c.reserves:+,.2f}M",
             "Net carry": f"${c.net_carry:+,.2f}M",
             "Gross LTV": f"{c.gross_ltv:.0%}" if c.gross_ltv else "—",
             "Leverage": c.leverage_verdict,
@@ -216,8 +218,8 @@ def _show_channels(d, starting_equity: float) -> None:
         st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
     st.caption(
         f"Check the arithmetic yourself: value change + NOI income − interest paid "
-        f"equals NAV minus the ${starting_equity:,.0f}M every fund started with. "
-        f"There are no other terms."
+        f"− deal costs − reserves equals NAV minus the ${starting_equity:,.0f}M "
+        f"every fund started with. There are no other terms."
     )
 
 

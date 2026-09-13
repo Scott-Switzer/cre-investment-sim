@@ -144,6 +144,27 @@ All randomness is seeded and reproducible, so the same seed replays the same gam
 Properties you buy in Round 1 stay in your portfolio through Round 4 and are revalued
 every year. Overpaying in Round 1 has consequences you live with.
 
+## What owning a property actually costs
+
+Every year, each property you own produces and consumes cash:
+
+| Line | Rule |
+| --- | --- |
+| **NOI income** | Each property pays its net operating income in cash. |
+| **Interest** | Each property pays interest on its own loan: `debt x debt_rate`. Interest-only; there is no amortisation. |
+| **Capital reserve** | Tenant improvements, leasing commissions and replacement reserves, charged as a percentage of the property's value per year: Industrial 0.6%, Office 1.8%, Multifamily 1.0%, Retail 1.5%. |
+
+And when you buy:
+
+| Line | Rule |
+| --- | --- |
+| **Deal costs** | Legal, diligence, title and financing fees equal to **2.0% of the purchase price**, paid in cash on closing. Lenders do not finance closing costs, so you need equity **plus** deal costs available or your bid is rejected. |
+
+These are the rules that make the price you pay matter. A property bought near the
+asking price and financed at maximum loan-to-value roughly earns its cost of debt.
+The money is made by buying assets your model says are cheap, not by buying the most
+assets. Buying a good building at a bad price destroys value.
+
 ## How you win
 
 Two separate boards — deliberately not blended into one opaque score.
@@ -154,6 +175,17 @@ Two separate boards — deliberately not blended into one opaque score.
 
 ```
 NAV = cash + property values - debt
+```
+
+Every dollar of NAV change comes from one of five channels, and they reconcile exactly:
+
+```
+NAV - starting equity
+    = (property values - what you paid for them)
+    + NOI income received
+    - interest paid
+    - deal costs paid
+    - capital reserves funded
 ```
 
 ### Analytics leaderboard (how good the analysis was)

@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from src.game.adjudicator import ModelPrediction
+from src.game.adjudicator import ModelPrediction, equity_required_for
 
 # How much above/below the asking price each archetype is willing to reach.
 # These are the *contested* bid levels: they decide who wins when more than one
@@ -165,8 +165,8 @@ def affordable(
         return False
     if ltv <= 0 or ltv > property_max_ltv:
         return False
-    equity_required = bid_price * (1.0 - ltv)
-    return cash >= equity_required
+    # Equity plus closing costs, exactly as the adjudicator will require it.
+    return cash >= equity_required_for(bid_price, ltv)
 
 
 def submit_bot_bids(

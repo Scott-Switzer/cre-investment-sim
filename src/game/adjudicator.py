@@ -76,12 +76,50 @@ CAP_NOISE_SIGMA = 0.0005
 MIN_CAP_RATE = 0.03
 MAX_CAP_RATE = 0.12
 
+# ── transaction economics ─────────────────────────────────────────────────
+#
+# Two real costs of owning commercial property that the engine used to ignore.
+# Both are standard, inspectable rules rather than penalties:
+#
+# ACQUISITION_COST_RATE -- legal, diligence, title and financing fees paid on
+#   every purchase. Lenders do not finance closing costs, so this comes out of
+#   the buyer's cash on day one and reduces NAV immediately. It is what makes
+#   "buy at any price" cost something: every acquisition starts behind.
+#
+# CAPITAL_RESERVE_RATE -- the recurring capital a building consumes for tenant
+#   improvements, leasing commissions, and replacement reserves. It scales with
+#   the asset, not with the loan, so leverage multiplies it. Office and retail
+#   roll more space and consume more capital than NNN industrial.
+#
+# Together these are the reason a fairly-priced, fully-levered asset earns
+# roughly its cost of debt instead of a free lunch -- which is what makes the
+# PRICE paid, and therefore the quality of the analysis, decide the outcome.
+ACQUISITION_COST_RATE = 0.020
+CAPITAL_RESERVE_RATE: Dict[str, float] = {
+    "Industrial": 0.006,
+    "Office": 0.018,
+    "Multifamily": 0.010,
+    "Retail": 0.015,
+}
+
 # Scenario deltas (rate environment, employment growth).
 SCENARIO_DELTAS: Dict[str, Dict[str, float]] = {
     "Base Case": {"rate_delta": 0.0, "growth_delta": 0.0},
     "Rate Shock": {"rate_delta": 0.02, "growth_delta": -0.01},
     "Growth Rebound": {"rate_delta": -0.005, "growth_delta": 0.015},
 }
+
+
+def equity_required_for(bid_price: float, ltv: float) -> float:
+    """Cash a team must have on hand to close a bid: equity plus closing costs.
+
+    One function, used by bid validation, by the affordability guard in
+    ``resolve_round`` and by the bot policy, so the rule cannot drift between
+    the check and the charge.
+    """
+    if bid_price <= 0:
+        return 0.0
+    return bid_price * (1.0 - ltv) + bid_price * ACQUISITION_COST_RATE
 
 
 def realized_year_outcome(
@@ -179,6 +217,8 @@ class TeamState:
     cumulative_income: float = 0.0
     cumulative_interest: float = 0.0
     cumulative_purchase_price: float = 0.0
+    cumulative_acquisition_costs: float = 0.0
+    cumulative_reserves: float = 0.0
 
 
 @dataclass
@@ -342,7 +382,9 @@ class Adjudicator:
         if bid.ltv <= 0 or bid.ltv > property_market.max_ltv:
             return BidStatus.INVALID_LTV, f"LTV must be between 0 and {property_market.max_ltv}"
         
-        equity_required = bid.bid_price * (1 - bid.ltv)
+        # Closing costs are paid in cash and are not financeable, so a bid is only
+        # valid if the team can fund equity *and* transaction costs.
+        equity_required = equity_required_for(bid.bid_price, bid.ltv)
         if team.cash < equity_required:
             return BidStatus.INSUFFICIENT_EQUITY, f"Insufficient cash: need ${equity_required:.2f}M, have ${team.cash:.2f}M"
         
@@ -460,14 +502,16 @@ class Adjudicator:
         if not auction_result.sold or auction_result.winning_team_id != team.team_id:
             return team
         
-        # Calculate equity and debt
+        # Calculate equity and debt. Closing costs are cash, not debt.
         equity_invested = auction_result.winning_bid * (1 - auction_result.winning_ltv)
         debt_amount = auction_result.winning_bid * auction_result.winning_ltv
+        acquisition_cost = auction_result.winning_bid * ACQUISITION_COST_RATE
         
         # Update cash
-        team.cash -= equity_invested
+        team.cash -= equity_invested + acquisition_cost
         team.debt += debt_amount
         team.cumulative_purchase_price += auction_result.winning_bid
+        team.cumulative_acquisition_costs += acquisition_cost
         
         # Add property to portfolio
         holding = PropertyHolding(
@@ -649,6 +693,27 @@ class Adjudicator:
         team.cumulative_interest += interest
         return team
 
+    def charge_capital_reserves(self, team: TeamState) -> TeamState:
+        """Charge one year of capital reserve on every holding.
+
+        Rules
+        -----
+        reserve      = sum over holdings of (current value * rate for its type)
+        team.cash   -= reserve
+
+        Tenant improvements, leasing commissions and replacement reserves are a
+        real, recurring cost of owning a building. They scale with the asset, so
+        leverage multiplies them -- which is why maximum leverage stops being a
+        free lunch once the reserve is charged.
+        """
+        reserve = sum(
+            holding.current_value * CAPITAL_RESERVE_RATE.get(holding.property_type, 0.012)
+            for holding in team.properties.values()
+        )
+        team.cash -= reserve
+        team.cumulative_reserves += reserve
+        return team
+
     def calculate_nav(self, team: TeamState) -> float:
         """
         Calculate team's Net Asset Value.
@@ -758,7 +823,9 @@ class Adjudicator:
                     if (auction_result.sold and 
                         auction_result.winning_team_id == team_id and 
                         prop_id in properties):
-                        eq = auction_result.winning_bid * (1 - auction_result.winning_ltv)
+                        eq = equity_required_for(
+                            auction_result.winning_bid, auction_result.winning_ltv
+                        )
                         total_equity_needed += eq
 
                 # If team can't afford all wins, mark excess wins as unsold
@@ -771,11 +838,15 @@ class Adjudicator:
                             auction_result.winning_team_id == team_id and 
                             prop_id in properties and
                             auction_result.winning_ltv is not None):
-                            eq = auction_result.winning_bid * (1 - auction_result.winning_ltv)
+                            eq = equity_required_for(
+                                auction_result.winning_bid, auction_result.winning_ltv
+                            )
                             if equity_deducted + eq > team.cash:
                                 wins_to_unsell.append(prop_id)
                         if prop_id not in wins_to_unsell and auction_result.winning_ltv is not None:
-                            equity_deducted += auction_result.winning_bid * (1 - auction_result.winning_ltv)
+                            equity_deducted += equity_required_for(
+                                auction_result.winning_bid, auction_result.winning_ltv
+                            )
 
                     for unsold_prop in wins_to_unsell:
                         auction_results[unsold_prop] = type(auction_results[unsold_prop])(
@@ -801,9 +872,11 @@ class Adjudicator:
                 # Order matters and is deliberate:
                 #   1. collect this year's NOI at the NOI the asset carried
                 #   2. then revalue (which advances each holding's NOI to next year)
-                #   3. then pay interest on the debt that financed it
+                #   3. then fund reserves on the revalued asset
+                #   4. then pay interest on the debt that financed it
                 updated_team = self.collect_property_income(updated_team)
                 updated_team = self.update_property_values(updated_team, market_state, round_number)
+                updated_team = self.charge_capital_reserves(updated_team)
                 updated_team = self.accrue_debt_interest(updated_team)
                 # Calculate NAV and returns
                 updated_team.nav = self.calculate_nav(updated_team)

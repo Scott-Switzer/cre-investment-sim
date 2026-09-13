@@ -189,9 +189,10 @@ class TestDebrief:
     def test_channels_reconcile_with_nav(self):
         gm = self._played_game()
         for c in debrief_answers(gm).channels:
-            assert c.value_channel + c.noi_income - c.interest_paid == pytest.approx(
-                c.nav - gm.config.starting_equity, abs=1e-6
-            )
+            assert (
+                c.value_channel + c.noi_income - c.interest_paid
+                - c.acquisition_costs - c.reserves
+            ) == pytest.approx(c.nav - gm.config.starting_equity, abs=1e-6)
 
     def test_override_summary_present(self):
         d = debrief_answers(self._played_game())

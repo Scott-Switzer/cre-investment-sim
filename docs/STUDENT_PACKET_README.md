@@ -104,6 +104,18 @@ You then choose **PASS** or **BID**, and if you bid, a price and an LTV. Highest
 bid wins the property and pays its own price. Capital is finite, so you cannot chase
 everything.
 
+Buying and owning cost real money, and the game charges it:
+
+- **Deal costs** of 2.0% of the price, paid in cash on closing. You must have equity
+  **plus** deal costs available or your bid is rejected.
+- **Interest** each year on each property's loan at its quoted debt rate.
+- A **capital reserve** each year — Industrial 0.6%, Office 1.8%, Multifamily 1.0%,
+  Retail 1.5% of value — for tenant improvements and replacement reserves.
+
+A property bought near the asking price and levered to the limit roughly earns its
+cost of debt. The edge comes from buying assets your model says are **cheap**, not
+from buying the most assets.
+
 ## How you are judged
 
 Two separate boards:

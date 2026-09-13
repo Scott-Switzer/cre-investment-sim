@@ -430,9 +430,10 @@ def override_contribution(game_manager) -> Dict[str, float]:
 
 @dataclass
 class FundChannels:
-    """Where a fund's NAV change actually came from. The three sum exactly.
+    """Where a fund's NAV change actually came from. The channels sum exactly.
 
-        NAV - starting equity = value_channel + noi_income - interest_paid
+        NAV - starting equity = value_channel + noi_income
+                                - interest_paid - acquisition_costs - reserves
 
     Verified against the engine to machine precision, so the debrief can point at
     arithmetic rather than assert an opinion.
@@ -445,6 +446,8 @@ class FundChannels:
     value_channel: float
     noi_income: float
     interest_paid: float
+    acquisition_costs: float
+    reserves: float
     net_carry: float
     gross_ltv: Optional[float]
     weighted_debt_rate: Optional[float]
@@ -477,12 +480,14 @@ def fund_channels(game_manager, team_id: str) -> FundChannels:
         if team.debt > 0
         else None
     )
-    # Return on cost: what the assets produced (appreciation + income) relative to
-    # what was paid for them. Comparing this to the debt rate is the honest test of
-    # whether leverage paid for itself.
+    # Return on cost: what the assets produced net of the capital they consumed,
+    # relative to what was paid for them. Comparing this to the debt rate is the
+    # honest test of whether leverage paid for itself.
     cost = team.cumulative_purchase_price
     return_on_cost = (
-        (value_channel + team.cumulative_income) / cost if cost > 0 else None
+        (value_channel + team.cumulative_income - team.cumulative_reserves) / cost
+        if cost > 0
+        else None
     )
 
     return FundChannels(
@@ -493,7 +498,9 @@ def fund_channels(game_manager, team_id: str) -> FundChannels:
         value_channel=value_channel,
         noi_income=team.cumulative_income,
         interest_paid=interest,
-        net_carry=team.cumulative_income - interest,
+        acquisition_costs=team.cumulative_acquisition_costs,
+        reserves=team.cumulative_reserves,
+        net_carry=team.cumulative_income - interest - team.cumulative_reserves,
         gross_ltv=gross_ltv,
         weighted_debt_rate=wd_rate,
         return_on_cost=return_on_cost,

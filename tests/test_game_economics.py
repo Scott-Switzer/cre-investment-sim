@@ -127,7 +127,7 @@ class TestDebtInterest:
 
 class TestNavDecomposition:
     def test_identity_holds_after_a_full_round(self):
-        """The three channels must sum exactly to the NAV change."""
+        """Every channel must sum exactly to the NAV change."""
         from src.game.manager import GameConfig, GameManager
 
         gm = GameManager(GameConfig(seed=20240331, total_rounds=4))
@@ -148,7 +148,13 @@ class TestNavDecomposition:
             gain = sum(h.current_value - h.purchase_price for h in team.properties.values())
             residual = (
                 (team.nav - team.equity_capital)
-                - (gain + team.cumulative_income - team.cumulative_interest)
+                - (
+                    gain
+                    + team.cumulative_income
+                    - team.cumulative_interest
+                    - team.cumulative_acquisition_costs
+                    - team.cumulative_reserves
+                )
             )
             # NAV is rounded to 6 decimals by calculate_nav, so the identity is
             # exact to that precision rather than to machine epsilon.
@@ -170,6 +176,8 @@ class TestNavDecomposition:
         team = gm.teams["A"]
         assert team.cumulative_income == 0.0
         assert team.cumulative_interest == 0.0
+        assert team.cumulative_reserves == 0.0
+        assert team.cumulative_acquisition_costs == 0.0
         assert team.nav == pytest.approx(100.0)
 
 

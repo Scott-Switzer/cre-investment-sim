@@ -61,6 +61,7 @@ uv run python scripts/verify_demo_flow.py     # practice -> 4 rounds -> winner -
 uv run python scripts/verify_ui_flows.py      # professor / student / debrief screens, no terminal
 uv run python scripts/verify_student_override.py  # human overrides + the ten-question debrief
 uv run python scripts/model_skill_gradient.py # NAIVE vs BASIC vs STRONG vs ORACLE
+uv run python scripts/balance_harness.py --seeds 100  # does deployment beat analysis?
 uv run python -m pytest tests/ -q
 ```
 
@@ -72,7 +73,9 @@ Each script fails loudly rather than reporting a soft pass:
 | `verify_ui_flows.py` | the actual Streamlit screens: the professor can play four rounds with on-screen controls only, a student screen shows its own model and leaks nobody else's, and the debrief answers all ten questions |
 | `verify_student_override.py` | the human seat overrides its own policy on purpose and the debrief classifies the result |
 | `model_skill_gradient.py` | the modelling task has a real skill gradient and is not solved by a naive benchmark |
+| `balance_harness.py` | deployment does not dominate: discipline and forecast quality beat buying everything, over 100 seeds |
 
+Every economic rule, and the balance evidence behind it, is in `docs/GAME_ECONOMICS.md`.
 See `docs/FRENZEL_DEMO_SCRIPT.md` for the ten-minute walkthrough.
 
 ## The student packet
