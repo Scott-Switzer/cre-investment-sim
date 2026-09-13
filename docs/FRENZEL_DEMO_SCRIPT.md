@@ -78,15 +78,16 @@ won each of the four assets, at what price, against the seller's reserve.
 
 Advance to the standings and the leaderboard.
 
-> "You win on ending NAV. But NAV moves for exactly three reasons, and I can show
-> you all three: the change in property values, the NOI the portfolio paid you,
-> and the interest you paid on the debt."
+> "You win on ending NAV. But NAV moves for exactly five reasons, and I can show
+> you all five: the change in property values, the NOI the portfolio paid you, the
+> interest you paid on the debt, the deal costs you paid to buy, and the capital
+> reserves the buildings consumed."
 
 Open the **Final Debrief** after the fourth round. Point at *Where the money came
 from*.
 
-> "Value change plus NOI income minus interest paid equals NAV minus the starting
-> equity. There is no fourth term, and no opaque score."
+> "Value change plus NOI income minus interest, minus deal costs, minus reserves
+> equals NAV minus the starting equity. There is no sixth term, and no opaque score."
 
 This is the moment to correct the most common student error: more assets is not
 better. Leverage only adds value when the return on cost beats the debt rate —
@@ -160,10 +161,22 @@ seeded generator, so the same property id refers to a *different building* under
 different seed. The app checks this and warns; the verification scripts refuse to
 run. Regenerate the packet if you change the seed.
 
-**Known limitation to state plainly.** In the shipped parameterisation, capital
-deployment has a bigger effect on the winner than valuation accuracy does: the
-going-in cap rate sits above the debt rate, so carry is positive and a fund that
-buys more assets earns more. The valuation signal is visible in the analytics
-leaderboard and in the override cases, but it does not dominate the NAV race.
-Tightening the spread between cap rates and the debt rate is the single highest-value
-next tuning step.
+**Does buying the most assets win?** No, and that is measured rather than asserted.
+`scripts/balance_harness.py` runs the real four-fund game across 100 seeds with
+different human strategies. A strong model bidding its own ceiling finishes at
+$110.72M and wins 61% of games; bidding 5% over the ask at maximum leverage finishes
+at $104.39M and wins 50%; never bidding finishes at $100.00M and wins 0%. A stronger
+model at a fixed policy is worth about +$3.0M, and aggression costs about −$5.0M.
+`corr(NAV, assets acquired)` is +0.21.
+
+Why: deal costs of 2% on every purchase, capital reserves charged each year by
+property type, and interest at a debt rate above the market cap rate. A property
+bought near the ask and levered to the limit roughly earns its cost of debt, so the
+money comes from buying assets the model says are cheap. Every coefficient and the
+full balance evidence are in `docs/GAME_ECONOMICS.md`.
+
+**The honest limitation.** Maximum leverage paid at the asking price is still a
+competitive strategy — it wins 62% of seeds against the strong model's 61%, with a
+lower ending NAV ($109.89M vs $110.72M). Analysis wins on average, not on every seed,
+which is exactly the point: the debrief has to separate model quality from decision
+quality because outcome alone will not.
