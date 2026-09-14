@@ -23,6 +23,7 @@ import { assertSafeView, fundOwnerView, fundView, memberView, professorSessionVi
 import { offeredPropertyIds, pool } from "./context.js";
 import type { AppContext } from "./context.js";
 import { passcodeMatches, newGrant, type Grant } from "./auth.js";
+import { DEMO_BOT_NAMES } from "./demo.js";
 import type { FundState, MemberState, ModelRow, SessionState } from "./domain.js";
 import { PRACTICE_ROUND } from "./domain.js";
 import type { BundleSummary } from "./engineClient.js";
@@ -38,6 +39,8 @@ export interface CreateSessionInput {
   mode?: "team" | "individual";
   practiceEnabled?: boolean;
   totalRounds?: number;
+  /** Round timer duration in seconds; 0 = no timer. */
+  roundTimerSeconds?: number;
 }
 
 export interface CreateSessionResult {
@@ -109,6 +112,10 @@ export async function createSession(
     maxTeamSize,
     totalRounds: Math.max(1, Math.min(8, input.totalRounds ?? 4)),
     practiceEnabled: input.practiceEnabled !== false,
+    demo: false,
+    roundDurationSeconds: Math.max(0, Math.min(3600, Math.round(input.roundTimerSeconds ?? 0))),
+    roundDeadlineAt: null,
+    timerPausedAt: null,
     phase: "lobby",
     currentRound: PRACTICE_ROUND,
     resolvedRounds: 0,
@@ -116,6 +123,8 @@ export async function createSession(
     engineState: null,
     engineStateBytes: 0,
     engineCreatedAt: null,
+    finale: null,
+    finalizedAt: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -429,6 +438,9 @@ export async function buildStateView(
       members: members.map(memberView),
       yourFund: myFund ? fundOwnerView(myFund) : null,
       round,
+      // Final standings, analytics and debrief — present only after the professor
+      // finalizes, and the same payload for every audience.
+      finale: live.phase === "finale" ? live.finale : null,
       // Only for the professor, and only counts plus override tallies: never the
       // sealed amounts, because this screen is routinely projected.
       grid: isProfessor
@@ -452,4 +464,146 @@ export function requireGrant(grant: Grant | null, sessionId: string): Grant {
     throw forbidden("your session cookie is for a different session");
   }
   return grant;
+}
+
+// ── demo sessions ──────────────────────────────────────────────────────────
+
+/**
+ * Create a demo session: one human fund plus three deterministic bots, with every
+ * model pre-locked so the game can start immediately. Returns a student grant for
+ * the human fund. Demo sessions self-advance through the demo endpoint — no
+ * professor browser exists.
+ */
+export async function createDemoSession(
+  ctx: AppContext,
+  input: { displayName: string },
+): Promise<{
+  session: SessionState;
+  grant: Grant;
+  humanFundId: string;
+  joinCode: string;
+}> {
+  const displayName = input.displayName?.trim() || "Demo Player";
+  const available = await listBundles(ctx);
+  const bundleId = available[0]?.bundle_id;
+  if (!bundleId) {
+    throw new AppError("engine_unavailable", "the engine reports no datasets to choose from");
+  }
+  const poolResponse = await pool(ctx, bundleId);
+
+  const now = nowIso();
+  const sessionId = newId("sess");
+  const session: SessionState = {
+    id: sessionId,
+    name: "CRE Investment Committee — Demo",
+    joinCode: newJoinCode(),
+    bundleId,
+    bundleDisplayName: available[0]!.display_name,
+    candidatePoolHash: poolResponse.candidate_pool_hash,
+    poolCount: poolResponse.pool_count,
+    mode: "individual",
+    maxTeamSize: 1,
+    totalRounds: 4,
+    practiceEnabled: false,
+    demo: true,
+    roundDurationSeconds: 0,
+    roundDeadlineAt: null,
+    timerPausedAt: null,
+    // Models are pre-locked below, so the session is born one phase ahead of the
+    // lobby: the demo controller's first advance is "start the game".
+    phase: "model_checkin",
+    currentRound: PRACTICE_ROUND,
+    resolvedRounds: 0,
+    revision: 0,
+    engineState: null,
+    engineStateBytes: 0,
+    engineCreatedAt: null,
+    finale: null,
+    finalizedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const fundNames = ["You", ...DEMO_BOT_NAMES];
+  const funds: FundState[] = fundNames.map((fundName, index) =>
+    makeFund(sessionId, fundName, now, index),
+  );
+  const humanFund = funds[0]!;
+
+  await ctx.store.createSession(session, humanFund);
+  for (const extra of funds.slice(1)) {
+    await ctx.store.transact(sessionId, (tx) => {
+      tx.putFund(extra);
+    });
+  }
+
+  // Lock a deterministic model for every fund, through the same ModelRecord path
+  // a student's upload takes. The human's rows are the DEMO FORECAST archetype.
+  const { HUMAN_ARCHETYPE, demoBotArchetype, demoModelRows } = await import("./demo.js");
+  const poolDeals = (poolResponse.properties as unknown as {
+    property_id: string;
+    asking_price: number | null;
+    max_ltv: number | null;
+  }[]).map((p) => ({
+    property_id: p.property_id,
+    asking_price: p.asking_price,
+    max_ltv: p.max_ltv,
+  }));
+
+  for (const fund of funds) {
+    const archetype =
+      fund.id === humanFund.id ? HUMAN_ARCHETYPE : demoBotArchetype(fund.name);
+    const modelName =
+      fund.id === humanFund.id ? "DEMO FORECAST (illustrative — not your own model)" : fund.name;
+    const rows = demoModelRows(archetype, poolDeals, modelName);
+    await ctx.store.putModel({
+      sessionId,
+      fundId: fund.id,
+      modelName,
+      rowCount: rows.length,
+      validatedAt: now,
+      lockedAt: now,
+      rows,
+    });
+    await ctx.store.transact(sessionId, (tx) => {
+      const stored = tx.aggregate.funds.get(fund.id);
+      if (!stored) throw conflict(`fund '${fund.id}' vanished during demo setup`);
+      stored.modelStatus = "locked";
+      stored.modelName = modelName;
+      stored.modelLockedAt = now;
+      stored.modelValidatedAt = now;
+      stored.modelRowCount = rows.length;
+      tx.putFund(stored);
+    });
+  }
+
+  const member: MemberState = {
+    id: newId("mem"),
+    sessionId,
+    displayName,
+    fundId: humanFund.id,
+    isProfessor: false,
+    joinedAt: now,
+    lastSeenAt: now,
+  };
+  await ctx.store.transact(sessionId, (tx) => {
+    tx.putMember(member);
+  });
+
+  const stored = (await ctx.store.getSession(sessionId)) ?? session;
+  return {
+    session: stored,
+    grant: newGrant(
+      {
+        sessionId,
+        memberId: member.id,
+        fundId: humanFund.id,
+        role: "student",
+        displayName,
+      },
+      ctx.config.sessionTtlSeconds,
+    ),
+    humanFundId: humanFund.id,
+    joinCode: stored.joinCode,
+  };
 }

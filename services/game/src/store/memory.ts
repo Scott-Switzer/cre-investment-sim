@@ -95,6 +95,10 @@ export class MemoryStore implements Store {
   private readonly idempotency = new Map<string, IdempotencyRecord>();
   private readonly listeners = new Map<string, Set<(revision: number) => void>>();
   private readonly locks = new Map<string, Promise<unknown>>();
+  /** Archived round records by `sessionId:round` — exports and audits read these. */
+  private readonly roundArchive = new Map<string, RoundRecord>();
+  /** Archived decisions by `sessionId:round:fundId`. */
+  private readonly decisionArchive = new Map<string, DecisionState>();
 
   async ensureReady(): Promise<void> {}
 
@@ -141,10 +145,39 @@ export class MemoryStore implements Store {
       tx.commit();
       if (tx.isDirty()) {
         aggregate.session.updatedAt = new Date().toISOString();
+        // Archive every committed round and decision so exports can read history
+        // after later rounds have overwritten the aggregate's "current" slots.
+        if (aggregate.round) {
+          this.roundArchive.set(`${sessionId}:${aggregate.round.round}`, clone(aggregate.round));
+        }
+        for (const decision of aggregate.decisions.values()) {
+          this.decisionArchive.set(
+            `${sessionId}:${decision.round}:${decision.fundId}`,
+            clone(decision),
+          );
+        }
         this.notify(sessionId, aggregate.session.revision);
       }
       return result;
     });
+  }
+
+  async listRounds(sessionId: string): Promise<RoundRecord[]> {
+    const prefix = `${sessionId}:`;
+    const out: RoundRecord[] = [];
+    for (const [key, record] of this.roundArchive) {
+      if (key.startsWith(prefix)) out.push(clone(record));
+    }
+    return out.sort((a, b) => a.round - b.round);
+  }
+
+  async listDecisions(sessionId: string, round: number): Promise<DecisionState[]> {
+    const prefix = `${sessionId}:${round}:`;
+    const out: DecisionState[] = [];
+    for (const [key, record] of this.decisionArchive) {
+      if (key.startsWith(prefix)) out.push(clone(record));
+    }
+    return out.sort((a, b) => (a.fundId < b.fundId ? -1 : 1));
   }
 
   async recordPresence(sessionId: string, memberId: string, at: string): Promise<void> {
@@ -217,6 +250,8 @@ export class MemoryStore implements Store {
     for (const [code, id] of this.joinCodes) next.joinCodes.set(code, id);
     for (const [key, record] of this.models) next.models.set(key, clone(record));
     for (const [key, record] of this.idempotency) next.idempotency.set(key, clone(record));
+    for (const [key, record] of this.roundArchive) next.roundArchive.set(key, clone(record));
+    for (const [key, record] of this.decisionArchive) next.decisionArchive.set(key, clone(record));
     return next;
   }
 

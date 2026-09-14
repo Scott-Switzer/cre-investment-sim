@@ -283,6 +283,30 @@ export class FirestoreStore implements Store {
     return snap.docs.map((doc) => fromSessionDoc(doc.data() as Record<string, unknown>));
   }
 
+  async listRounds(sessionId: string): Promise<RoundRecord[]> {
+    const snap = await this.db
+      .collection(SESSIONS)
+      .doc(sessionId)
+      .collection("rounds")
+      .get();
+    return snap.docs
+      .map((doc) => doc.data() as unknown as RoundRecord)
+      .sort((a, b) => a.round - b.round);
+  }
+
+  async listDecisions(sessionId: string, round: number): Promise<DecisionState[]> {
+    const snap = await this.db
+      .collection(SESSIONS)
+      .doc(sessionId)
+      .collection("rounds")
+      .doc(roundKey(round))
+      .collection("decisions")
+      .get();
+    return snap.docs
+      .map((doc) => doc.data() as unknown as DecisionState)
+      .sort((a, b) => (a.fundId < b.fundId ? -1 : 1));
+  }
+
   async transact<T>(sessionId: string, body: TransactionBody<T>): Promise<T> {
     const sessionRef = this.db.collection(SESSIONS).doc(sessionId);
     const committed = await this.db.runTransaction(async (tx): Promise<{ result: T; revision: number }> => {

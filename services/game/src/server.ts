@@ -25,13 +25,16 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import fastifyStatic from "@fastify/static";
 
-import { AppError, asAppError, badRequest, forbidden, notFound } from "./errors.js";
+import { AppError, asAppError, badRequest, forbidden, illegalPhase, notFound } from "./errors.js";
 import { buildCookie, verifyGrant, type CookieSpec, type Grant } from "./auth.js";
 import type { AppContext } from "./context.js";
-import { buildStateView, createSession, joinSession, listBundles, professorSignIn, reclaimSeat, requireGrant } from "./sessions.js";
+import { buildStateView, createDemoSession, createSession, joinSession, listBundles, professorSignIn, reclaimSeat, requireGrant } from "./sessions.js";
 import { canonicalJoinCode, isJoinCodeShaped } from "./ids.js";
 import { lockModel, readModel, uploadModel } from "./checkin.js";
-import { beginCheckIn, closeRound, openRound, startGame, submitDecision } from "./rounds.js";
+import { beginCheckIn, closeRound, demoAdvance, finalizeGame, openRound, pauseTimer, resumeTimer, setRoundTimer, startGame, submitDecision } from "./rounds.js";
+import { assertSafeView } from "./views.js";
+import { buildExport, zipStore } from "./export.js";
+import { decodeState } from "./engineClient.js";
 import type { DecisionItem } from "./domain.js";
 import type { ServiceConfig } from "./config.js";
 
@@ -230,6 +233,21 @@ export function buildServer(deps: Deps): FastifyInstance {
     };
   });
 
+  /** Operational liveness, keyed off the same checks as /v1/health. */
+  app.get("/healthz", async (req, reply) => {
+    const engine = await context.engine.health().catch(() => null);
+    const ok = engine !== null && (engine as { status?: string }).status === "ok";
+    reply.status(ok ? 200 : 503);
+    return {
+      status: ok ? "ok" : "degraded",
+      service: "cre-investment-committee-game",
+      store: context.store.kind,
+      engine: ok
+        ? { version: (engine as { engine_version?: string }).engine_version ?? null }
+        : "unreachable",
+    };
+  });
+
   app.get("/v1/bundles", async () => {
     const bundles = await listBundles(context);
     // The seed is engine metadata. A professor selects a dataset; a bundle summary
@@ -249,6 +267,8 @@ export function buildServer(deps: Deps): FastifyInstance {
       maxTeamSize?: number;
       mode?: "team" | "individual";
       totalRounds?: number;
+      practiceEnabled?: boolean;
+      roundTimerSeconds?: number;
     };
     const result = await createSession(context, {
       name: body.name ?? "",
@@ -259,6 +279,8 @@ export function buildServer(deps: Deps): FastifyInstance {
       maxTeamSize: body.maxTeamSize,
       mode: body.mode,
       totalRounds: body.totalRounds,
+      practiceEnabled: body.practiceEnabled,
+      roundTimerSeconds: body.roundTimerSeconds,
     });
     setCookie(
       reply,
@@ -283,6 +305,9 @@ export function buildServer(deps: Deps): FastifyInstance {
         phase: result.session.phase,
         totalRounds: result.session.totalRounds,
         poolCount: result.session.poolCount,
+        mode: result.session.mode,
+        practiceEnabled: result.session.practiceEnabled,
+        roundDurationSeconds: result.session.roundDurationSeconds,
       },
     };
   });
@@ -420,6 +445,47 @@ export function buildServer(deps: Deps): FastifyInstance {
     return { sessionId: params.sessionId, fundId: grant.fundId, displayName: grant.displayName };
   });
 
+  // ── demo mode ────────────────────────────────────────────────────────────
+
+  /**
+   * One click on the landing page: mint a demo session (human fund + 3 bots,
+   * models pre-locked) and hand the browser its student seat. No professor
+   * passcode, no uploads — the demo self-advances through `/demo/advance`.
+   */
+  app.post("/v1/demo/session", async (req, reply) => {
+    const body = (req.body ?? {}) as { displayName?: string };
+    const result = await createDemoSession(context, {
+      displayName: body.displayName ?? "Demo Player",
+    });
+    setCookie(
+      reply,
+      buildCookie(
+        `${config.cookieName}_${result.session.id}`,
+        result.grant,
+        config.cookieSecret,
+        config.sessionTtlSeconds,
+        config.cookieSecure,
+      ),
+    );
+    reply.status(201);
+    return {
+      sessionId: result.session.id,
+      fundId: result.humanFundId,
+      joinCode: result.joinCode,
+      name: result.session.name,
+    };
+  });
+
+  app.post("/v1/sessions/:sessionId/demo/advance", async (req, reply) => {
+    const params = req.params as { sessionId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const result = await demoAdvance(context, {
+      sessionId: params.sessionId,
+      grant,
+    });
+    return result;
+  });
+
   // ── state ───────────────────────────────────────────────────────────────
 
   app.get("/v1/sessions/:sessionId/state", async (req, reply) => {
@@ -492,6 +558,56 @@ export function buildServer(deps: Deps): FastifyInstance {
       expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
     });
     return result;
+  });
+
+  app.post("/v1/sessions/:sessionId/game/finalize", async (req, reply) => {
+    const params = req.params as { sessionId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const body = (req.body ?? {}) as { expectedRevision?: number };
+    const result = await idempotent(req, params.sessionId, grant.memberId, "game/finalize", async () => ({
+      status: 200,
+      body: await finalizeGame(context, {
+        sessionId: params.sessionId,
+        grant,
+        expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
+      }),
+    }));
+    reply.status(result.status);
+    return result.body;
+  });
+
+  app.post("/v1/sessions/:sessionId/timer", async (req, reply) => {
+    const params = req.params as { sessionId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const body = (req.body ?? {}) as { expectedRevision?: number; durationSeconds?: number };
+    return setRoundTimer(context, {
+      sessionId: params.sessionId,
+      grant,
+      expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
+      durationSeconds: body.durationSeconds ?? 0,
+    });
+  });
+
+  app.post("/v1/sessions/:sessionId/timer/pause", async (req, reply) => {
+    const params = req.params as { sessionId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const body = (req.body ?? {}) as { expectedRevision?: number };
+    return pauseTimer(context, {
+      sessionId: params.sessionId,
+      grant,
+      expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
+    });
+  });
+
+  app.post("/v1/sessions/:sessionId/timer/resume", async (req, reply) => {
+    const params = req.params as { sessionId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const body = (req.body ?? {}) as { expectedRevision?: number };
+    return resumeTimer(context, {
+      sessionId: params.sessionId,
+      grant,
+      expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
+    });
   });
 
   app.post("/v1/sessions/:sessionId/rounds/decision", async (req, reply) => {
@@ -572,6 +688,44 @@ export function buildServer(deps: Deps): FastifyInstance {
       fundId: params.fundId,
       grant,
     }) };
+  });
+
+  // ── portfolio: one fund's own book, from the engine's team view ─────────
+
+  /**
+   * The owning fund's holdings, channels and override history — the engine's
+   * `/v1/team-view`, served verbatim to the owning fund (and the professor, who
+   * may project a fund's book during the debrief). Nobody else.
+   */
+  app.get("/v1/sessions/:sessionId/funds/:fundId/portfolio", async (req) => {
+    const params = req.params as { sessionId: string; fundId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const session = await context.store.getSession(params.sessionId);
+    if (!session) throw notFound(`unknown session '${params.sessionId}'`);
+    if (!session.engineState) throw illegalPhase("the game has not been started yet");
+
+    if (grant.role !== "professor") {
+      if (grant.fundId !== params.fundId) {
+        throw forbidden("that is another fund's book");
+      }
+    }
+    const view = await context.engine.teamView(decodeState(session.engineState), params.fundId);
+    assertSafeView(view, `portfolio(${params.sessionId}/${params.fundId})`);
+    return { portfolio: view };
+  });
+
+  // ── professor export ────────────────────────────────────────────────────
+
+  app.get("/v1/sessions/:sessionId/export", async (req, reply) => {
+    const params = req.params as { sessionId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    if (grant.role !== "professor") throw forbidden("only the professor can export a session");
+    const session = await context.store.getSession(params.sessionId);
+    if (!session) throw notFound(`unknown session '${params.sessionId}'`);
+    const bundle = await buildExport(context, session);
+    reply.header("content-type", "application/zip");
+    reply.header("content-disposition", `attachment; filename="${bundle.filename}"`);
+    return zipStore(bundle.files);
   });
 
   // ── the doorbell ────────────────────────────────────────────────────────

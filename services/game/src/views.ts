@@ -115,6 +115,11 @@ export interface SessionView {
   poolCount: number;
   candidatePoolHash: string;
   nextStep: string;
+  demo: boolean;
+  /** Round timer deadline, epoch ms. Null when no timer is running. */
+  roundDeadlineAt: number | null;
+  timerPausedAt: number | null;
+  roundDurationSeconds: number;
 }
 
 export function sessionView(session: SessionState): SessionView {
@@ -137,6 +142,10 @@ export function sessionView(session: SessionState): SessionView {
     poolCount: session.poolCount,
     candidatePoolHash: session.candidatePoolHash,
     nextStep: nextStepFor(session),
+    demo: session.demo,
+    roundDeadlineAt: session.roundDeadlineAt,
+    timerPausedAt: session.timerPausedAt,
+    roundDurationSeconds: session.roundDurationSeconds,
   };
 }
 
@@ -247,6 +256,8 @@ export interface RoundView {
   submittedFunds: number;
   totalFunds: number;
   results: unknown | null;
+  /** The engine's analytics leaderboard at this round's resolution, or null. */
+  analytics: unknown | null;
   rejected: { fundId: string; propertyId: string; reason: string }[];
 }
 
@@ -277,6 +288,7 @@ export function roundView(args: {
     submittedFunds: args.submittedFunds,
     totalFunds: args.totalFunds,
     results: args.includeResults ? record.results : null,
+    analytics: args.includeResults && record.resolvedAt !== null ? record.analytics : null,
     rejected: record.rejected.map((r) => ({ ...r })),
   };
 }

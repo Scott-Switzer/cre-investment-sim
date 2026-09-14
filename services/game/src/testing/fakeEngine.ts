@@ -24,6 +24,7 @@ import type {
   EngineDecision,
   EngineHealth,
   EngineTeamSpec,
+  FinalizeGameResponse,
   OpenRoundResponse,
   PoolProperty,
   PoolResponse,
@@ -348,5 +349,35 @@ export class FakeEngine implements Engine {
   async teamView(state: unknown, teamId: string): Promise<Record<string, unknown>> {
     this.record("teamView", { state, teamId });
     return { team_id: teamId };
+  }
+
+  async finalizeGame(state: unknown): Promise<FinalizeGameResponse> {
+    this.record("finalizeGame", { state });
+    const current = state as FakeState;
+    const standings = [...current.fundIds]
+      .sort((a, b) => (current.cash[b] ?? 0) - (current.cash[a] ?? 0))
+      .map((id, i) => ({
+        rank: i + 1,
+        team_id: id,
+        team_name: id,
+        nav: current.cash[id] ?? 0,
+        cash: current.cash[id] ?? 0,
+        debt: 0,
+        assets: 0,
+        cumulative_return: 0,
+      }));
+    return {
+      state: current,
+      standings,
+      analytics: standings.map((s) => ({ ...s, valuation_mae: 0, override_count: 0 })),
+      debrief: {
+        answers: [],
+        standings,
+        analytics: [],
+        case_counts: {},
+        examples: {},
+      },
+      game_complete: true,
+    };
   }
 }

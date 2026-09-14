@@ -20,7 +20,7 @@
  * from the engine's own projections and are stored and forwarded verbatim.
  */
 
-import { AppError, conflict, forbidden, illegalPhase } from "./errors.js";
+import { AppError, conflict, forbidden, illegalPhase, notFound, unauthenticated } from "./errors.js";
 import type { AppContext } from "./context.js";
 import {
   assertMayActForFund,
@@ -30,7 +30,7 @@ import {
   requireMember,
   roundAcceptsSubmissions,
 } from "./context.js";
-import { assertAction, phaseAfterResolve, PRACTICE_ROUND, type DecisionItem, type RoundRecord, type SessionState } from "./domain.js";
+import { assertAction, isGameComplete, phaseAfterResolve, PRACTICE_ROUND, type DecisionItem, type RoundRecord, type SessionState } from "./domain.js";
 import { assertSafeView, roundView } from "./views.js";
 import { decodeState, encodeState, type EngineDecision } from "./engineClient.js";
 import { nowIso } from "./ids.js";
@@ -123,6 +123,7 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
     return {
       bundleId: session.bundleId,
       fundCount: funds.length,
+      practiceEnabled: session.practiceEnabled !== false,
       unlocked: funds.filter((f) => f.modelStatus !== "locked").map((f) => f.name),
       teams: funds.map((f) => ({ id: f.id, name: f.name })),
     };
@@ -202,6 +203,7 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
       resolvedAt: null,
       broadcast: created.public,
       results: null,
+      analytics: null,
       rejected: [],
     };
     tx.putRound(record);
@@ -213,6 +215,29 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
       engineStateBytes: state.byteLength,
     };
   });
+
+  // Practice disabled: the engine always opens at the practice round, so a session
+  // that opted out resolves it immediately with zero decisions (every fund absent
+  // = no bids) and lands in practice_results, ready for the professor to open
+  // Round 1. One honest click rather than a phantom practice screen.
+  if (!claim.practiceEnabled) {
+    const fresh = await ctx.store.getSession(args.sessionId);
+    if (fresh === null) throw notFound("session vanished after the engine started");
+    const next: SessionState = fresh!;
+    if (next.phase === "practice") {
+      const revision = next.revision;
+      return closeRound(ctx, {
+        sessionId: args.sessionId,
+        grant: args.grant,
+        expectedRevision: revision,
+      });
+    }
+  }
+  const fresh = await ctx.store.getSession(args.sessionId);
+  return {
+    phase: fresh?.phase ?? "practice",
+    round: fresh?.currentRound ?? PRACTICE_ROUND,
+  };
 }
 
 // ── opening a round ───────────────────────────────────────────────────────
@@ -256,6 +281,11 @@ export async function openRound(
     session.engineStateBytes = state.byteLength;
     session.currentRound = round;
     session.phase = "round";
+    session.roundDeadlineAt =
+      session.roundDurationSeconds > 0
+        ? Date.now() + session.roundDurationSeconds * 1000
+        : null;
+    session.timerPausedAt = null;
 
     tx.putRound({
       sessionId: args.sessionId,
@@ -265,6 +295,7 @@ export async function openRound(
       resolvedAt: null,
       broadcast: opened.public,
       results: null,
+      analytics: null,
       rejected: [],
     });
     tx.touch();
@@ -463,9 +494,12 @@ export async function closeRound(
     session.resolvedRounds += claim.round === PRACTICE_ROUND ? 0 : 1;
     session.phase = phaseAfterResolve(claim.round);
     session.currentRound = claim.round;
+    session.roundDeadlineAt = null;
+    session.timerPausedAt = null;
 
     record.resolvedAt = nowIso();
     record.results = resolved.public_results;
+    record.analytics = resolved.analytics_updates;
     record.rejected = resolved.rejected_decisions.map((r) => ({
       fundId: r.team_id,
       propertyId: r.property_id,
@@ -495,4 +529,224 @@ export async function closeRound(
       results: resolved.public_results,
     };
   });
+}
+
+// ── finalizing the game ───────────────────────────────────────────────────
+
+export async function finalizeGame(
+  ctx: AppContext,
+  args: { sessionId: string; grant: Grant; expectedRevision: number | null },
+) {
+  requireProfessor(args.grant);
+  const revision = requireRevision(args.expectedRevision, "finalize the game");
+
+  const claim = await ctx.store.transact(args.sessionId, (tx) => {
+    const session = tx.aggregate.session;
+    assertRevision(session, revision);
+    assertAction(session.phase, "finalize");
+    if (session.resolvedRounds < session.totalRounds) {
+      throw illegalPhase("the game is not complete; finalize only after the last round resolves");
+    }
+    if (session.finalizedAt) {
+      throw conflict("the game has already been finalized");
+    }
+    return { state: requireEngineState(session) };
+  });
+
+  // The engine's finalize is a read-only view over recorded history. Deterministic,
+  // so a retry reproduces the same answer.
+  const finalized = await ctx.engine.finalizeGame(decodeState(claim.state));
+
+  return ctx.store.transact(args.sessionId, (tx) => {
+    const session = tx.aggregate.session;
+    if (session.finalizedAt) throw conflict("the game has already been finalized");
+    if (session.phase !== "round_results") {
+      throw conflict(`the session moved on while the game was finalizing (now '${session.phase}')`);
+    }
+    session.finalizedAt = nowIso();
+    session.finale = {
+      standings: finalized.standings,
+      analytics: finalized.analytics,
+      debrief: finalized.debrief,
+    };
+    session.phase = "finale";
+    tx.touch();
+    return { phase: session.phase, finalizedAt: session.finalizedAt };
+  });
+}
+
+// ── timers ────────────────────────────────────────────────────────────────
+
+/**
+ * Arm the round timer. The deadline is stored server-side (epoch ms) so it survives
+ * refresh and process restart; students render a countdown from it and never hold
+ * the authoritative value. No auto-close: a professor-triggered close with a
+ * persisted deadline is the V1 contract.
+ */
+export async function setRoundTimer(
+  ctx: AppContext,
+  args: {
+    sessionId: string;
+    grant: Grant;
+    expectedRevision: number | null;
+    durationSeconds: number;
+  },
+) {
+  requireProfessor(args.grant);
+  const revision = requireRevision(args.expectedRevision, "set the round timer");
+  if (!Number.isFinite(args.durationSeconds) || args.durationSeconds < 0 || args.durationSeconds > 3600) {
+    throw new AppError("bad_request", "timer duration must be between 0 and 3600 seconds");
+  }
+  return ctx.store.transact(args.sessionId, (tx) => {
+    const session = tx.aggregate.session;
+    assertRevision(session, revision);
+    session.roundDurationSeconds = Math.round(args.durationSeconds);
+    session.roundDeadlineAt =
+      session.roundDurationSeconds > 0 && (session.phase === "practice" || session.phase === "round")
+        ? Date.now() + session.roundDurationSeconds * 1000
+        : null;
+    session.timerPausedAt = null;
+    tx.touch();
+    return {
+      roundDurationSeconds: session.roundDurationSeconds,
+      roundDeadlineAt: session.roundDeadlineAt,
+    };
+  });
+}
+
+export async function pauseTimer(
+  ctx: AppContext,
+  args: { sessionId: string; grant: Grant; expectedRevision: number | null },
+) {
+  requireProfessor(args.grant);
+  const revision = requireRevision(args.expectedRevision, "pause the timer");
+  return ctx.store.transact(args.sessionId, (tx) => {
+    const session = tx.aggregate.session;
+    assertRevision(session, revision);
+    if (session.roundDeadlineAt === null) throw illegalPhase("no round timer is running");
+    if (session.timerPausedAt !== null) throw conflict("the timer is already paused");
+    session.timerPausedAt = Date.now();
+    tx.touch();
+    return { roundDeadlineAt: session.roundDeadlineAt, timerPausedAt: session.timerPausedAt };
+  });
+}
+
+export async function resumeTimer(
+  ctx: AppContext,
+  args: { sessionId: string; grant: Grant; expectedRevision: number | null },
+) {
+  requireProfessor(args.grant);
+  const revision = requireRevision(args.expectedRevision, "resume the timer");
+  return ctx.store.transact(args.sessionId, (tx) => {
+    const session = tx.aggregate.session;
+    assertRevision(session, revision);
+    if (session.roundDeadlineAt === null) throw illegalPhase("no round timer is running");
+    if (session.timerPausedAt === null) throw conflict("the timer is not paused");
+    const pauseLength = Date.now() - session.timerPausedAt;
+    session.roundDeadlineAt += pauseLength;
+    session.timerPausedAt = null;
+    tx.touch();
+    return { roundDeadlineAt: session.roundDeadlineAt, timerPausedAt: null };
+  });
+}
+
+// ── demo mode: bots and self-advance ───────────────────────────────────────
+
+/**
+ * Demo sessions have no professor browser. The human is the controller: once their
+ * fund has submitted, `demoAdvance` submits deterministic bot decisions for every
+ * bot that has not acted, then performs the one legal phase transition — close an
+ * open round, open the next round, or finalize a complete game.
+ */
+export async function demoAdvance(
+  ctx: AppContext,
+  args: { sessionId: string; grant: Grant },
+) {
+  const session = await ctx.store.getSession(args.sessionId);
+  if (!session) throw notFound(`unknown session '${args.sessionId}'`);
+  if (!session.demo) throw forbidden("only demo sessions self-advance");
+
+  // The demo controller must be a member of the demo session's human fund.
+  const controller = await ctx.store.transact(args.sessionId, (tx) => {
+    const member = tx.aggregate.members.get(args.grant.memberId);
+    if (!member) throw unauthenticated("this seat no longer exists in the session");
+    return member;
+  });
+  void controller;
+
+  const phase = session.phase;
+  if (phase === "practice" || phase === "round") {
+    // Auto-submit bots, then close. Bot decisions are pure functions of their
+    // stored models and the offered deals.
+    const record = await ctx.store.transact(args.sessionId, (tx) => tx.aggregate.round);
+    if (!record || record.resolvedAt !== null || record.closedAt !== null) {
+      throw conflict("this round is no longer open");
+    }
+    const { DEMO_BOT_NAMES, demoBotArchetype, demoBotDecision } = await import("./demo.js");
+    const models = await ctx.store.listAllModels(args.sessionId);
+    const offered = (record.broadcast as { deals?: unknown[] } | null)?.deals ?? [];
+    const deals = offered.map((d) => ({
+      property_id: (d as { property_id?: unknown }).property_id as string,
+      asking_price: (d as { asking_price?: number | null }).asking_price ?? null,
+      max_ltv: (d as { max_ltv?: number | null }).max_ltv ?? null,
+    }));
+    const rowCounts = new Map(models.map((m) => [m.fundId, m.rows]));
+
+    for (const botName of DEMO_BOT_NAMES) {
+      const bot = await ctx.store.transact(args.sessionId, (tx) =>
+        [...tx.aggregate.funds.values()].find((f) => f.name === botName) ?? null,
+      );
+      if (!bot) continue;
+      const already = await ctx.store.transact(args.sessionId, (tx) =>
+        tx.aggregate.decisions.get(bot.id) ?? null,
+      );
+      if (already) continue;
+      const rows = rowCounts.get(bot.id) ?? [];
+      const map = new Map(rows.map((r) => [r.propertyId, r]));
+      const items = demoBotDecision(demoBotArchetype(botName), map as never, deals);
+      await submitDecision(ctx, {
+        sessionId: args.sessionId,
+        fundId: bot.id,
+        grant: {
+          ...args.grant,
+          fundId: bot.id,
+          role: "professor",
+        },
+        items,
+      });
+    }
+
+    const fresh = await ctx.store.getSession(args.sessionId);
+    if (!fresh) throw notFound("session vanished");
+    return closeRound(ctx, {
+      sessionId: args.sessionId,
+      grant: { ...args.grant, role: "professor" },
+      expectedRevision: fresh.revision,
+    });
+  }
+
+  if (phase === "practice_results" || phase === "round_results") {
+    if (isGameComplete(session)) {
+      return finalizeGame(ctx, {
+        sessionId: args.sessionId,
+        grant: { ...args.grant, role: "professor" },
+        expectedRevision: session.revision,
+      });
+    }
+    return openRound(ctx, {
+      sessionId: args.sessionId,
+      grant: { ...args.grant, role: "professor" },
+      expectedRevision: session.revision,
+    });
+  }
+
+  if (phase === "lobby" || phase === "model_checkin") {
+    return startGame(ctx, {
+      sessionId: args.sessionId,
+      grant: { ...args.grant, role: "professor" },
+      expectedRevision: session.revision,
+    });
+  }
+
+  throw illegalPhase(`nothing to advance while the session is '${phase}'`);
 }

@@ -134,6 +134,14 @@ export interface ResolveRoundResponse {
   game_complete: boolean;
 }
 
+export interface FinalizeGameResponse {
+  state: unknown;
+  standings: Record<string, unknown>[];
+  analytics: Record<string, unknown>[];
+  debrief: Record<string, unknown>;
+  game_complete: boolean;
+}
+
 /** UTF-8 JSON bytes, which is how the snapshot is carried and persisted. */
 export function encodeState(state: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(state));
@@ -167,6 +175,7 @@ export interface Engine {
   ): Promise<CreateGameResponse>;
   openRound(state: unknown): Promise<OpenRoundResponse>;
   resolveRound(state: unknown, decisions: EngineDecision[]): Promise<ResolveRoundResponse>;
+  finalizeGame(state: unknown): Promise<FinalizeGameResponse>;
   teamView(state: unknown, teamId: string): Promise<Record<string, unknown>>;
 }
 
@@ -289,6 +298,10 @@ export class EngineClient implements Engine {
       state,
       decisions,
     });
+  }
+
+  finalizeGame(state: unknown): Promise<FinalizeGameResponse> {
+    return this.request<FinalizeGameResponse>("POST", "/v1/finalize-game", { state });
   }
 
   teamView(state: unknown, teamId: string): Promise<Record<string, unknown>> {

@@ -84,6 +84,15 @@ export interface Store {
   findSessionByJoinCode(code: string): Promise<string | null>;
   listSessions(): Promise<SessionState[]>;
 
+  /**
+   * Round history for exports and audit: every round record that was committed,
+   * oldest first. The active aggregate holds only the current round.
+   */
+  listRounds(sessionId: string): Promise<RoundRecord[]>;
+
+  /** The submissions for one round, keyed by fund id. */
+  listDecisions(sessionId: string, round: number): Promise<DecisionState[]>;
+
   /** Read-modify-write one aggregate. The only path to mutation. */
   transact<T>(sessionId: string, body: TransactionBody<T>): Promise<T>;
 

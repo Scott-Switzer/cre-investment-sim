@@ -51,7 +51,8 @@ export type ProfessorAction =
   | "begin_checkin"
   | "start_game"
   | "open_round"
-  | "close_round";
+  | "close_round"
+  | "finalize";
 
 export const TRANSITIONS: readonly Transition[] = [
   { from: "lobby", action: "begin_checkin", to: "model_checkin" },
@@ -60,6 +61,7 @@ export const TRANSITIONS: readonly Transition[] = [
   { from: "practice_results", action: "open_round", to: "round" },
   { from: "round", action: "close_round", to: "round_results" },
   { from: "round_results", action: "open_round", to: "round" },
+  { from: "round_results", action: "finalize", to: "finale" },
 ];
 
 export function assertAction(phase: Phase, action: ProfessorAction): void {
@@ -118,6 +120,14 @@ export interface SessionState {
   maxTeamSize: number;
   totalRounds: number;
   practiceEnabled: boolean;
+  /** Demo sessions play 1 human fund against deterministic bots, no professor. */
+  demo: boolean;
+  /** Round timer, in seconds. 0 means no deadline. */
+  roundDurationSeconds: number;
+  /** Server-owned deadline for the open round, in epoch ms. Null when no timer or closed. */
+  roundDeadlineAt: number | null;
+  /** When the timer is paused, the deadline is shifted forward by the pause length. */
+  timerPausedAt: number | null;
   phase: Phase;
   /** -1 is the practice round; 0..totalRounds-1 are scored. Mirrors the engine. */
   currentRound: number;
@@ -128,6 +138,9 @@ export interface SessionState {
   engineStateBytes: number;
   /** Set once the engine has been asked to build the game; guards double-start. */
   engineCreatedAt: string | null;
+  /** The finalized debrief payload (standings/analytics/debrief), set once. */
+  finale: unknown | null;
+  finalizedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -186,6 +199,8 @@ export interface RoundRecord {
   broadcast: unknown;
   /** The engine's `public_results` payload, verbatim. Null until resolved. */
   results: unknown | null;
+  /** The engine's analytics leaderboard at this round's resolution. Null until resolved. */
+  analytics: unknown | null;
   rejected: RejectedDecision[];
 }
 
