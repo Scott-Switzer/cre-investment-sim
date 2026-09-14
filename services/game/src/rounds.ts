@@ -520,11 +520,17 @@ export async function closeRound(
       includeResults: true,
     });
     assertSafeView(view, `closeRound(round=${claim.round})`);
+    // The engine's own `game_complete` flag only flips when it *advances* past the
+    // final round (which the next `openRound` triggers). At close time it is still
+    // false for the last scored round, so the service computes finality itself:
+    // this is the final round when the round index reaches the configured count.
+    const isFinalScoredRound =
+      claim.round !== PRACTICE_ROUND && claim.round >= session.totalRounds - 1;
     return {
       round: claim.round,
       phase: session.phase,
       rejected: record.rejected,
-      gameComplete: resolved.game_complete,
+      gameComplete: isFinalScoredRound,
       submittedFunds: claim.submittedFunds,
       results: resolved.public_results,
     };

@@ -22,6 +22,7 @@ import {
   capitalImpact,
   debtYieldAt,
   money,
+  moneySigned,
   num,
   pct,
   qualityLabel,
@@ -34,6 +35,229 @@ import { imageForProperty } from "../propertyImages";
 import { useSession } from "../session";
 
 type Draft = { action: "PASS" | "BID"; bid: string; ltv: string };
+
+/** The scored-round header: fund NAV, cash, assets, and portfolio LTV — all engine data. */
+function RoundHeader({ fund }: { fund: RoundView["public"]["funds"][number] | undefined }) {
+  const { state } = useSession();
+  if (!fund) return null;
+  const session = state?.session;
+  const deadline = session?.roundDeadlineAt ?? null;
+  const paused = session?.timerPausedAt !== null;
+  const debt = fund.debt;
+  const portfolioLtv = fund.assets > 0 ? debt / (debt + Math.max(0, fund.nav - fund.cash)) : null;
+  return (
+    <div className="round-header" data-testid="round-header">
+      <div className="rh-brand">PACIFIC CRE PARTNERS</div>
+      <div className="rh-title">{session?.roundLabel}</div>
+      <div className="rh-metrics">
+        <div className="rh-metric">
+          <span className="rh-label">NAV</span>
+          <span className="rh-value" data-testid="rh-nav">{money(fund.nav)}</span>
+        </div>
+        <div className="rh-metric">
+          <span className="rh-label">Cash</span>
+          <span className="rh-value" data-testid="rh-cash">{money(fund.cash)}</span>
+        </div>
+        <div className="rh-metric">
+          <span className="rh-label">Assets</span>
+          <span className="rh-value" data-testid="rh-assets">{fund.assets}</span>
+        </div>
+        <div className="rh-metric">
+          <span className="rh-label">Portfolio LTV</span>
+          <span className="rh-value" data-testid="rh-ltv">{portfolioLtv === null ? "—" : pct(portfolioLtv, 0)}</span>
+        </div>
+        <div className="rh-metric">
+          <span className="rh-label">Time</span>
+          <span className="rh-value" data-testid="rh-time">
+            {deadline !== null && !paused ? <Countdown deadline={deadline} /> : paused ? "paused" : "—"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** One-second countdown against the server-persisted deadline. */
+function Countdown({ deadline }: { deadline: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const remaining = Math.max(0, deadline - now);
+  const m = Math.floor(remaining / 60000);
+  const s = Math.floor((remaining % 60000) / 1000);
+  return (
+    <span>
+      {String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
+    </span>
+  );
+}
+
+/** The portfolio drawer: the engine's team view for the student's own fund. */
+function PortfolioDrawer({
+  sessionId,
+  fundId,
+  onClose,
+}: {
+  sessionId: string;
+  fundId: string;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    api
+      .portfolio(sessionId, fundId)
+      .then((res) => {
+        if (alive) setData(res.portfolio);
+      })
+      .catch((err) => {
+        if (alive) setError(err instanceof Error ? err.message : "Portfolio unavailable.");
+      });
+    return () => {
+      alive = false;
+    };
+  }, [sessionId, fundId]);
+
+  const portfolio = (data ?? {}) as Record<string, unknown>;
+  const holdings = Array.isArray(portfolio.holdings) ? (portfolio.holdings as Record<string, unknown>[]) : [];
+  const channels = Array.isArray(portfolio.channels) ? (portfolio.channels as Record<string, unknown>[]) : [];
+  const overrides = Array.isArray(portfolio.overrides)
+    ? (portfolio.overrides as Record<string, unknown>[])
+    : [];
+  const summary = (portfolio.summary ?? {}) as Record<string, unknown>;
+
+  return (
+    <Drawer onClose={onClose} title="Portfolio">
+      {error ? <ErrorBox>{error}</ErrorBox> : null}
+
+      <div className="stat-strip mb-16">
+        <div className="stat">
+          <div className="stat-label">NAV</div>
+          <div className="stat-value">{money(asNumber(summary.nav))}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Cash</div>
+          <div className="stat-value">{money(asNumber(summary.cash))}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Gross value</div>
+          <div className="stat-value">{money(asNumber(summary.gross_asset_value ?? summary.assets))}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Debt</div>
+          <div className="stat-value">{money(asNumber(summary.debt))}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Cumulative return</div>
+          <div className="stat-value">{pct(asNumber(summary.cumulative_return), 1)}</div>
+        </div>
+      </div>
+
+      {holdings.length > 0 ? (
+        <table className="table" data-testid="portfolio-holdings">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th className="num">Acquisition</th>
+              <th className="num">Current value</th>
+              <th className="num">Debt</th>
+              <th className="num">LTV</th>
+              <th className="num">NOI</th>
+              <th className="num">Value change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {holdings.map((h, i) => (
+              <tr key={i}>
+                <td>{String(h.property_id ?? h.property_name ?? "")}</td>
+                <td>{String(h.property_type ?? "—")}</td>
+                <td className="num mono">{money(asNumber(h.acquisition_price))}</td>
+                <td className="num mono">{money(asNumber(h.current_value ?? h.marked_value))}</td>
+                <td className="num mono">{money(asNumber(h.debt))}</td>
+                <td className="num mono">{pct(asNumber(h.ltv), 0)}</td>
+                <td className="num mono">{money(asNumber(h.current_noi ?? h.noi))}</td>
+                <td className="num mono">{moneySigned(asNumber(h.unrealized_value_change), 2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="help">No holdings yet — acquisitions appear here after each scored round.</p>
+      )}
+
+      {channels.length > 0 ? (
+        <Section label="Cash-flow channels">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Round</th>
+                <th className="num">NOI</th>
+                <th className="num">Interest</th>
+                <th className="num">Acquisition costs</th>
+                <th className="num">Reserves</th>
+                <th className="num">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {channels.map((c, i) => (
+                <tr key={i}>
+                  <td>{String(c.round ?? i + 1)}</td>
+                  <td className="num mono">{moneySigned(asNumber(c.noi_income) ?? 0, 2)}</td>
+                  <td className="num mono">{moneySigned(-Math.abs(asNumber(c.interest_paid) ?? 0), 2)}</td>
+                  <td className="num mono">{moneySigned(-Math.abs(asNumber(c.acquisition_costs) ?? 0), 2)}</td>
+                  <td className="num mono">{moneySigned(-Math.abs(asNumber(c.reserves) ?? 0), 2)}</td>
+                  <td className="num mono">{moneySigned(asNumber(c.value_channel) ?? 0, 2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      ) : null}
+
+      {overrides.length > 0 ? (
+        <Section label="Decision overrides">
+          <p className="help">
+            Decisions that deviated from your locked policy — recorded, never penalized.
+            An override is not a verdict.
+          </p>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Price deviation</th>
+                <th>LTV deviation</th>
+                <th>Acquired</th>
+              </tr>
+            </thead>
+            <tbody>
+              {overrides.map((o, i) => (
+                <tr key={i}>
+                  <td>{String(o.property_id ?? "")}</td>
+                  <td className="num mono">{moneySigned(asNumber(o.price_delta) ?? 0, 2)}</td>
+                  <td className="num mono">{signedPoints(asNumber(o.ltv_delta) ?? 0, 1)}</td>
+                  <td>{o.invested ? "yes" : "no"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      ) : null}
+
+      <p className="help mt-12">
+        Values are the engine's marks at the most recent resolution, not live pricing.
+      </p>
+    </Drawer>
+  );
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
 
 function draftsFromRound(round: RoundView | null): Record<string, Draft> {
   const out: Record<string, Draft> = {};
@@ -138,6 +362,20 @@ export function Practice() {
   const drawerDeal = deals.find((d) => d.property_id === drawerFor) ?? null;
   const submitted = round?.myDecision !== null && round?.myDecision !== undefined;
   const singleDeal = deals.length === 1;
+  const [portfolioOpen, setPortfolioOpen] = useState(false);
+  const isScored = !round?.isPractice;
+
+  async function demoAdvance() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.demoAdvance(session.id);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Advance failed.");
+      setBusy(false);
+    }
+  }
 
   async function submit() {
     setBusy(true);
@@ -170,6 +408,14 @@ export function Practice() {
             </p>
           </div>
           <div className="row" style={{ gap: 8 }}>
+            {session.demo ? (
+              <button className="btn btn-primary" onClick={demoAdvance} disabled={busy} data-testid="demo-advance">
+                {busy ? "Advancing…" : round?.isOpenForSubmissions ? "Submit & close" : "Continue"}
+              </button>
+            ) : null}
+            <button className="btn btn-secondary" onClick={() => setPortfolioOpen(true)} data-testid="open-portfolio">
+              Portfolio
+            </button>
             {submitted ? (
               <Badge tone="ok">decisions locked</Badge>
             ) : (
@@ -179,6 +425,8 @@ export function Practice() {
             )}
           </div>
         </div>
+
+        {isScored ? <RoundHeader fund={myFundSummary} /> : null}
 
         {error ? <div className="mb-16"><ErrorBox>{error}</ErrorBox></div> : null}
 
@@ -265,6 +513,14 @@ export function Practice() {
           onClose={() => setReviewing(false)}
           onSubmit={submit}
           busy={busy}
+        />
+      ) : null}
+
+      {portfolioOpen && you.fundId ? (
+        <PortfolioDrawer
+          sessionId={session.id}
+          fundId={you.fundId}
+          onClose={() => setPortfolioOpen(false)}
         />
       ) : null}
     </div>

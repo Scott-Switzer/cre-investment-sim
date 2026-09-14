@@ -16,8 +16,10 @@ import { Lobby } from "./screens/Lobby";
 import { ModelCheckIn } from "./screens/ModelCheckIn";
 import { Practice } from "./screens/Practice";
 import { Results } from "./screens/Results";
+import { Finale } from "./screens/Finale";
 import { Waiting } from "./screens/Waiting";
 import { Professor } from "./screens/Professor";
+import { Bigscreen } from "./screens/Bigscreen";
 import { SessionProvider, useSession } from "./session";
 import { Loading } from "./components";
 
@@ -56,8 +58,11 @@ function SessionGate({ children }: { children: React.ReactNode }) {
     }
     return <>{children}</>;
   }
-  if ((phase === "practice_results" || phase === "round_results" || phase === "finale") && !location.pathname.startsWith("/game/results")) {
+  if ((phase === "practice_results" || phase === "round_results") && !location.pathname.startsWith("/game/results")) {
     return <Navigate to="/game/results" replace />;
+  }
+  if (phase === "finale" && location.pathname !== "/game/finale") {
+    return <Navigate to="/game/finale" replace />;
   }
   return <>{children}</>;
 }
@@ -117,6 +122,16 @@ export function App({
               </SessionGate>
             }
           />
+          <Route
+            path="/game/finale"
+            element={
+              <SessionGate>
+                <Finale />
+              </SessionGate>
+            }
+          />
+          {/* Projector view: no controls, reads the same state the professor sees. */}
+          <Route path="/bigscreen" element={<Bigscreen />} />
           {/* The console is its own gate: a seatless browser gets the passcode form,
               not a bounce to /join — the professor's cookie is minted by that form. */}
           <Route path="/professor" element={<Professor />} />

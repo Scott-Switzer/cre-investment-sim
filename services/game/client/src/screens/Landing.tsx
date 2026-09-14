@@ -1,20 +1,42 @@
 /**
  * The landing. First viewport is the product: three sentences, two actions, and the
  * data-honesty note. Everything else would be a wall of text this product does not
- * need.
+ * need. TRY DEMO mints a real demo session (one human fund against three
+ * deterministic bots) and hands the browser its seat — no professor, no uploads.
  */
 
+import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
+import { api } from "../api";
 import { PublicTopbar } from "../chrome";
 import { useSession } from "../session";
 
 export function Landing() {
   const { status, state } = useSession();
+  const [demoBusy, setDemoBusy] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
 
   // A browser with a live seat goes where the session is, not to marketing.
-  if (status === "ready" && state) return <Navigate to="/lobby" replace />;
+  if (status === "ready" && state) {
+    const phase = state.session.phase;
+    if (phase === "finale") return <Navigate to="/game/finale" replace />;
+    return <Navigate to="/lobby" replace />;
+  }
   if (status === "loading") return null;
+
+  async function tryDemo() {
+    setDemoBusy(true);
+    setDemoError(null);
+    try {
+      await api.createDemoSession("Demo Player");
+      // The cookie now holds the demo seat; the session provider will route.
+      window.location.assign("/lobby");
+    } catch (err) {
+      setDemoError(err instanceof Error ? err.message : "The demo could not be created.");
+      setDemoBusy(false);
+    }
+  }
 
   return (
     <div className="shell">
@@ -34,10 +56,17 @@ export function Landing() {
               <Link to="/join" className="btn btn-primary btn-lg" data-testid="join-class">
                 Join class
               </Link>
-              <button type="button" className="btn btn-ghost btn-lg" disabled title="Available in a later phase">
-                Try demo — coming soon
+              <button
+                type="button"
+                className="btn btn-ghost btn-lg"
+                onClick={tryDemo}
+                disabled={demoBusy}
+                data-testid="try-demo"
+              >
+                {demoBusy ? "Preparing…" : "Try demo"}
               </button>
             </div>
+            {demoError ? <p className="help mt-8" role="alert">{demoError}</p> : null}
             <div className="hero-note">
               <p className="data-note">
                 Semi-synthetic CRE cases calibrated to Orange County market conditions.

@@ -18,6 +18,7 @@
  */
 
 import { Navigate } from "react-router-dom";
+import { useState } from "react";
 
 import { SessionTopbar } from "../chrome";
 import { Badge, Kv, Panel } from "../components";
@@ -30,6 +31,67 @@ interface DecisionRecord {
   action: "PASS" | "BID";
   bid: number | null;
   ltv: number | null;
+}
+
+/**
+ * The NAV bridge. Every line is an engine-published channel: the starting NAV is
+ * derived as ending NAV minus the channels, and the bridge must reconcile exactly —
+ * that identity is what the round "charged" the fund. Nothing here is a client-side
+ * economic calculation; it is a rearrangement of the engine's own numbers.
+ */
+export function navBridge(pnl: RoundResults["pnl"][number] | null): {
+  startingNav: number;
+  endingNav: number;
+  lines: { label: string; amount: number; positive?: boolean }[];
+  residual: number;
+} | null {
+  if (!pnl) return null;
+  const channels =
+    pnl.value_channel + pnl.noi_income - pnl.interest_paid - pnl.acquisition_costs - pnl.reserves;
+  const startingNav = pnl.nav - channels;
+  return {
+    startingNav,
+    endingNav: pnl.nav,
+    lines: [
+      { label: "Value change", amount: pnl.value_channel },
+      { label: "NOI", amount: pnl.noi_income },
+      { label: "Interest", amount: -pnl.interest_paid },
+      { label: "Acquisition costs", amount: -pnl.acquisition_costs },
+      { label: "Capital reserves", amount: -pnl.reserves },
+    ],
+    residual: pnl.nav - startingNav - channels,
+  };
+}
+
+function NavBridgePanel({ pnl }: { pnl: RoundResults["pnl"][number] | null }) {
+  const bridge = navBridge(pnl);
+  if (!bridge) return null;
+  return (
+    <Panel label="NAV bridge" data-testid="nav-bridge">
+      <div className="bridge">
+        <div className="bridge-row" data-testid="bridge-starting">
+          <span>Starting NAV</span>
+          <span className="mono">{money(bridge.startingNav)}</span>
+        </div>
+        {bridge.lines.map((line) => (
+          <div className="bridge-row" key={line.label}>
+            <span className={line.amount >= 0 ? "bridge-plus" : "bridge-minus"}>
+              {line.amount >= 0 ? "+" : "−"} {line.label}
+            </span>
+            <span className="mono">{moneySigned(line.amount, 2)}</span>
+          </div>
+        ))}
+        <div className="bridge-row bridge-total" data-testid="bridge-ending">
+          <span>= Ending NAV</span>
+          <span className="mono">{money(bridge.endingNav)}</span>
+        </div>
+      </div>
+      <p className="help mt-8">
+        Every line is the engine's published channel for this year. The bridge reconciles to
+        the cent: no unexplained residual.
+      </p>
+    </Panel>
+  );
 }
 
 export function Results() {
@@ -136,9 +198,128 @@ export function Results() {
               </div>
             </Panel>
           ) : null}
+
+          {!isPractice ? <NavBridgePanel pnl={pnl} /> : null}
+
+          {!isPractice ? <Leaderboard results={results} state={state} /> : null}
         </div>
       </main>
     </div>
+  );
+}
+
+// ── leaderboard ───────────────────────────────────────────────────────────
+
+function Leaderboard({ results, state }: { results: RoundResults; state: StateView }) {
+  const [tab, setTab] = useState<"game" | "analytics">("game");
+  const rows = [...results.standings].sort((a, b) => a.rank - b.rank);
+  const analytics = state.round?.analytics ?? [];
+  const analyticsRows = analytics
+    .map((row) => {
+      const a = row as Record<string, unknown>;
+      const teamId = String(a.team_id ?? a.fund_id ?? "");
+      const teamName = String(a.team_name ?? a.fund_name ?? teamId);
+      const standing = results.standings.find((s) => s.team_id === teamId);
+      return {
+        teamId,
+        teamName,
+        valuationMae: typeof a.valuation_mae === "number" ? a.valuation_mae : null,
+        noiGrowthMae: typeof a.noi_growth_mae === "number" ? a.noi_growth_mae : null,
+        downsideCalibration:
+          typeof a.downside_calibration === "number" ? a.downside_calibration : null,
+        nav: standing?.nav ?? null,
+      };
+    })
+    .filter((row) => row.valuationMae !== null || row.noiGrowthMae !== null);
+
+  return (
+    <Panel label="Standings">
+      <div className="tabs" role="tablist">
+        <button
+          role="tab"
+          aria-selected={tab === "game"}
+          className={tab === "game" ? "tab active" : "tab"}
+          onClick={() => setTab("game")}
+        >
+          Game
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "analytics"}
+          className={tab === "analytics" ? "tab active" : "tab"}
+          onClick={() => setTab("analytics")}
+        >
+          Analytics
+        </button>
+      </div>
+
+      {tab === "game" ? (
+        <table className="board" data-testid="game-leaderboard">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Fund</th>
+              <th className="num">NAV</th>
+              <th className="num">Return</th>
+              <th className="num">Cash</th>
+              <th className="num">Assets</th>
+              <th className="num">LTV</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              const isMine = row.team_id === state.you.fundId;
+              const pnlRow = results.pnl.find((p) => p.team_id === row.team_id);
+              return (
+                <tr key={row.team_id} className={isMine ? "mine" : undefined} data-testid={`standing-${row.rank}`}>
+                  <td>{row.rank}</td>
+                  <td>{row.team_name}</td>
+                  <td className="num mono">{money(row.nav, 0)}</td>
+                  <td className="num mono">{pct(row.cumulative_return, 1)}</td>
+                  <td className="num mono">{money(row.cash, 0)}</td>
+                  <td className="num">{row.assets}</td>
+                  <td className="num mono">{pnlRow ? pct(pnlRow.gross_ltv, 0) : "—"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : (
+        <>
+          {analyticsRows.length > 0 ? (
+            <table className="board" data-testid="analytics-leaderboard">
+              <thead>
+                <tr>
+                  <th>Fund</th>
+                  <th className="num">Valuation MAE</th>
+                  <th className="num">NOI-growth MAE</th>
+                  <th className="num">Downside calibration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analyticsRows.map((row) => (
+                  <tr key={row.teamId}>
+                    <td>{row.teamName}</td>
+                    <td className="num mono">{row.valuationMae === null ? "—" : money(row.valuationMae, 0)}</td>
+                    <td className="num mono">{row.noiGrowthMae === null ? "—" : pct(row.noiGrowthMae, 1)}</td>
+                    <td className="num mono">{row.downsideCalibration === null ? "—" : pct(row.downsideCalibration, 1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="help">
+              Model-quality metrics appear once the round resolves. They measure the model —
+              separately from game performance, which measures the fund.
+            </p>
+          )}
+          <p className="help mt-8">
+            Model quality and NAV are never combined into one score: a good model can run a
+            losing fund and a weak model can run a lucky one. Both matter, separately.
+          </p>
+        </>
+      )}
+    </Panel>
   );
 }
 
@@ -194,6 +375,14 @@ function AuctionBlock({
         }
       : null;
 
+  const decisionBadges = decisionBadgesFor({
+    auction,
+    forecast,
+    myItem,
+    myFundId,
+    isPractice,
+  });
+
   // The badge must never contradict the teaching outcome. In practice a would-have-won
   // bid is a success — "No sale" would read as an auction failure.
   let outcomeBadge: React.ReactNode;
@@ -225,6 +414,17 @@ function AuctionBlock({
         </div>
         <div>{outcomeBadge}</div>
       </div>
+
+      {decisionBadges.length > 0 ? (
+        <div className="card-pad fb-strip" data-testid={`decision-badges-${auction.property_id}`} style={{ paddingTop: 10, paddingBottom: 0 }}>
+          {decisionBadges.map((b) => (
+            <span key={b.label} className="fb-cell">
+              <span className="fb-label">{b.label}</span>
+              <Badge tone={b.tone}>{b.value}</Badge>
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <div className="card-pad" style={{ paddingTop: 10 }}>
         {iWon ? (
@@ -509,4 +709,79 @@ function propertyTypeOf(propertyId: string): string | null {
   if (propertyId.includes("MULT")) return "Multifamily";
   if (propertyId.includes("RETA")) return "Retail";
   return null;
+}
+
+// ── per-property decision badges: forecast / policy / decision / outcome ──
+
+interface DecisionBadge {
+  label: "FORECAST" | "POLICY" | "DECISION" | "OUTCOME";
+  value: string;
+  tone: "ok" | "warn" | "bad" | "neutral";
+}
+
+/**
+ * The compact per-property verdict strip. Neutral by construction:
+ * an override is recorded, never scored, and an outcome is never presented as
+ * proof that the decision was right or wrong.
+ */
+function decisionBadgesFor(args: {
+  auction: Auction;
+  forecast: ForecastRow | undefined;
+  myItem: DecisionRecord | null;
+  myFundId: string | null;
+  isPractice: boolean;
+}): DecisionBadge[] {
+  const { auction, forecast, myItem, myFundId } = args;
+  const out: DecisionBadge[] = [];
+
+  // FORECAST — valuation accuracy on this property.
+  if (forecast && auction.realized_value && auction.realized_value > 0) {
+    const err = Math.abs(forecast.forecast.predictedFairValue / auction.realized_value - 1);
+    out.push({
+      label: "FORECAST",
+      value: err <= 0.1 ? "Accurate" : "Missed",
+      tone: err <= 0.1 ? "ok" : "warn",
+    });
+  }
+
+  // POLICY — deviation from the frozen policy, price or LTV.
+  if (myItem && forecast) {
+    const priceOver = myItem.action === "BID" && myItem.bid !== null && myItem.bid > forecast.policy.maxBid + 1e-9;
+    const ltvOver = myItem.action === "BID" && myItem.ltv !== null && myItem.ltv > forecast.policy.targetLtv + 1e-9;
+    out.push({
+      label: "POLICY",
+      value: priceOver || ltvOver ? "Overridden" : "Followed",
+      tone: priceOver || ltvOver ? "warn" : "ok",
+    });
+  }
+
+  // DECISION — what this fund did.
+  if (myItem) {
+    out.push({
+      label: "DECISION",
+      value: myItem.action === "BID" ? "Bid" : "Pass",
+      tone: "neutral",
+    });
+  }
+
+  // OUTCOME — what happened to this fund's decision. A lost bid is a lost bid;
+  // nothing about it is called good or bad.
+  if (myItem) {
+    const won = auction.sold && auction.winning_team_id !== null;
+    const iWon = won && myFundId !== null && auction.winning_team_id === myFundId;
+    const bid = myItem.action === "BID" && myItem.bid !== null;
+    const wouldHaveWon =
+      !won && bid && auction.reserve_price !== null && myItem.bid !== null && myItem.bid >= auction.reserve_price;
+    if (iWon) {
+      out.push({ label: "OUTCOME", value: "Won", tone: "ok" });
+    } else if (myItem.action === "BID" && wouldHaveWon && args.isPractice) {
+      out.push({ label: "OUTCOME", value: "Would win (practice)", tone: "ok" });
+    } else if (myItem.action === "BID") {
+      out.push({ label: "OUTCOME", value: "Lost", tone: "neutral" });
+    } else {
+      out.push({ label: "OUTCOME", value: won ? "Skipped" : "No sale", tone: "neutral" });
+    }
+  }
+
+  return out;
 }

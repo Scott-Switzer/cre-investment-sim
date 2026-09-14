@@ -9,7 +9,6 @@
  */
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { api, ApiError } from "../api";
 import { Badge, ErrorBox, Loading, Panel } from "../components";
@@ -17,7 +16,14 @@ import { SessionTopbar } from "../chrome";
 import { useSession } from "../session";
 import type { FundView, ModelStatus, SubmissionGridRow } from "../api";
 
-type ProfessorAction = "begin_checkin" | "start_game" | "close_round";
+type ProfessorAction =
+  | "begin_checkin"
+  | "start_game"
+  | "close_round"
+  | "open_round"
+  | "finalize"
+  | "timer_pause"
+  | "timer_resume";
 
 export function Professor() {
   const { status, state } = useSession();
@@ -33,7 +39,6 @@ export function Professor() {
 
 function ProfessorConsole() {
   const { state, refresh } = useSession();
-  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -44,22 +49,41 @@ function ProfessorConsole() {
   const canBeginCheckIn = phase === "lobby";
   const canStartGame = phase === "model_checkin";
   const canClose = phase === "practice" || phase === "round";
-  const canReveal = phase === "practice_results" || phase === "round_results";
+  const canOpenRound = phase === "practice_results" || (phase === "round_results" && !session.gameComplete);
+  const canFinalize = phase === "round_results" && session.gameComplete;
+  const timerRunning = session.roundDeadlineAt !== null;
+  const timerPaused = session.timerPausedAt !== null;
 
   const modelsLocked = funds.filter((f) => f.modelStatus === "locked").length;
   const practiceSubmitted = round?.submittedFunds ?? 0;
   const joinCode = (state as unknown as { session: { joinCode?: string } }).session.joinCode ?? "";
 
-  async function run(action: Exclude<ProfessorAction, null>) {
+  async function run(action: ProfessorAction) {
     setBusy(true);
     setError(null);
     try {
       if (action === "begin_checkin") await api.beginCheckIn(session.id, session.revision);
       if (action === "start_game") await api.startGame(session.id, session.revision);
       if (action === "close_round") await api.closeRound(session.id, session.revision);
+      if (action === "open_round") await api.openRound(session.id, session.revision);
+      if (action === "finalize") await api.finalize(session.id, session.revision);
+      if (action === "timer_pause") await api.pauseTimer(session.id, session.revision);
+      if (action === "timer_resume") await api.resumeTimer(session.id, session.revision);
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "The action failed.");
+      setBusy(false);
+    }
+  }
+
+  async function setTimer(durationSeconds: number) {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.setTimer(session.id, durationSeconds, session.revision);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "The timer update failed.");
       setBusy(false);
     }
   }
@@ -153,7 +177,7 @@ function ProfessorConsole() {
             <span className="panel-label">Session control</span>
             <div className="l-sub">{session.nextStep}</div>
           </div>
-          <div className="row">
+          <div className="row wrap">
             <button
               className="btn btn-primary"
               disabled={!canBeginCheckIn || busy}
@@ -169,7 +193,7 @@ function ProfessorConsole() {
               data-testid="open-practice"
               title={canStartGame ? "" : "Every fund must lock a model first"}
             >
-              Open practice
+              Start game
             </button>
             <button
               className="btn btn-danger"
@@ -180,20 +204,103 @@ function ProfessorConsole() {
               {phase === "practice" ? "Close practice" : "Close round"}
             </button>
             <button
-              className="btn btn-secondary"
-              disabled={!canReveal}
-              onClick={() => navigate("/professor")}
-              data-testid="reveal-results"
-              title={canReveal ? "Results are already revealed to the room" : "Revealed automatically on close"}
+              className="btn btn-primary"
+              disabled={!canOpenRound || busy}
+              onClick={() => run("open_round")}
+              data-testid="open-next-round"
+              title={canOpenRound ? "Open the next scored round" : ""}
             >
-              Reveal results
+              Open next round
             </button>
+            <button
+              className="btn btn-secondary"
+              disabled={!canFinalize || busy}
+              onClick={() => run("finalize")}
+              data-testid="finalize-game"
+              title={canFinalize ? "Close the game and publish final standings" : "Only after the last round resolves"}
+            >
+              Finalize game
+            </button>
+            <a
+              className="btn btn-secondary"
+              href={api.exportUrl(session.id)}
+              data-testid="export-session"
+            >
+              Export
+            </a>
           </div>
         </div>
+
+        <div className="mt-12 row wrap" style={{ gap: 10, alignItems: "center" }}>
+          <span className="panel-label">Round timer</span>
+          <button
+            className="btn btn-small"
+            disabled={busy || session.roundDurationSeconds === 300}
+            onClick={() => setTimer(300)}
+            data-testid="timer-5m"
+          >
+            5 min
+          </button>
+          <button
+            className="btn btn-small"
+            disabled={busy || session.roundDurationSeconds === 600}
+            onClick={() => setTimer(600)}
+            data-testid="timer-10m"
+          >
+            10 min
+          </button>
+          <button
+            className="btn btn-small"
+            disabled={busy || session.roundDurationSeconds === 900}
+            onClick={() => setTimer(900)}
+            data-testid="timer-15m"
+          >
+            15 min
+          </button>
+          <button
+            className="btn btn-small"
+            disabled={busy || !timerRunning}
+            onClick={() => setTimer(0)}
+            data-testid="timer-off"
+          >
+            Off
+          </button>
+          {timerRunning ? (
+            <button
+              className="btn btn-small"
+              disabled={busy || timerPaused || !timerRunning}
+              onClick={() => run("timer_pause")}
+              data-testid="timer-pause"
+            >
+              Pause
+            </button>
+          ) : null}
+          {timerPaused ? (
+            <button
+              className="btn btn-small"
+              disabled={busy}
+              onClick={() => run("timer_resume")}
+              data-testid="timer-resume"
+            >
+              Resume
+            </button>
+          ) : null}
+          {timerRunning ? (
+            <span className="v small">
+              {timerPaused
+                ? "paused"
+                : `ends ${new Date(session.roundDeadlineAt!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+            </span>
+          ) : (
+            <span className="v small">no countdown running</span>
+          )}
+        </div>
+
         <p className="help mt-8">
           Closing the market resolves it with the engine and reveals the reserve, the realized
           year and results to every fund at once. Invalid controls are disabled by the phase
-          machine, not hidden.
+          machine, not hidden. The timer is a classroom clock — a persisted deadline the room
+          can see; closing is always yours.
         </p>
       </main>
     </div>
@@ -206,6 +313,39 @@ function ProfessorSignIn() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sessions, setSessions] = useState<{ id: string; name: string; joinCode: string }[]>([]);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({
+    className: "REAL 605 Fall 2026",
+    passcode: "",
+    mode: "team" as "team" | "individual",
+    maxTeamSize: 4,
+    practiceEnabled: true,
+    totalRounds: 4,
+    roundTimerSeconds: 0,
+  });
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await api.createSession({
+        name: form.className,
+        professorPasscode: form.passcode,
+        professorName: name,
+        mode: form.mode,
+        maxTeamSize: form.mode === "individual" ? 1 : form.maxTeamSize,
+        totalRounds: form.totalRounds,
+        practiceEnabled: form.practiceEnabled,
+        roundTimerSeconds: form.roundTimerSeconds,
+      });
+      window.location.assign("/professor");
+      void result;
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Creating the session failed.");
+      setBusy(false);
+    }
+  }
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
@@ -245,27 +385,125 @@ function ProfessorSignIn() {
         </div>
         {error ? <div className="mb-16"><ErrorBox>{error}</ErrorBox></div> : null}
         <Panel>
-          <form onSubmit={signIn}>
-            <div className="field">
-              <label htmlFor="passcode">Professor passcode</label>
-              <input
-                id="passcode"
-                className="input"
-                type="password"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                required
-                data-testid="professor-signin-input"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="profName">Display name</label>
-              <input id="profName" className="input" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <button className="btn btn-primary btn-block" disabled={busy} data-testid="professor-signin">
-              {busy ? "Signing in…" : "Sign in"}
+          <div className="spread mb-12">
+            <span className="panel-label">{creating ? "New session" : "Professor sign-in"}</span>
+            <button
+              type="button"
+              className="btn btn-small"
+              onClick={() => setCreating(!creating)}
+              data-testid="toggle-create-session"
+            >
+              {creating ? "Sign in instead" : "Create a new session"}
             </button>
-          </form>
+          </div>
+          {creating ? (
+            <form onSubmit={create} data-testid="create-session-form">
+              <div className="field">
+                <label htmlFor="className">Session name</label>
+                <input
+                  id="className"
+                  className="input"
+                  value={form.className}
+                  onChange={(e) => setForm({ ...form, className: e.target.value })}
+                  data-testid="create-class-name"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="createPasscode">Professor passcode</label>
+                <input
+                  id="createPasscode"
+                  className="input"
+                  type="password"
+                  value={form.passcode}
+                  onChange={(e) => setForm({ ...form, passcode: e.target.value })}
+                  required
+                  minLength={6}
+                  data-testid="create-passcode"
+                />
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label htmlFor="mode">Mode</label>
+                  <select
+                    id="mode"
+                    className="input"
+                    value={form.mode}
+                    onChange={(e) => setForm({ ...form, mode: e.target.value as "team" | "individual" })}
+                    data-testid="create-mode"
+                  >
+                    <option value="team">Teams — students form funds</option>
+                    <option value="individual">Individual — every student runs their own fund</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="maxTeamSize">Max team size</label>
+                  <input
+                    id="maxTeamSize"
+                    className="input"
+                    type="number"
+                    min={1}
+                    max={8}
+                    value={form.maxTeamSize}
+                    disabled={form.mode === "individual"}
+                    onChange={(e) => setForm({ ...form, maxTeamSize: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label htmlFor="practiceEnabled">Practice round</label>
+                  <select
+                    id="practiceEnabled"
+                    className="input"
+                    value={form.practiceEnabled ? "yes" : "no"}
+                    onChange={(e) => setForm({ ...form, practiceEnabled: e.target.value === "yes" })}
+                  >
+                    <option value="yes">Enabled</option>
+                    <option value="no">Skip practice</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="roundTimerSeconds">Round timer</label>
+                  <select
+                    id="roundTimerSeconds"
+                    className="input"
+                    value={form.roundTimerSeconds}
+                    onChange={(e) => setForm({ ...form, roundTimerSeconds: Number(e.target.value) })}
+                  >
+                    <option value={0}>No timer</option>
+                    <option value={300}>5 minutes</option>
+                    <option value={600}>10 minutes</option>
+                    <option value={900}>15 minutes</option>
+                  </select>
+                </div>
+              </div>
+              <button className="btn btn-primary btn-block" disabled={busy} data-testid="create-session-submit">
+                {busy ? "Creating…" : "Create session"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={signIn}>
+              <div className="field">
+                <label htmlFor="passcode">Professor passcode</label>
+                <input
+                  id="passcode"
+                  className="input"
+                  type="password"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  required
+                  data-testid="professor-signin-input"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="profName">Display name</label>
+                <input id="profName" className="input" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <button className="btn btn-primary btn-block" disabled={busy} data-testid="professor-signin">
+                {busy ? "Signing in…" : "Sign in"}
+              </button>
+            </form>
+          )}
         </Panel>
         {sessions.length > 0 ? (
           <p className="help mt-12">Signing in attaches this browser to the most recent class: {sessions[0]!.name}.</p>

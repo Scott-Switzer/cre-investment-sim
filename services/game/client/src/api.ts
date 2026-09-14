@@ -38,6 +38,10 @@ export interface SessionView {
   poolCount: number;
   candidatePoolHash: string;
   nextStep: string;
+  demo: boolean;
+  roundDeadlineAt: number | null;
+  timerPausedAt: number | null;
+  roundDurationSeconds: number;
 }
 
 export interface FundView {
@@ -102,6 +106,7 @@ export interface RoundView {
   submittedFunds: number;
   totalFunds: number;
   results: RoundResults | null;
+  analytics: unknown[] | null;
   rejected: { fundId: string; propertyId: string; reason: string }[];
 }
 
@@ -236,6 +241,26 @@ export interface StateView {
   round: RoundView | null;
   /** Professor only. Counts and override tallies, never sealed amounts. */
   grid: SubmissionGridRow[] | null;
+  /** Present only after the professor finalizes — same for every audience. */
+  finale: Finale | null;
+}
+
+export interface FinaleStandingRow {
+  rank: number;
+  fund_id: string;
+  fund_name: string;
+  nav: number;
+  cash: number;
+  debt: number;
+  assets: number;
+  cumulative_return: number;
+  portfolio_ltv: number | null;
+}
+
+export interface Finale {
+  standings: FinaleStandingRow[];
+  analytics: Record<string, unknown>[];
+  debrief: Record<string, unknown>;
 }
 
 export interface JoinPreviewFund {
@@ -385,5 +410,77 @@ export const api = {
   /** Re-issue a professor cookie for a session this passcode owns. */
   rejoinProfessor(sessionId: string, passcode: string, displayName: string) {
     return post(`/v1/sessions/${sessionId}/professor`, { passcode, displayName });
+  },
+
+  createSession(input: {
+    name: string;
+    professorPasscode: string;
+    professorName: string;
+    mode: "team" | "individual";
+    maxTeamSize: number;
+    totalRounds: number;
+    practiceEnabled: boolean;
+    roundTimerSeconds: number;
+  }) {
+    return post("/v1/sessions", input) as Promise<{
+      sessionId: string;
+      joinCode: string;
+      session: Record<string, unknown>;
+    }>;
+  },
+
+  openRound(sessionId: string, expectedRevision: number) {
+    return post(`/v1/sessions/${sessionId}/rounds/open`, {}, { "if-match": String(expectedRevision) });
+  },
+
+  finalize(sessionId: string, expectedRevision: number) {
+    return post(
+      `/v1/sessions/${sessionId}/game/finalize`,
+      {},
+      { "if-match": String(expectedRevision) },
+    );
+  },
+
+  setTimer(sessionId: string, durationSeconds: number, expectedRevision: number) {
+    return post(
+      `/v1/sessions/${sessionId}/timer`,
+      { durationSeconds },
+      { "if-match": String(expectedRevision) },
+    );
+  },
+
+  pauseTimer(sessionId: string, expectedRevision: number) {
+    return post(`/v1/sessions/${sessionId}/timer/pause`, {}, { "if-match": String(expectedRevision) });
+  },
+
+  resumeTimer(sessionId: string, expectedRevision: number) {
+    return post(
+      `/v1/sessions/${sessionId}/timer/resume`,
+      {},
+      { "if-match": String(expectedRevision) },
+    );
+  },
+
+  portfolio(sessionId: string, fundId: string): Promise<{ portfolio: Record<string, unknown> }> {
+    return fetch(`/v1/sessions/${sessionId}/funds/${fundId}/portfolio`).then(handle) as Promise<{
+      portfolio: Record<string, unknown>;
+    }>;
+  },
+
+  exportUrl(sessionId: string): string {
+    return `/v1/sessions/${sessionId}/export`;
+  },
+
+  createDemoSession(displayName: string) {
+    return post("/v1/demo/session", { displayName }) as Promise<{
+      sessionId: string;
+      fundId: string;
+      joinCode: string;
+      name: string;
+    }>;
+  },
+
+  demoAdvance(sessionId: string) {
+    return post(`/v1/sessions/${sessionId}/demo/advance`, {});
   },
 };

@@ -123,7 +123,8 @@ describe("phase gating", () => {
     await waitFor(() => expect(screen.getByTestId("open-practice-checkin")).toBeEnabled());
     expect(screen.getByTestId("open-practice")).toBeDisabled();
     expect(screen.getByTestId("close-practice")).toBeDisabled();
-    expect(screen.getByTestId("reveal-results")).toBeDisabled();
+    expect(screen.getByTestId("open-next-round")).toBeDisabled();
+    expect(screen.getByTestId("finalize-game")).toBeDisabled();
   });
 });
 
@@ -147,6 +148,7 @@ describe("practice result semantics", () => {
         submittedFunds: 1,
         totalFunds: 1,
         rejected: [],
+        analytics: null,
         results: {
           round_number: -1,
           auctions: [{
@@ -197,6 +199,7 @@ describe("practice result semantics", () => {
         submittedFunds: 2,
         totalFunds: 2,
         rejected: [],
+        analytics: null,
         results: {
           round_number: 0,
           auctions: [{
@@ -241,6 +244,7 @@ describe("practice result semantics", () => {
         submittedFunds: 2,
         totalFunds: 2,
         rejected: [],
+        analytics: null,
         results: {
           round_number: 0,
           auctions: [{
@@ -284,6 +288,7 @@ describe("practice result semantics", () => {
         submittedFunds: 2,
         totalFunds: 2,
         rejected: [],
+        analytics: null,
         results: {
           round_number: 0,
           auctions: [{
