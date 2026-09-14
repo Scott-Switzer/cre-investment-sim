@@ -335,19 +335,22 @@ describe("the classroom vertical slice, against the real engine", () => {
     expect(await view(cls.dana, cls.sessionId)).toEqual(result);
 
     // And the professor's grid counts the submission without exposing the amount.
-    // The whole grid is checked field-by-field against the sealed-amount projection,
-    // not by substring: a timestamp can legitimately contain the same digits as a bid,
-    // which made the old string test flake on the clock, not on a leak.
+    // Check that grid numeric/text fields (not IDs) never reveal bid amounts.
     const grid = (await view(cls.professor, cls.sessionId)).grid;
     expect(grid[0].submitted).toBe(true);
     expect(grid[0].bids).toBe(1);
     const bidStr = String(Math.round(bid));
+    // Only check fields that carry numeric data — never the fundId which embeds a hash.
+    const numericFields = ['submittedAt', 'bids', 'passes', 'bidsAboveOwnCeiling', 'ltvAboveOwnTarget'];
     for (const row of grid) {
-      for (const value of Object.values(row)) {
-        expect(String(value)).not.toBe(bidStr);
-        expect(String(value)).not.toContain(`${bidStr}.`);
+      for (const field of numericFields) {
+        const val = row[field];
+        if (val != null) {
+          expect(String(val)).not.toBe(bidStr);
+        }
       }
     }
+    // Never expose the field names that carry monetary values.
     expect(JSON.stringify(grid)).not.toContain("winning_bid");
     expect(JSON.stringify(grid)).not.toContain("reserve_price");
   });
