@@ -50,6 +50,43 @@ def health() -> Dict[str, Any]:
     }
 
 
+# ── the candidate pool ────────────────────────────────────────────────────
+
+
+def bundle_pool(bundle_id: str) -> Dict[str, Any]:
+    """Every candidate property a bundle's models were trained against.
+
+    Added in Phase 1 because the game service must validate an uploaded model
+    *before* it creates a game: `create-game-state` already hard-rejects a model
+    that does not cover the pool, but it does so by refusing to start, which is far
+    too late to tell a student which rows are wrong.
+
+    It returns the pool through `public_deal`, the same projection a player sees
+    during a round, so the game service never reads a CSV and there is never a
+    second representation of a building (risk R5). Nothing here is hidden: these
+    are precisely the fields the published student packet already contains. The
+    seller's reserve and every future outcome stay inside the engine.
+
+    `candidate_pool_hash` is recomputed live, so a caller can assert the pool it
+    just received is the pool the bundle pins, rather than trusting the bundle file.
+    """
+    bundle = bundles.load_bundle(bundle_id)
+    ok, message = bundles.verify_bundle_integrity(bundle)
+    if not ok:
+        raise bundles.BundleIntegrityError(
+            f"bundle '{bundle_id}' failed its integrity check: {message}"
+        )
+
+    gm = GameManager(bundles.game_config_for_bundle(bundle))
+    properties = [gm.all_properties[pid] for pid in sorted(gm.all_properties)]
+    return {
+        "bundle": bundle.to_dict(),
+        "candidate_pool_hash": bundles.compute_candidate_pool_hash(properties),
+        "pool_count": len(properties),
+        "properties": public.public_properties(properties),
+    }
+
+
 # ── create ────────────────────────────────────────────────────────────────
 
 def create_game_state(

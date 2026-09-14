@@ -127,6 +127,17 @@ def create_app() -> FastAPI:
         payload["integrity_message"] = message
         return payload
 
+    @app.get("/v1/bundles/{bundle_id}/pool")
+    def get_bundle_pool(bundle_id: str) -> Dict[str, Any]:
+        """The bundle's candidate pool, projected for players.
+
+        The game service needs this to validate an uploaded model before it commits
+        a session to a dataset, and to build the model check-in report. It is the
+        same property DTO the round loop serves, so the game has exactly one
+        representation of a building. See ``engine.bundle_pool``.
+        """
+        return engine.bundle_pool(bundle_id)
+
     # ── the round loop ───────────────────────────────────────────────────
 
     @app.post("/v1/create-game-state", response_model=CreateGameStateResponse)

@@ -126,7 +126,28 @@ note. Plus the market, the fund scoreboard line, and the round's stage.
 `winning_bid`, the revealed `reserve_price`, and the realised `exit_value` /
 `noi_growth_actual`. **No `all_bids`.**
 
+**The candidate pool** (`GET /v1/bundles/{id}/pool`, added in Phase 1): one
+`public_deal` per candidate property — the same DTO as a deal card, so the check-in
+screen and the round screen cannot describe the same building differently. It is the
+field set the published student packet already ships, and it carries no reserve and no
+outcome. It exists because the game service must validate an upload *before* the round
+loop, and `create-game-state` refuses a mismatched model only by declining to start.
+
 **Never**: the seed, other funds' models, other funds' bids, or any engine internals.
+
+### At the game-service layer
+
+The engine's payloads are necessary but not sufficient. The service adds its own
+rules, because it is the layer that knows who is asking:
+
+| Thing | Reachable by |
+| --- | --- |
+| A fund's forecast and policy | the owning fund, and the professor |
+| A fund's submitted decision | the owning fund, and the professor |
+| All funds' decisions, in full | **nobody** — sealed until the engine's own reveal |
+| Submission counts and override tallies | everyone ("17 of 18 have submitted" is a room fact) |
+| Bid and LTV amounts on the professor's grid | **not even the professor** — the screen is routinely projected |
+| The engine snapshot (`engineState`, gzipped) | `SERVER_ONLY_ALWAYS`; `src/views.ts::assertSafeView` fails closed on any projection that names it, or that carries a byte buffer at all |
 
 ---
 

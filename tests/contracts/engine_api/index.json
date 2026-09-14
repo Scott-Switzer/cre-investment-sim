@@ -23,6 +23,20 @@
       "path": "/v1/bundles/real605-fall26-v1"
     },
     {
+      "expected_status": 200,
+      "method": "GET",
+      "name": "03b-bundle-pool",
+      "notes": "The candidate pool, projected for players. This is what the game service validates an uploaded model against before it commits a session, and it carries no reserve and no future outcome.",
+      "path": "/v1/bundles/real605-fall26-v1/pool"
+    },
+    {
+      "expected_status": 400,
+      "method": "GET",
+      "name": "03c-bundle-pool-unknown",
+      "notes": "An unknown bundle is refused here too, not only at create time.",
+      "path": "/v1/bundles/nope/pool"
+    },
+    {
       "expected_status": 400,
       "method": "POST",
       "name": "04-create-unknown-bundle",

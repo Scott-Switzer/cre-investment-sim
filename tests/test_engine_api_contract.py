@@ -132,6 +132,39 @@ def _response(name: str) -> dict:
     return json.loads((CONTRACT_DIR / name / "response.json").read_text())
 
 
+def test_bundle_pool_covers_every_candidate_and_matches_its_bundle():
+    """The pool the game service validates a model against is the pool the
+    bundle pins -- recomputed live, not read back from the bundle file."""
+    response = _response("03b-bundle-pool")
+    assert response["pool_count"] == 120
+    assert response["candidate_pool_hash"] == response["bundle"]["candidate_pool_hash"]
+    ids = [prop["property_id"] for prop in response["properties"]]
+    assert len(ids) == 120
+    assert len(set(ids)) == 120, "the pool contains a duplicate property id"
+
+
+def test_bundle_pool_uses_the_same_property_dto_as_the_round_loop():
+    """One representation of a building (risk R5).
+
+    If the check-in screen and the deal card could disagree about the same
+    property, a student would be told their model is fine for a building they are
+    then shown a different version of.
+    """
+    pool = _response("03b-bundle-pool")["properties"]
+    round_one = _response("11-open-round1")["public"]["deals"]
+    by_id = {prop["property_id"]: prop for prop in pool}
+    assert round_one, "round one offered no deals"
+    for deal in round_one:
+        assert deal == by_id[deal["property_id"]], (
+            f"{deal['property_id']} is represented differently in the pool than "
+            "in the round"
+        )
+
+
+def test_bundle_pool_is_refused_for_an_unknown_bundle():
+    assert _response("03c-bundle-pool-unknown")["error"] == "bundle"
+
+
 def _auction(name: str, property_id: str) -> dict:
     for auction in _response(name)["public_results"]["auctions"]:
         if auction["property_id"] == property_id:

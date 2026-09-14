@@ -267,6 +267,51 @@ def test_engine_state_is_never_mistaken_for_a_public_payload():
         )
 
 
+# ── the candidate pool (Phase 1) ──────────────────────────────────────────
+
+
+def test_candidate_pool_lists_no_reserve_key():
+    """The pool is what the game service hands a model validator, so a reserve
+    in it would be published to every student on upload, before any auction."""
+    from service.engine_api import engine
+
+    payload = engine.bundle_pool("real605-fall26-v1")
+    assert payload["properties"], "the pool is empty"
+    assert not visibility.collect_keys(payload) & visibility.PRE_RESOLVE_SECRET_KEYS
+
+
+def test_candidate_pool_carries_no_reserve_value_even_unnamed():
+    """The same attack the round payload is tested against: renaming the number.
+
+    Checked against the *real* reserves for this bundle's seed, so the assertion
+    is about the actual secret rather than a guessed one.
+    """
+    from service.engine_api import engine
+
+    gm = GameManager(GameConfig(
+        seed=SEED, starting_equity=100.0, total_rounds=4,
+        properties_per_round=4, practice_round=True,
+    ))
+    reserves = [p.reserve_price for p in gm.all_properties.values()]
+    assert reserves
+
+    numbers = set(_all_numbers(engine.bundle_pool("real605-fall26-v1")))
+    leaked = [r for r in reserves if round(float(r), 6) in numbers]
+    assert not leaked, f"{len(leaked)} reserve prices appear in the candidate pool"
+
+
+def test_candidate_pool_carries_no_future_outcome():
+    from service.engine_api import engine
+
+    keys = visibility.collect_keys(engine.bundle_pool("real605-fall26-v1"))
+    for forbidden in (
+        "exit_value", "realized_value", "realized_noi", "noi_growth_actual",
+        "cap_rate_actual", "next_year_noi", "next_year_value",
+        "transaction_price", "reserve_price", "winning_bid", "winner",
+    ):
+        assert forbidden not in keys, f"the candidate pool exposes '{forbidden}'"
+
+
 # ── fail-closed classification ────────────────────────────────────────────
 
 

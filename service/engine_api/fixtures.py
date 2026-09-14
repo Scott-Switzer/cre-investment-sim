@@ -282,6 +282,12 @@ def build_fixtures() -> List[Fixture]:
                  notes="Datasets a professor may choose. Note the absence of a seed.")
     builder.call("03-bundle-detail", "GET", "/v1/bundles/real605-fall26-v1",
                  notes="Operator view, including the seed and the integrity check.")
+    builder.call("03b-bundle-pool", "GET", "/v1/bundles/real605-fall26-v1/pool",
+                 notes="The candidate pool, projected for players. This is what the game service "
+                       "validates an uploaded model against before it commits a session, and it "
+                       "carries no reserve and no future outcome.")
+    builder.call("03c-bundle-pool-unknown", "GET", "/v1/bundles/nope/pool",
+                 notes="An unknown bundle is refused here too, not only at create time.")
 
     # ── refusals before play ─────────────────────────────────────────────
     builder.call("04-create-unknown-bundle", "POST", "/v1/create-game-state",

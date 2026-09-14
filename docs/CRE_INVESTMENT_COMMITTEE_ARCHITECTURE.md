@@ -186,12 +186,24 @@ This is the main piece of engine work. It is additive: a thin adapter plus a
 ```
 GET  /v1/health             liveness + version identity for CI smoke tests
 GET  /v1/bundles            datasets a professor may choose (never seeds)
+GET  /v1/bundles/{id}/pool  the candidate pool, projected for players (added in Phase 1)
 POST /v1/create-game-state  bundle_id, teams[] -> state + public round one
 POST /v1/open-round         state -> next state + that round's public deals
 POST /v1/resolve-round      state, decisions[] -> state + revealed results
                             + analytics + rejected decisions
 POST /v1/finalize-game      state -> standings + analytics + ten-question debrief
+POST /v1/team-view          state, team_id -> one fund's own forecast and book
 ```
+
+**`/v1/bundles/{id}/pool` was added in Phase 1**, and it is worth saying why rather than
+leaving it as an unexplained extra. `create-game-state` already refuses a model that does
+not cover the pool — but it refuses it by declining to start the game, which is far too
+late to tell a student *which rows* are wrong. The game service needs the pool to validate
+an upload at check-in, and it must be the same representation the round loop serves, or
+the check-in screen and the deal card could disagree about the same building (risk R5).
+It returns `public_deal` — the field set the published student packet already contains —
+so it adds no information a student does not already hold, and it carries no reserve and
+no future outcome. It is a hard requirement of Phase 1, not a convenience.
 
 `/v1/finalize-game` is a **read-only view**, not a second resolution step: every
 number it reports comes from history `resolve-round` already recorded. It is
@@ -433,8 +445,8 @@ is coherent.
 
 | Phase | Deliverable | Done when |
 | --- | --- | --- |
-| **0 — Engine service** ✅ | `service/engine_api/` (Fastify-era FastAPI container), serialisation boundary, bundles, visibility boundary, Dockerfile, contract fixtures generated from Python | a round can be resolved over HTTP, replay deterministically, and leak nothing; all 284 existing tests still pass |
-| **1 — Repo + identity** | new repo, game-service scaffold, join codes, cookie sessions, lobby | 3 browsers join one session by code and see each other |
+| **0 — Engine service** ✅ | `service/engine_api/` (FastAPI container), serialisation boundary, bundles, visibility boundary, Dockerfile, contract fixtures generated from Python | a round can be resolved over HTTP, replay deterministically, and leak nothing; all existing tests still pass |
+| **1 — Repo + identity** ✅ | `services/game/` — Node 22 + TS + Fastify, join codes, signed cookie sessions, lobby, model check-in, and the practice round end to end against the real engine | the classroom slice below plays through the real engine and a refresh at any point changes nothing |
 | **2 — Model check-in** | upload contract, validation report, lock | the shipped student fixture uploads, validates, and locks; a bad CSV returns readable errors |
 | **3 — Round shell** | phase router, deal cards, underwriting drawer, decision submit/lock | four rounds play end to end against the real engine |
 | **4 — Results** | winners, revealed reserve, badges, P&L bridge, standings + analytics tabs | NAV on screen equals NAV from `verify_demo_flow` for the same bundle and decisions |
@@ -543,7 +555,26 @@ The point of Phase 0 is not that there is an API. It is that **the Streamlit app
 be replaced without translating, weakening, or re-deriving the simulation**. The
 economics did not move, and they are the same code that 284 tests already cover.
 
-### In the new repo (game, Phases 1–7)
+### Where the game service lives — a deliberate deviation
+
+This document originally put the game in a **separate repository**. Phase 1 built it in
+**this one**, under `services/game/`, and the reasons are worth recording rather than
+leaving as a surprise.
+
+- A new repository means a second git history, a second CI configuration, and a second
+  place to look when the engine contract changes. The engine's contract fixtures live
+  here, and the milestone test that exercises them also lives here now — a test that
+  spans both repositories is a test nobody runs.
+- The engine is the thing most likely to change, and Phase 1 changes it slightly (the pool
+  route above). Keeping both in one commit is what makes "the service and the engine agree"
+  a reviewable claim.
+- Extraction stays cheap: `git subtree split --prefix=services/game` produces the standalone
+  repository with its history intact, whenever the shared platform baseline actually exists.
+
+The part of the original plan that **has not** been relaxed is the container boundary. The
+service is a single Node 22 image serving both API and (later) the React app, Firestore is
+reached server-side only, and there is no browser SDK. Nothing here depends on sharing a
+process with the engine, which is why moving either one later is configuration, not surgery.
 
 ```
 docs/ARCHITECTURE.md             this document
@@ -599,3 +630,52 @@ gains the engine service and keeps all 284 tests, the balance harness, and
 that is, once NAV on the new screen equals NAV from `verify_demo_flow` for the same
 bundle and the same decisions. Until then, Streamlit is the game and the service is
 a parallel surface.
+
+---
+
+## 13. Phase 1 — implementation status
+
+What exists now, in `services/game/`, and what it is proven to do. 135 tests: 120 run
+anywhere, 15 more against the Firestore emulator.
+
+| Item | Where |
+| --- | --- |
+| Signed HttpOnly cookie sessions, one per session, student and professor | `src/auth.ts` |
+| Join codes that fold the characters people mistype | `src/ids.ts` |
+| Sessions, funds, seats, seat recovery by display name | `src/sessions.ts` |
+| Model check-in: upload, validate, write-once lock | `src/checkin.ts`, `src/model.ts` |
+| Round lifecycle: start, open, submit, close, resolve | `src/rounds.ts` |
+| The projection boundary and its runtime leak assertion | `src/views.ts`, `src/testing/harness.ts` |
+| Firestore store, engine snapshot gzipped | `src/store/firestore.ts` |
+| In-memory store, same contract, for tests and local play | `src/store/memory.ts` |
+| The classroom slice, against the real engine | `tests/milestone.test.ts` |
+| The distributed-state correctness suite | `src/persistence.test.ts` |
+
+### What Phase 1 found that mattered
+
+The phase was scoped around one risk — *whether 50–70 browsers can act on one
+authoritative classroom state without duplication, drift, or a hidden process-local
+assumption* — and four of the findings were real defects rather than scaffolding work.
+
+1. **The engine's `override_count` only counts overrides on properties a fund won.**
+   `adjudicator.py:563` writes an `OverrideRecord` when the auction result comes back,
+   while the documented intent (`engine.py::_record_override`) is to record the *choice*
+   to exceed your own ceiling, whether or not the market awarded you the asset. Those are
+   different numbers, and a debrief that reports one while a professor explains the other
+   will contradict itself. The game service now keeps submission-time counts and names
+   them `bidsAboveOwnCeiling` / `ltvAboveOwnTarget` so the two cannot be conflated. The
+   engine's own submission-time record exists but is only in the event log, so **Phase 6
+   should decide which number the debrief means before it renders either.**
+2. **The engine's practice round never transacts** — `reason: "Practice round — no actual
+   transactions"` — so it reveals the reserve and the year's outcome and awards nothing.
+   That is correct, and it means the milestone needed a scored round to prove a real
+   acquisition lands. Worth stating in the demo script, because a professor watching the
+   practice result may otherwise read it as a bug.
+3. **A fake that is looser than the real engine hides exactly the leaks worth catching.**
+   The test double initially returned the full bundle from `/v1/bundles`, including the
+   seed, and the "a professor can never choose a seed" test passed for the wrong reason.
+   The fake now mirrors the real `BundleSummary` shape.
+4. **The snapshot compressor was written and never called.** The Firestore adapter stored
+   raw bytes while every behavioural test passed; the emulator test that asserts the
+   *stored* byte length is what makes a class-sized game under the 1 MiB ceiling a checked
+   property rather than a comment.
