@@ -177,7 +177,7 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
   );
 
   // 3. commit against the guard.
-  return ctx.store.transact(args.sessionId, (tx) => {
+  const started = await ctx.store.transact(args.sessionId, (tx) => {
     const session = tx.aggregate.session;
     if (session.engineCreatedAt) {
       throw conflict("this game has already been started");
@@ -220,24 +220,16 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
   // that opted out resolves it immediately with zero decisions (every fund absent
   // = no bids) and lands in practice_results, ready for the professor to open
   // Round 1. One honest click rather than a phantom practice screen.
-  if (!claim.practiceEnabled) {
+  if (!claim.practiceEnabled && started.phase === "practice") {
     const fresh = await ctx.store.getSession(args.sessionId);
     if (fresh === null) throw notFound("session vanished after the engine started");
-    const next: SessionState = fresh!;
-    if (next.phase === "practice") {
-      const revision = next.revision;
-      return closeRound(ctx, {
-        sessionId: args.sessionId,
-        grant: args.grant,
-        expectedRevision: revision,
-      });
-    }
+    return closeRound(ctx, {
+      sessionId: args.sessionId,
+      grant: args.grant,
+      expectedRevision: fresh.revision,
+    });
   }
-  const fresh = await ctx.store.getSession(args.sessionId);
-  return {
-    phase: fresh?.phase ?? "practice",
-    round: fresh?.currentRound ?? PRACTICE_ROUND,
-  };
+  return started;
 }
 
 // ── opening a round ───────────────────────────────────────────────────────
@@ -707,6 +699,18 @@ export async function demoAdvance(
         tx.aggregate.decisions.get(bot.id) ?? null,
       );
       if (already) continue;
+      // Submit through the same guarded path a student uses: as the bot's own
+      // member, on the bot's fund. No role impersonation, no bypassed checks.
+      const botMember = await ctx.store.transact(args.sessionId, (tx) => {
+        const members = [...tx.aggregate.members.values()];
+        const inFund = members.find((m) => m.fundId === bot.id && !m.isProfessor);
+        if (!inFund) return null;
+        const named = members.find(
+          (m) => m.fundId === bot.id && !m.isProfessor && m.displayName === `${bot.name} manager`,
+        );
+        return named ?? inFund;
+      });
+      if (!botMember) continue;
       const rows = rowCounts.get(bot.id) ?? [];
       const map = new Map(rows.map((r) => [r.propertyId, r]));
       const items = demoBotDecision(demoBotArchetype(botName), map as never, deals);
@@ -714,9 +718,13 @@ export async function demoAdvance(
         sessionId: args.sessionId,
         fundId: bot.id,
         grant: {
-          ...args.grant,
+          sessionId: args.sessionId,
+          memberId: botMember.id,
           fundId: bot.id,
-          role: "professor",
+          role: "student",
+          displayName: botMember.displayName,
+          iat: 0,
+          exp: 0,
         },
         items,
       });

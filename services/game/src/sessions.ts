@@ -268,15 +268,13 @@ export async function joinSession(ctx: AppContext, input: JoinInput): Promise<Jo
           "choose a fund to join, or give a name for a new one",
         );
       }
-      if (tx.aggregate.funds.size >= 24) {
-        throw conflict("this session already has the maximum number of funds");
-      }
       const existing = [...tx.aggregate.funds.values()].find(
         (f) => f.name.toLowerCase() === requested.toLowerCase(),
       );
       if (existing) {
         // Joining by name is friendlier than by opaque id, and it is what a student
-        // typing a teammate's fund name expects to happen.
+        // typing a teammate's fund name expects to happen. The fund cap must NOT
+        // apply here: joining an existing fund does not create a new one.
         if (session.mode === "team" && existing.memberIds.length >= session.maxTeamSize) {
           throw conflict(`'${existing.name}' is full`);
         }
@@ -285,6 +283,9 @@ export async function joinSession(ctx: AppContext, input: JoinInput): Promise<Jo
         createdFund = false;
         fundId = existing.id;
       } else {
+        if (tx.aggregate.funds.size >= 24) {
+          throw conflict("this session already has the maximum number of funds");
+        }
         const index = tx.aggregate.funds.size;
         const fund: FundState = {
           id: `fund_${index + 1}_${newId("f").split("_")[1]}`,
@@ -589,6 +590,23 @@ export async function createDemoSession(
   await ctx.store.transact(sessionId, (tx) => {
     tx.putMember(member);
   });
+
+  // Each bot fund needs a seat of its own: the demo controller submits the bots'
+  // decisions as their members, through the same guarded path a student uses.
+  for (const botFund of funds.slice(1)) {
+    const botMember: MemberState = {
+      id: newId("mem"),
+      sessionId,
+      displayName: `${botFund.name} manager`,
+      fundId: botFund.id,
+      isProfessor: false,
+      joinedAt: now,
+      lastSeenAt: now,
+    };
+    await ctx.store.transact(sessionId, (tx) => {
+      tx.putMember(botMember);
+    });
+  }
 
   const stored = (await ctx.store.getSession(sessionId)) ?? session;
   return {

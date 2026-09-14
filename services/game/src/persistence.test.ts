@@ -387,6 +387,45 @@ describe("concurrent callers", () => {
     expect(res.status).toBe(409);
     expect(res.body.detail).toMatch(/full/);
   });
+
+  it("survives a full classroom: 70 concurrent joiners spread across 24 funds", async () => {
+    const fundCount = 24;
+    const fundNames = Array.from({ length: fundCount }, (_, i) => `Fund ${i + 1}`);
+    const fixture = await createClass(harness, {
+      fundNames,
+      maxTeamSize: 4,
+    });
+    const studentCount = 70;
+    // joinClass throws on any non-201, so reaching here means every join succeeded.
+    const results = await Promise.all(
+      Array.from({ length: studentCount }, (_, i) =>
+        joinClass(harness, {
+          joinCode: fixture.joinCode,
+          displayName: `Student ${i + 1}`,
+          newFundName: fundNames[i % fundCount]!,
+        }),
+      ),
+    );
+
+    // Every student landed in the fund they named, with no duplicates.
+    const membersPerFund = new Map<string, Set<string>>();
+    for (const [i, r] of results.entries()) {
+      const wanted = fundNames[i % fundCount]!;
+      const ids = membersPerFund.get(wanted) ?? new Set<string>();
+      ids.add(r.memberId);
+      membersPerFund.set(wanted, ids);
+    }
+    expect(membersPerFund.size).toBe(fundCount);
+
+    const state = await stateOf(results[0]!.browser, fixture.sessionId);
+    const students = state.members.filter((m: { isProfessor: boolean }) => !m.isProfessor);
+    expect(students).toHaveLength(studentCount);
+    expect(new Set(students.map((m: { id: string }) => m.id)).size).toBe(studentCount);
+    const fundSizes = state.funds.map((f: { memberCount: number }) => f.memberCount);
+    expect(fundSizes.reduce((a: number, b: number) => a + b, 0)).toBe(studentCount);
+    // 70 over 24 funds is at most 3 per fund, under the cap of 4.
+    for (const size of fundSizes) expect(size).toBeLessThanOrEqual(4);
+  });
 });
 
 describe("frozen decisions", () => {
