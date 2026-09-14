@@ -23,6 +23,42 @@ from src.game.adjudicator import Adjudicator, RoundState, BidStatus, TeamState, 
 from src.data.properties import generate_properties, synthetic_year_built
 
 
+def _opt_float(value):
+    """A generator cell as an optional float, treating NaN as "not applicable".
+
+    The property generator leaves genuine blanks (``units`` on an office building)
+    rather than filling them, so NaN must become ``None``. Without this, a missing
+    cell reads as present and a pool of offices cannot be constructed at all.
+    """
+    if value is None:
+        return None
+    try:
+        if value != value:  # NaN, the only value that is not equal to itself
+            return None
+    except (TypeError, ValueError):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _opt_int(value):
+    as_float = _opt_float(value)
+    return None if as_float is None else int(as_float)
+
+
+def _opt_str(value):
+    if value is None:
+        return None
+    try:
+        if value != value:
+            return None
+    except (TypeError, ValueError):
+        return None
+    return str(value)
+
+
 @dataclass
 class GameConfig:
     """Game configuration."""
@@ -197,15 +233,31 @@ class GameManager:
                 occupancy=row["occupancy"],
                 # The generator column is `size_sf`; `building_sf` is accepted only
                 # as a fallback so no caller silently gets a defaulted size.
-                building_sf=float(row.get("size_sf", row.get("building_sf", 100000))),
-                year_built=row.get(
-                    "year_built",
-                    synthetic_year_built(row["property_id"], row.get("property_quality", 0.5)),
+                building_sf=_opt_float(row.get("size_sf"))
+                or _opt_float(row.get("building_sf"))
+                or 100000.0,
+                year_built=_opt_int(row.get("year_built"))
+                or synthetic_year_built(
+                    row["property_id"], _opt_float(row.get("property_quality")) or 0.5
                 ),
                 max_ltv=row["max_ltv"],
                 debt_rate=row["debt_rate"],
                 amortization_years=row["amortization_years"],
                 reserve_price=reserve_price,
+                # Underwriting context, carried from the same generator row that
+                # produced every other field, so there is one representation of
+                # this building rather than a rich CSV and a thin pool object.
+                units=_opt_int(row.get("units")),
+                market_rent=_opt_float(row.get("market_rent")),
+                in_place_rent=_opt_float(row.get("in_place_rent")),
+                walt=_opt_float(row.get("walt")),
+                tenant_concentration=_opt_float(row.get("tenant_concentration")),
+                opex_ratio=_opt_float(row.get("opex_ratio")),
+                lease_expiry_profile=_opt_str(row.get("lease_expiry_profile")),
+                property_quality=_opt_float(row.get("property_quality")),
+                primary_risk=_opt_str(row.get("primary_risk")),
+                # Named for what it is: descriptive, not a NAV charge.
+                indicative_capex_exposure=_opt_float(row.get("capex_need")),
             )
     
     def log(self, message: str, **details) -> None:
@@ -404,7 +456,13 @@ class GameManager:
             }
     
     def get_leaderboard(self) -> List[Dict]:
-        """Get the current leaderboard ranked by NAV."""
+        """Get the current leaderboard ranked by NAV, ties broken by team id.
+
+        The tie-break is not decoration. Funds start level at the same NAV, so a
+        leaderboard sorted on NAV alone is ordered entirely by iteration order at
+        the start of the game -- and that order is not preserved by a round trip
+        through canonical JSON, which sorts object keys.
+        """
         leaderboard = []
         for team_id, team in self.teams.items():
             leaderboard.append({
@@ -416,8 +474,8 @@ class GameManager:
                 "properties": len(team.properties),
                 "cumulative_return": team.cumulative_return,
             })
-        
-        leaderboard.sort(key=lambda x: x["nav"], reverse=True)
+
+        leaderboard.sort(key=lambda x: (-x["nav"], x["team_id"]))
         return leaderboard
     
     def get_game_summary(self) -> Dict:

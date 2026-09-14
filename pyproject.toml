@@ -28,6 +28,21 @@ dependencies = [
 dev = [
   "ruff",
 ]
+# The engine service and its tests. Kept out of the default dependencies on purpose:
+# the Streamlit app does not serve HTTP and should not carry a web framework, and the
+# container installs `requirements-engine.txt` so its dependency set stays visible
+# next to the Dockerfile that uses it.
+#
+#   uv sync --extra engine
+#
+# `httpx` is a test dependency rather than a runtime one: the service itself makes no
+# outbound HTTP calls, so it is only present to drive the ASGI app in-process.
+engine = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn>=0.30,<1.0",
+  "pydantic>=2.7,<3.0",
+  "httpx>=0.27,<1.0",
+]
 
 [tool.uv]
 dev-dependencies = []

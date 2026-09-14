@@ -1,0 +1,29 @@
+{
+  "body": {
+    "bundle_id": "real605-fall26-v1",
+    "teams": [
+      {
+        "submissions": [
+          {
+            "forecast": {
+              "model_name": "bad",
+              "predicted_fair_value": 10.0,
+              "predicted_noi_growth": 0.02,
+              "probability_of_downside": 0.3
+            },
+            "policy": {
+              "max_bid": 9.0,
+              "target_ltv": 0.5
+            },
+            "property_id": "OC-NOT-A-PROPERTY"
+          }
+        ],
+        "team_id": "a",
+        "team_name": "A"
+      }
+    ]
+  },
+  "expected_status": 409,
+  "method": "POST",
+  "path": "/v1/create-game-state"
+}

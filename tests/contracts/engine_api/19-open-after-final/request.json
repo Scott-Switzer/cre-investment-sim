@@ -1,0 +1,11 @@
+{
+  "body": {
+    "state": {
+      "$state_ref": "_states/18-resolve-round4-state.json.gz",
+      "sha256": "baeae425fef40280f76cd9b30a91200d7b9e17653d0431bbca3ee90fba8c4546"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/open-round"
+}

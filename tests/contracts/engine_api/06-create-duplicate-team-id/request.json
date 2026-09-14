@@ -1,0 +1,18 @@
+{
+  "body": {
+    "bundle_id": "real605-fall26-v1",
+    "teams": [
+      {
+        "team_id": "a",
+        "team_name": "A"
+      },
+      {
+        "team_id": "a",
+        "team_name": "A again"
+      }
+    ]
+  },
+  "expected_status": 409,
+  "method": "POST",
+  "path": "/v1/create-game-state"
+}

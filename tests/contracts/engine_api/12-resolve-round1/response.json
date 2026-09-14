@@ -1,0 +1,232 @@
+{
+  "analytics_updates": [
+    {
+      "avg_bid_override": -0.074348,
+      "avg_ltv_override": -0.05,
+      "avg_realized_return": 0.055964,
+      "downside_brier": 0.544328,
+      "naive_valuation_mae": 1.05792,
+      "noi_growth_mae": 0.01052,
+      "override_count": 1,
+      "properties_scored": 4,
+      "properties_won": 1,
+      "team_id": "student",
+      "team_name": "REAL605 Student Fund",
+      "valuation_mae": 0.829906,
+      "valuation_mape": 0.025271,
+      "value_added_vs_naive": 0.21553
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": null,
+      "downside_brier": null,
+      "naive_valuation_mae": 1.05792,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 0,
+      "team_id": "growth",
+      "team_name": "Growth Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": null,
+      "downside_brier": null,
+      "naive_valuation_mae": 1.05792,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 0,
+      "team_id": "value",
+      "team_name": "Value Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    }
+  ],
+  "game_complete": false,
+  "public_results": {
+    "auctions": [
+      {
+        "asking_price": 18.2681,
+        "cap_rate_actual": 0.056034,
+        "noi_growth_actual": 0.01249,
+        "property_id": "OC-INDU-01",
+        "realized_noi": 0.945159,
+        "realized_value": 16.867544,
+        "reason": "No valid bids received",
+        "reserve_price": 16.747245,
+        "sold": false,
+        "winning_bid": null,
+        "winning_ltv": null,
+        "winning_team_id": null
+      },
+      {
+        "asking_price": 53.4751,
+        "cap_rate_actual": 0.070848,
+        "noi_growth_actual": 0.029364,
+        "property_id": "OC-OFFI-02",
+        "realized_noi": 3.754091,
+        "realized_value": 52.988279,
+        "reason": "No valid bids received",
+        "reserve_price": 50.3406,
+        "sold": false,
+        "winning_bid": null,
+        "winning_ltv": null,
+        "winning_team_id": null
+      },
+      {
+        "asking_price": 26.8351,
+        "cap_rate_actual": 0.053367,
+        "noi_growth_actual": 0.039003,
+        "property_id": "OC-MULT-03",
+        "realized_noi": 1.352262,
+        "realized_value": 25.338855,
+        "reason": "Highest bid $22.64M below reserve $25.16M",
+        "reserve_price": 25.159888,
+        "sold": false,
+        "winning_bid": null,
+        "winning_ltv": null,
+        "winning_team_id": null
+      },
+      {
+        "asking_price": 27.6889,
+        "cap_rate_actual": 0.064714,
+        "noi_growth_actual": 0.032456,
+        "property_id": "OC-RETA-04",
+        "realized_noi": 1.846755,
+        "realized_value": 28.536957,
+        "reason": "Awarded to student",
+        "reserve_price": 26.237429,
+        "sold": true,
+        "winning_bid": 27.024552,
+        "winning_ltv": 0.55,
+        "winning_team_id": "student"
+      }
+    ],
+    "market": {
+      "cap_rate": {
+        "Industrial": 0.055934,
+        "Multifamily": 0.052378,
+        "Office": 0.071653,
+        "Retail": 0.065272
+      },
+      "credit_conditions": 0.500071,
+      "employment_growth": 0.006021,
+      "inflation": 0.027084,
+      "policy_rate": 0.050259,
+      "round_number": 0,
+      "unemployment": 0.037318,
+      "vacancy": {
+        "Industrial": 0.056349,
+        "Multifamily": 0.032881,
+        "Office": 0.129329,
+        "Retail": 0.064007
+      }
+    },
+    "pnl": [
+      {
+        "acquisition_costs": 0.540491,
+        "assets": 1,
+        "cumulative_return": 0.013902,
+        "gross_ltv": 0.520851,
+        "interest_paid": 0.942346,
+        "nav": 101.390214,
+        "net_carry": 0.4183,
+        "noi_income": 1.7887,
+        "reserves": 0.428054,
+        "return_on_cost": 0.106313,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund",
+        "value_channel": 1.512405,
+        "weighted_debt_rate": 0.0634
+      },
+      {
+        "acquisition_costs": 0.0,
+        "assets": 0,
+        "cumulative_return": 0.0,
+        "gross_ltv": null,
+        "interest_paid": 0.0,
+        "nav": 100.0,
+        "net_carry": 0.0,
+        "noi_income": 0.0,
+        "reserves": 0.0,
+        "return_on_cost": null,
+        "team_id": "value",
+        "team_name": "Value Fund",
+        "value_channel": 0.0,
+        "weighted_debt_rate": null
+      },
+      {
+        "acquisition_costs": 0.0,
+        "assets": 0,
+        "cumulative_return": 0.0,
+        "gross_ltv": null,
+        "interest_paid": 0.0,
+        "nav": 100.0,
+        "net_carry": 0.0,
+        "noi_income": 0.0,
+        "reserves": 0.0,
+        "return_on_cost": null,
+        "team_id": "growth",
+        "team_name": "Growth Fund",
+        "value_channel": 0.0,
+        "weighted_debt_rate": null
+      }
+    ],
+    "round_number": 0,
+    "standings": [
+      {
+        "assets": 1,
+        "cash": 87.71676,
+        "cumulative_return": 0.013902,
+        "debt": 14.863504,
+        "nav": 101.390214,
+        "rank": 1,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund"
+      },
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "rank": 2,
+        "team_id": "growth",
+        "team_name": "Growth Fund"
+      },
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "rank": 3,
+        "team_id": "value",
+        "team_name": "Value Fund"
+      }
+    ]
+  },
+  "rejected_decisions": [
+    {
+      "property_id": "OC-INDU-01",
+      "reason": "Invalid bid: LTV must be between 0 and 0.7",
+      "team_id": "student"
+    },
+    {
+      "property_id": "OC-OFFI-02",
+      "reason": "Invalid bid: Insufficient cash: need $2100.00M, have $100.00M",
+      "team_id": "student"
+    }
+  ],
+  "state": {
+    "$state_ref": "_states/12-resolve-round1-state.json.gz",
+    "sha256": "895b529718c1188f51a0da0139410ae19bf10ed313559db0ff67a48e5b1ef009"
+  }
+}

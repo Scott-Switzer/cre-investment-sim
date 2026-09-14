@@ -1,0 +1,13 @@
+# Runtime dependencies for the CRE engine service container.
+#
+# Deliberately much smaller than the application's requirements.txt: the service
+# adjudicates rounds and nothing else, so it does not carry Streamlit, the mapping
+# stack, the market data clients, or scikit-learn. A smaller image builds faster,
+# has less to patch, and makes the service's actual surface obvious.
+#
+# pandas and numpy are here because the property generator returns a DataFrame.
+fastapi>=0.115,<1.0
+uvicorn>=0.30,<1.0
+pydantic>=2.7,<3.0
+pandas>=2.2,<3.0
+numpy>=2.0,<3.0

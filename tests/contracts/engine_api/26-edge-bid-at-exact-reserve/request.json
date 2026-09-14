@@ -1,0 +1,20 @@
+{
+  "body": {
+    "decisions": [
+      {
+        "action": "BID",
+        "bid": 16.747244781654693,
+        "ltv": 0.55,
+        "property_id": "OC-INDU-01",
+        "team_id": "alpha"
+      }
+    ],
+    "state": {
+      "$state_ref": "_states/25-edge-open-round1-state.json.gz",
+      "sha256": "ba89738839748656763ca20e66660b1903db12b2090a5b426ce41d8b119c219d"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/resolve-round"
+}

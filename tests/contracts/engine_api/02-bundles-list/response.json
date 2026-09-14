@@ -1,0 +1,11 @@
+{
+  "bundles": [
+    {
+      "bundle_id": "real605-fall26-v1",
+      "description": "The published REAL 605 dataset: 120 candidate properties and the 2,400-row historical training set, generated at seed 20240331. Every student model submitted for a session on this bundle must have been built against this candidate pool. The seed is system metadata and is deliberately not selectable by an instructor -- choosing a different one would keep the property ids and change what they mean, silently invalidating every pre-built model.",
+      "display_name": "REAL 605 \u2014 Fall 2026",
+      "economics_version": "2026.09.1",
+      "packet_version": "real605-fall26-v1"
+    }
+  ]
+}

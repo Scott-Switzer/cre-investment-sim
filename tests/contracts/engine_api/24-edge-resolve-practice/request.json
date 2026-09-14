@@ -1,0 +1,12 @@
+{
+  "body": {
+    "decisions": [],
+    "state": {
+      "$state_ref": "_states/23-create-edge-game-state.json.gz",
+      "sha256": "1b54671e1d9034e490ece99aaed7cc9247afd7891af4140b294b013059e44b90"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/resolve-round"
+}

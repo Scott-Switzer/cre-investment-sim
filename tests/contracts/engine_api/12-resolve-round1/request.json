@@ -1,0 +1,41 @@
+{
+  "body": {
+    "decisions": [
+      {
+        "action": "BID",
+        "bid": 18.633462,
+        "ltv": 0.9,
+        "property_id": "OC-INDU-01",
+        "team_id": "student"
+      },
+      {
+        "action": "BID",
+        "bid": 5000.0,
+        "ltv": 0.6,
+        "property_id": "OC-OFFI-02",
+        "team_id": "student"
+      },
+      {
+        "action": "BID",
+        "bid": 22.643899,
+        "ltv": 0.5,
+        "property_id": "OC-MULT-03",
+        "team_id": "value"
+      },
+      {
+        "action": "BID",
+        "bid": 27.024552,
+        "ltv": 0.55,
+        "property_id": "OC-RETA-04",
+        "team_id": "student"
+      }
+    ],
+    "state": {
+      "$state_ref": "_states/11-open-round1-state.json.gz",
+      "sha256": "6afdcfcd722256a440e5bc5e4e4295977d9dd2b727039ff0f7335c9144592709"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/resolve-round"
+}

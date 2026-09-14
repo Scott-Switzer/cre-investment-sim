@@ -1,0 +1,1704 @@
+{
+  "body": {
+    "bundle_id": "real605-fall26-v1",
+    "teams": [
+      {
+        "submissions": [
+          {
+            "forecast": {
+              "confidence": 0.1027,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 16.8478,
+              "predicted_noi_growth": 0.0328,
+              "probability_of_downside": 0.8973
+            },
+            "policy": {
+              "max_bid": 16.3424,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-01"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0503,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 44.7405,
+              "predicted_noi_growth": 0.0272,
+              "probability_of_downside": 0.9497
+            },
+            "policy": {
+              "max_bid": 43.3983,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-05"
+          },
+          {
+            "forecast": {
+              "confidence": 0.02,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 31.5442,
+              "predicted_noi_growth": 0.02501,
+              "probability_of_downside": 0.98
+            },
+            "policy": {
+              "max_bid": 30.5979,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-09"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2567,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.9093,
+              "predicted_noi_growth": 0.03534,
+              "probability_of_downside": 0.7433
+            },
+            "policy": {
+              "max_bid": 21.252,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-101"
+          },
+          {
+            "forecast": {
+              "confidence": 0.246,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 14.9151,
+              "predicted_noi_growth": 0.03441,
+              "probability_of_downside": 0.754
+            },
+            "policy": {
+              "max_bid": 14.4676,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-105"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4875,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 46.321,
+              "predicted_noi_growth": 0.03176,
+              "probability_of_downside": 0.5125
+            },
+            "policy": {
+              "max_bid": 44.9314,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-109"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7889,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 24.0355,
+              "predicted_noi_growth": 0.02797,
+              "probability_of_downside": 0.2111
+            },
+            "policy": {
+              "max_bid": 23.3144,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-113"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9467,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 31.3513,
+              "predicted_noi_growth": 0.02398,
+              "probability_of_downside": 0.0533
+            },
+            "policy": {
+              "max_bid": 30.4108,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-117"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9334,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 18.4604,
+              "predicted_noi_growth": 0.02832,
+              "probability_of_downside": 0.0666
+            },
+            "policy": {
+              "max_bid": 17.9066,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-13"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2763,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.8013,
+              "predicted_noi_growth": 0.03352,
+              "probability_of_downside": 0.7237
+            },
+            "policy": {
+              "max_bid": 19.2073,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-17"
+          },
+          {
+            "forecast": {
+              "confidence": 0.6298,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 15.5948,
+              "predicted_noi_growth": 0.02947,
+              "probability_of_downside": 0.3702
+            },
+            "policy": {
+              "max_bid": 15.127,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-21"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3022,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.5001,
+              "predicted_noi_growth": 0.02839,
+              "probability_of_downside": 0.6978
+            },
+            "policy": {
+              "max_bid": 18.9151,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-25"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0345,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 38.1359,
+              "predicted_noi_growth": 0.02928,
+              "probability_of_downside": 0.9655
+            },
+            "policy": {
+              "max_bid": 36.9918,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-29"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2759,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.3787,
+              "predicted_noi_growth": 0.02671,
+              "probability_of_downside": 0.7241
+            },
+            "policy": {
+              "max_bid": 18.7973,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-33"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4969,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.2981,
+              "predicted_noi_growth": 0.02581,
+              "probability_of_downside": 0.5031
+            },
+            "policy": {
+              "max_bid": 20.6592,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-37"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2774,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 13.7819,
+              "predicted_noi_growth": 0.02834,
+              "probability_of_downside": 0.7226
+            },
+            "policy": {
+              "max_bid": 13.3685,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-41"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2654,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 16.9277,
+              "predicted_noi_growth": 0.03872,
+              "probability_of_downside": 0.7346
+            },
+            "policy": {
+              "max_bid": 16.4199,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-45"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0349,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 38.3633,
+              "predicted_noi_growth": 0.03124,
+              "probability_of_downside": 0.9651
+            },
+            "policy": {
+              "max_bid": 37.2124,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-49"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9066,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 30.152,
+              "predicted_noi_growth": 0.01623,
+              "probability_of_downside": 0.0934
+            },
+            "policy": {
+              "max_bid": 29.2475,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-53"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0151,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 31.3157,
+              "predicted_noi_growth": 0.03324,
+              "probability_of_downside": 0.9849
+            },
+            "policy": {
+              "max_bid": 30.3762,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-57"
+          },
+          {
+            "forecast": {
+              "confidence": 0.1692,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 20.6405,
+              "predicted_noi_growth": 0.03389,
+              "probability_of_downside": 0.8308
+            },
+            "policy": {
+              "max_bid": 20.0213,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-61"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0914,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 35.305,
+              "predicted_noi_growth": 0.0252,
+              "probability_of_downside": 0.9086
+            },
+            "policy": {
+              "max_bid": 34.2459,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-65"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4191,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 9.7167,
+              "predicted_noi_growth": 0.03521,
+              "probability_of_downside": 0.5809
+            },
+            "policy": {
+              "max_bid": 9.4252,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-69"
+          },
+          {
+            "forecast": {
+              "confidence": 0.852,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.4668,
+              "predicted_noi_growth": 0.02922,
+              "probability_of_downside": 0.148
+            },
+            "policy": {
+              "max_bid": 20.8228,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-73"
+          },
+          {
+            "forecast": {
+              "confidence": 0.1361,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 16.3656,
+              "predicted_noi_growth": 0.02999,
+              "probability_of_downside": 0.8639
+            },
+            "policy": {
+              "max_bid": 15.8746,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-77"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3191,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.6257,
+              "predicted_noi_growth": 0.03934,
+              "probability_of_downside": 0.6809
+            },
+            "policy": {
+              "max_bid": 20.9769,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-81"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0793,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 25.5604,
+              "predicted_noi_growth": 0.03291,
+              "probability_of_downside": 0.9207
+            },
+            "policy": {
+              "max_bid": 24.7936,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-85"
+          },
+          {
+            "forecast": {
+              "confidence": 0.99,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 41.9502,
+              "predicted_noi_growth": 0.02345,
+              "probability_of_downside": 0.01
+            },
+            "policy": {
+              "max_bid": 40.6917,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-89"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9834,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 41.6433,
+              "predicted_noi_growth": 0.02937,
+              "probability_of_downside": 0.0166
+            },
+            "policy": {
+              "max_bid": 40.394,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-93"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7463,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 25.6548,
+              "predicted_noi_growth": 0.02872,
+              "probability_of_downside": 0.2537
+            },
+            "policy": {
+              "max_bid": 24.8852,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-INDU-97"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4504,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 26.6954,
+              "predicted_noi_growth": 0.02632,
+              "probability_of_downside": 0.5496
+            },
+            "policy": {
+              "max_bid": 25.8945,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-03"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3118,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.613,
+              "predicted_noi_growth": 0.0269,
+              "probability_of_downside": 0.6882
+            },
+            "policy": {
+              "max_bid": 10.2946,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-07"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9521,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.7773,
+              "predicted_noi_growth": 0.03543,
+              "probability_of_downside": 0.0479
+            },
+            "policy": {
+              "max_bid": 21.124,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-103"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5703,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 9.0444,
+              "predicted_noi_growth": 0.0262,
+              "probability_of_downside": 0.4297
+            },
+            "policy": {
+              "max_bid": 8.773,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-107"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5659,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.285,
+              "predicted_noi_growth": 0.0297,
+              "probability_of_downside": 0.4341
+            },
+            "policy": {
+              "max_bid": 9.9764,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-11"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8885,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.6813,
+              "predicted_noi_growth": 0.02994,
+              "probability_of_downside": 0.1115
+            },
+            "policy": {
+              "max_bid": 19.0909,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-111"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3162,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 20.5684,
+              "predicted_noi_growth": 0.02966,
+              "probability_of_downside": 0.6838
+            },
+            "policy": {
+              "max_bid": 19.9513,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-115"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2422,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 14.3149,
+              "predicted_noi_growth": 0.03041,
+              "probability_of_downside": 0.7578
+            },
+            "policy": {
+              "max_bid": 13.8854,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-119"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3498,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 14.5978,
+              "predicted_noi_growth": 0.03622,
+              "probability_of_downside": 0.6502
+            },
+            "policy": {
+              "max_bid": 14.1598,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-15"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7065,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 8.6644,
+              "predicted_noi_growth": 0.0313,
+              "probability_of_downside": 0.2935
+            },
+            "policy": {
+              "max_bid": 8.4044,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-19"
+          },
+          {
+            "forecast": {
+              "confidence": 0.6843,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 20.7701,
+              "predicted_noi_growth": 0.02418,
+              "probability_of_downside": 0.3157
+            },
+            "policy": {
+              "max_bid": 20.147,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-23"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3105,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 15.7451,
+              "predicted_noi_growth": 0.03151,
+              "probability_of_downside": 0.6895
+            },
+            "policy": {
+              "max_bid": 15.2728,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-27"
+          },
+          {
+            "forecast": {
+              "confidence": 0.584,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.627,
+              "predicted_noi_growth": 0.02737,
+              "probability_of_downside": 0.416
+            },
+            "policy": {
+              "max_bid": 20.9782,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-31"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5052,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 8.959,
+              "predicted_noi_growth": 0.03664,
+              "probability_of_downside": 0.4948
+            },
+            "policy": {
+              "max_bid": 8.6903,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-35"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2004,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 15.5377,
+              "predicted_noi_growth": 0.03372,
+              "probability_of_downside": 0.7996
+            },
+            "policy": {
+              "max_bid": 15.0716,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-39"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8493,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 22.6446,
+              "predicted_noi_growth": 0.03907,
+              "probability_of_downside": 0.1507
+            },
+            "policy": {
+              "max_bid": 21.9653,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-43"
+          },
+          {
+            "forecast": {
+              "confidence": 0.958,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 18.7842,
+              "predicted_noi_growth": 0.02807,
+              "probability_of_downside": 0.042
+            },
+            "policy": {
+              "max_bid": 18.2206,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-47"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3946,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.6982,
+              "predicted_noi_growth": 0.03026,
+              "probability_of_downside": 0.6054
+            },
+            "policy": {
+              "max_bid": 19.1072,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-51"
+          },
+          {
+            "forecast": {
+              "confidence": 0.395,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 5.7612,
+              "predicted_noi_growth": 0.04282,
+              "probability_of_downside": 0.605
+            },
+            "policy": {
+              "max_bid": 5.5884,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-55"
+          },
+          {
+            "forecast": {
+              "confidence": 0.877,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 5.8724,
+              "predicted_noi_growth": 0.03905,
+              "probability_of_downside": 0.123
+            },
+            "policy": {
+              "max_bid": 5.6963,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-59"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5719,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 7.1066,
+              "predicted_noi_growth": 0.03066,
+              "probability_of_downside": 0.4281
+            },
+            "policy": {
+              "max_bid": 6.8934,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-63"
+          },
+          {
+            "forecast": {
+              "confidence": 0.539,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 17.1905,
+              "predicted_noi_growth": 0.02701,
+              "probability_of_downside": 0.461
+            },
+            "policy": {
+              "max_bid": 16.6748,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-67"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8933,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 16.035,
+              "predicted_noi_growth": 0.03218,
+              "probability_of_downside": 0.1067
+            },
+            "policy": {
+              "max_bid": 15.5539,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-71"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3168,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 9.9282,
+              "predicted_noi_growth": 0.03212,
+              "probability_of_downside": 0.6832
+            },
+            "policy": {
+              "max_bid": 9.6304,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-75"
+          },
+          {
+            "forecast": {
+              "confidence": 0.6653,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.3572,
+              "predicted_noi_growth": 0.03771,
+              "probability_of_downside": 0.3347
+            },
+            "policy": {
+              "max_bid": 10.0464,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-79"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5804,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.5307,
+              "predicted_noi_growth": 0.03008,
+              "probability_of_downside": 0.4196
+            },
+            "policy": {
+              "max_bid": 18.9448,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-83"
+          },
+          {
+            "forecast": {
+              "confidence": 0.1856,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 17.336,
+              "predicted_noi_growth": 0.02881,
+              "probability_of_downside": 0.8144
+            },
+            "policy": {
+              "max_bid": 16.816,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-87"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4376,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.3639,
+              "predicted_noi_growth": 0.03093,
+              "probability_of_downside": 0.5624
+            },
+            "policy": {
+              "max_bid": 18.783,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-91"
+          },
+          {
+            "forecast": {
+              "confidence": 0.6432,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.1119,
+              "predicted_noi_growth": 0.02963,
+              "probability_of_downside": 0.3568
+            },
+            "policy": {
+              "max_bid": 9.8086,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-95"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8733,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 18.5643,
+              "predicted_noi_growth": 0.0323,
+              "probability_of_downside": 0.1267
+            },
+            "policy": {
+              "max_bid": 18.0073,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-MULT-99"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0513,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 51.6449,
+              "predicted_noi_growth": 0.02208,
+              "probability_of_downside": 0.9487
+            },
+            "policy": {
+              "max_bid": 50.0956,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-02"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3024,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 24.7466,
+              "predicted_noi_growth": 0.02143,
+              "probability_of_downside": 0.6976
+            },
+            "policy": {
+              "max_bid": 24.0042,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-06"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5861,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 23.0741,
+              "predicted_noi_growth": 0.02311,
+              "probability_of_downside": 0.4139
+            },
+            "policy": {
+              "max_bid": 22.3819,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-10"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4161,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 28.4017,
+              "predicted_noi_growth": 0.02357,
+              "probability_of_downside": 0.5839
+            },
+            "policy": {
+              "max_bid": 27.5496,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-102"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0535,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 47.9072,
+              "predicted_noi_growth": 0.02882,
+              "probability_of_downside": 0.9465
+            },
+            "policy": {
+              "max_bid": 46.4699,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-106"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 43.5008,
+              "predicted_noi_growth": 0.02153,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 42.1958,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-110"
+          },
+          {
+            "forecast": {
+              "confidence": 0.6507,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 44.3772,
+              "predicted_noi_growth": 0.0169,
+              "probability_of_downside": 0.3493
+            },
+            "policy": {
+              "max_bid": 43.0459,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-114"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 31.236,
+              "predicted_noi_growth": 0.02364,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 30.2989,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-118"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 42.4462,
+              "predicted_noi_growth": 0.0269,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 41.1728,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-14"
+          },
+          {
+            "forecast": {
+              "confidence": 0.99,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 53.5092,
+              "predicted_noi_growth": 0.01804,
+              "probability_of_downside": 0.01
+            },
+            "policy": {
+              "max_bid": 51.9039,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-18"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2791,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 30.2076,
+              "predicted_noi_growth": 0.0216,
+              "probability_of_downside": 0.7209
+            },
+            "policy": {
+              "max_bid": 29.3014,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-22"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 42.8381,
+              "predicted_noi_growth": 0.0223,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 41.553,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-26"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8158,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.843,
+              "predicted_noi_growth": 0.01789,
+              "probability_of_downside": 0.1842
+            },
+            "policy": {
+              "max_bid": 21.1877,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-30"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 35.5735,
+              "predicted_noi_growth": 0.02135,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 34.5063,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-34"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 63.2049,
+              "predicted_noi_growth": 0.0276,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 61.3087,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-38"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9687,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 46.3951,
+              "predicted_noi_growth": 0.02951,
+              "probability_of_downside": 0.0313
+            },
+            "policy": {
+              "max_bid": 45.0032,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-42"
+          },
+          {
+            "forecast": {
+              "confidence": 0.879,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 45.3016,
+              "predicted_noi_growth": 0.00764,
+              "probability_of_downside": 0.121
+            },
+            "policy": {
+              "max_bid": 43.9426,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-46"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 43.8962,
+              "predicted_noi_growth": 0.02342,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 42.5794,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-50"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 25.3523,
+              "predicted_noi_growth": 0.01774,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 24.5917,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-54"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8201,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 56.8065,
+              "predicted_noi_growth": 0.0247,
+              "probability_of_downside": 0.1799
+            },
+            "policy": {
+              "max_bid": 55.1023,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-58"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9216,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 45.5155,
+              "predicted_noi_growth": 0.01203,
+              "probability_of_downside": 0.0784
+            },
+            "policy": {
+              "max_bid": 44.15,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-62"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3173,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 30.355,
+              "predicted_noi_growth": 0.02617,
+              "probability_of_downside": 0.6827
+            },
+            "policy": {
+              "max_bid": 29.4443,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-66"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7506,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 43.0933,
+              "predicted_noi_growth": 0.02319,
+              "probability_of_downside": 0.2494
+            },
+            "policy": {
+              "max_bid": 41.8005,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-70"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7009,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.536,
+              "predicted_noi_growth": 0.02095,
+              "probability_of_downside": 0.2991
+            },
+            "policy": {
+              "max_bid": 18.9499,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-74"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 38.8995,
+              "predicted_noi_growth": 0.01786,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 37.7325,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-78"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4588,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 47.0672,
+              "predicted_noi_growth": 0.01794,
+              "probability_of_downside": 0.5412
+            },
+            "policy": {
+              "max_bid": 45.6552,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-82"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 45.6362,
+              "predicted_noi_growth": 0.02591,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 44.2671,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-86"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9101,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 18.3724,
+              "predicted_noi_growth": 0.02081,
+              "probability_of_downside": 0.0899
+            },
+            "policy": {
+              "max_bid": 17.8212,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-90"
+          },
+          {
+            "forecast": {
+              "confidence": 0.01,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 32.5956,
+              "predicted_noi_growth": 0.02243,
+              "probability_of_downside": 0.99
+            },
+            "policy": {
+              "max_bid": 31.6177,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-94"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3063,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 39.0106,
+              "predicted_noi_growth": 0.0208,
+              "probability_of_downside": 0.6937
+            },
+            "policy": {
+              "max_bid": 37.8403,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-OFFI-98"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5876,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 27.937,
+              "predicted_noi_growth": 0.03426,
+              "probability_of_downside": 0.4124
+            },
+            "policy": {
+              "max_bid": 27.0989,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-04"
+          },
+          {
+            "forecast": {
+              "confidence": 0.99,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 44.7731,
+              "predicted_noi_growth": 0.02644,
+              "probability_of_downside": 0.01
+            },
+            "policy": {
+              "max_bid": 43.4299,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-08"
+          },
+          {
+            "forecast": {
+              "confidence": 0.1057,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 30.4196,
+              "predicted_noi_growth": 0.03552,
+              "probability_of_downside": 0.8943
+            },
+            "policy": {
+              "max_bid": 29.507,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-100"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9572,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 43.1083,
+              "predicted_noi_growth": 0.02987,
+              "probability_of_downside": 0.0428
+            },
+            "policy": {
+              "max_bid": 41.815,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-104"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5356,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 14.5367,
+              "predicted_noi_growth": 0.03189,
+              "probability_of_downside": 0.4644
+            },
+            "policy": {
+              "max_bid": 14.1006,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-108"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9892,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 42.5539,
+              "predicted_noi_growth": 0.02656,
+              "probability_of_downside": 0.0108
+            },
+            "policy": {
+              "max_bid": 41.2773,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-112"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0151,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 47.2589,
+              "predicted_noi_growth": 0.03194,
+              "probability_of_downside": 0.9849
+            },
+            "policy": {
+              "max_bid": 45.8411,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-116"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0283,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 54.0068,
+              "predicted_noi_growth": 0.02706,
+              "probability_of_downside": 0.9717
+            },
+            "policy": {
+              "max_bid": 52.3866,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-12"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3806,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 25.3247,
+              "predicted_noi_growth": 0.02682,
+              "probability_of_downside": 0.6194
+            },
+            "policy": {
+              "max_bid": 24.565,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-120"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7485,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 16.7057,
+              "predicted_noi_growth": 0.03033,
+              "probability_of_downside": 0.2515
+            },
+            "policy": {
+              "max_bid": 16.2045,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-16"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2932,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 17.9832,
+              "predicted_noi_growth": 0.0329,
+              "probability_of_downside": 0.7068
+            },
+            "policy": {
+              "max_bid": 17.4437,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-20"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5195,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.9108,
+              "predicted_noi_growth": 0.02987,
+              "probability_of_downside": 0.4805
+            },
+            "policy": {
+              "max_bid": 10.5834,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-24"
+          },
+          {
+            "forecast": {
+              "confidence": 0.8686,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 19.0671,
+              "predicted_noi_growth": 0.03615,
+              "probability_of_downside": 0.1314
+            },
+            "policy": {
+              "max_bid": 18.4951,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-28"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2097,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 35.9846,
+              "predicted_noi_growth": 0.03182,
+              "probability_of_downside": 0.7903
+            },
+            "policy": {
+              "max_bid": 34.9051,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-32"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2428,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 21.3867,
+              "predicted_noi_growth": 0.03369,
+              "probability_of_downside": 0.7572
+            },
+            "policy": {
+              "max_bid": 20.7451,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-36"
+          },
+          {
+            "forecast": {
+              "confidence": 0.4234,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 9.0735,
+              "predicted_noi_growth": 0.02479,
+              "probability_of_downside": 0.5766
+            },
+            "policy": {
+              "max_bid": 8.8013,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-40"
+          },
+          {
+            "forecast": {
+              "confidence": 0.968,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 45.7898,
+              "predicted_noi_growth": 0.02682,
+              "probability_of_downside": 0.032
+            },
+            "policy": {
+              "max_bid": 44.4161,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-44"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0998,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 36.5454,
+              "predicted_noi_growth": 0.03298,
+              "probability_of_downside": 0.9002
+            },
+            "policy": {
+              "max_bid": 35.449,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-48"
+          },
+          {
+            "forecast": {
+              "confidence": 0.3586,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 25.582,
+              "predicted_noi_growth": 0.02762,
+              "probability_of_downside": 0.6414
+            },
+            "policy": {
+              "max_bid": 24.8145,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-52"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7496,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.7155,
+              "predicted_noi_growth": 0.02437,
+              "probability_of_downside": 0.2504
+            },
+            "policy": {
+              "max_bid": 10.394,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-56"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5501,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 60.0042,
+              "predicted_noi_growth": 0.03377,
+              "probability_of_downside": 0.4499
+            },
+            "policy": {
+              "max_bid": 58.2041,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-60"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7583,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 53.2799,
+              "predicted_noi_growth": 0.02559,
+              "probability_of_downside": 0.2417
+            },
+            "policy": {
+              "max_bid": 51.6815,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-64"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7315,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 14.5333,
+              "predicted_noi_growth": 0.03097,
+              "probability_of_downside": 0.2685
+            },
+            "policy": {
+              "max_bid": 14.0973,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-68"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9101,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 50.673,
+              "predicted_noi_growth": 0.03346,
+              "probability_of_downside": 0.0899
+            },
+            "policy": {
+              "max_bid": 49.1528,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-72"
+          },
+          {
+            "forecast": {
+              "confidence": 0.7921,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 50.4686,
+              "predicted_noi_growth": 0.03449,
+              "probability_of_downside": 0.2079
+            },
+            "policy": {
+              "max_bid": 48.9546,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-76"
+          },
+          {
+            "forecast": {
+              "confidence": 0.2963,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 10.4442,
+              "predicted_noi_growth": 0.02708,
+              "probability_of_downside": 0.7037
+            },
+            "policy": {
+              "max_bid": 10.1309,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-80"
+          },
+          {
+            "forecast": {
+              "confidence": 0.5136,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 13.2208,
+              "predicted_noi_growth": 0.02784,
+              "probability_of_downside": 0.4864
+            },
+            "policy": {
+              "max_bid": 12.8242,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-84"
+          },
+          {
+            "forecast": {
+              "confidence": 0.99,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 38.6896,
+              "predicted_noi_growth": 0.03699,
+              "probability_of_downside": 0.01
+            },
+            "policy": {
+              "max_bid": 37.5289,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-88"
+          },
+          {
+            "forecast": {
+              "confidence": 0.0271,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 41.4779,
+              "predicted_noi_growth": 0.02366,
+              "probability_of_downside": 0.9729
+            },
+            "policy": {
+              "max_bid": 40.2336,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-92"
+          },
+          {
+            "forecast": {
+              "confidence": 0.9682,
+              "model_name": "student_gbm_v1",
+              "predicted_fair_value": 52.9296,
+              "predicted_noi_growth": 0.03567,
+              "probability_of_downside": 0.0318
+            },
+            "policy": {
+              "max_bid": 51.3417,
+              "target_ltv": 0.6
+            },
+            "property_id": "OC-RETA-96"
+          }
+        ],
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund"
+      },
+      {
+        "team_id": "value",
+        "team_name": "Value Fund"
+      },
+      {
+        "team_id": "growth",
+        "team_name": "Growth Fund"
+      }
+    ]
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/create-game-state"
+}

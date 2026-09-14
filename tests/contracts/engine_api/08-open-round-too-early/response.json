@@ -1,0 +1,4 @@
+{
+  "detail": "cannot open a round while the current round is 'open'; resolve it first",
+  "error": "illegal_operation"
+}

@@ -1,0 +1,14 @@
+{
+  "body": {
+    "bundle_id": "does-not-exist",
+    "teams": [
+      {
+        "team_id": "a",
+        "team_name": "A"
+      }
+    ]
+  },
+  "expected_status": 400,
+  "method": "POST",
+  "path": "/v1/create-game-state"
+}

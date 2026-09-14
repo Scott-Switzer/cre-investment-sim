@@ -1,0 +1,11 @@
+{
+  "body": {
+    "state": {
+      "$state_ref": "_states/24-edge-resolve-practice-state.json.gz",
+      "sha256": "412c897f780dbafd2618434e0ec29f3e3ecb8ffc4f02df1536c1dbc9cf912ad9"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/open-round"
+}

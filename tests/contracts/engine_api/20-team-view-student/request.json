@@ -1,0 +1,12 @@
+{
+  "body": {
+    "state": {
+      "$state_ref": "_states/19-open-after-final-state.json.gz",
+      "sha256": "a240fc22fe92564e4b684667fb6054c35d776d718a7d788dd6857c9ae8caa301"
+    },
+    "team_id": "student"
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/team-view"
+}

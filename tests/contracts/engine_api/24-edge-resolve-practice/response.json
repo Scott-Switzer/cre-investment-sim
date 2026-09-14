@@ -1,0 +1,137 @@
+{
+  "analytics_updates": [
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": null,
+      "downside_brier": null,
+      "naive_valuation_mae": null,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 0,
+      "team_id": "alpha",
+      "team_name": "Alpha Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": null,
+      "downside_brier": null,
+      "naive_valuation_mae": null,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 0,
+      "team_id": "beta",
+      "team_name": "Beta Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    }
+  ],
+  "game_complete": false,
+  "public_results": {
+    "auctions": [
+      {
+        "asking_price": 18.2681,
+        "cap_rate_actual": 0.054545,
+        "noi_growth_actual": 0.023185,
+        "property_id": "OC-INDU-01",
+        "realized_noi": 0.955143,
+        "realized_value": 17.511226,
+        "reason": "Practice round \u2014 no actual transactions",
+        "reserve_price": 16.747245,
+        "sold": false,
+        "winning_bid": null,
+        "winning_ltv": null,
+        "winning_team_id": null
+      }
+    ],
+    "market": {
+      "cap_rate": {
+        "Industrial": 0.055,
+        "Multifamily": 0.052,
+        "Office": 0.072,
+        "Retail": 0.065
+      },
+      "credit_conditions": 0.5,
+      "employment_growth": 0.006,
+      "inflation": 0.028,
+      "policy_rate": 0.053,
+      "round_number": -1,
+      "unemployment": 0.039,
+      "vacancy": {
+        "Industrial": 0.055,
+        "Multifamily": 0.036,
+        "Office": 0.133,
+        "Retail": 0.065
+      }
+    },
+    "pnl": [
+      {
+        "acquisition_costs": 0.0,
+        "assets": 0,
+        "cumulative_return": 0.0,
+        "gross_ltv": null,
+        "interest_paid": 0.0,
+        "nav": 100.0,
+        "net_carry": 0.0,
+        "noi_income": 0.0,
+        "reserves": 0.0,
+        "return_on_cost": null,
+        "team_id": "alpha",
+        "team_name": "Alpha Fund",
+        "value_channel": 0.0,
+        "weighted_debt_rate": null
+      },
+      {
+        "acquisition_costs": 0.0,
+        "assets": 0,
+        "cumulative_return": 0.0,
+        "gross_ltv": null,
+        "interest_paid": 0.0,
+        "nav": 100.0,
+        "net_carry": 0.0,
+        "noi_income": 0.0,
+        "reserves": 0.0,
+        "return_on_cost": null,
+        "team_id": "beta",
+        "team_name": "Beta Fund",
+        "value_channel": 0.0,
+        "weighted_debt_rate": null
+      }
+    ],
+    "round_number": -1,
+    "standings": [
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "rank": 1,
+        "team_id": "alpha",
+        "team_name": "Alpha Fund"
+      },
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "rank": 2,
+        "team_id": "beta",
+        "team_name": "Beta Fund"
+      }
+    ]
+  },
+  "rejected_decisions": [],
+  "state": {
+    "$state_ref": "_states/24-edge-resolve-practice-state.json.gz",
+    "sha256": "412c897f780dbafd2618434e0ec29f3e3ecb8ffc4f02df1536c1dbc9cf912ad9"
+  }
+}

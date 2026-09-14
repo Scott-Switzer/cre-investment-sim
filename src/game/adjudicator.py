@@ -306,7 +306,22 @@ class MarketState:
 
 @dataclass
 class PropertyMarket:
-    """Property available in a round."""
+    """Property available in a round.
+
+    This is the ONE authoritative in-game representation of a building. The
+    underwriting fields below are carried straight from the deterministic
+    generator so the game never has to consult a CSV, which previously meant two
+    representations of the same asset that could disagree.
+
+    Descriptive vs charged
+    ----------------------
+    ``indicative_capex_exposure`` is the generator's per-property ``capex_need``.
+    It is an *analytical feature describing building condition* and is NOT a cash
+    charge in this simulation. The recurring cash charge the engine actually
+    levies is ``CAPITAL_RESERVE_RATE``, by property type, applied to value. The
+    two are deliberately named differently so a practitioner cannot mistake one
+    for the other. See docs/CRE_DATA_VISIBILITY.md.
+    """
     property_id: str
     property_name: str
     property_type: str
@@ -321,6 +336,17 @@ class PropertyMarket:
     debt_rate: float
     amortization_years: int
     reserve_price: float  # hidden from players
+    # ── underwriting context (descriptive) ──
+    units: Optional[int] = None
+    market_rent: Optional[float] = None
+    in_place_rent: Optional[float] = None
+    walt: Optional[float] = None
+    tenant_concentration: Optional[float] = None
+    opex_ratio: Optional[float] = None
+    lease_expiry_profile: Optional[str] = None
+    property_quality: Optional[float] = None
+    primary_risk: Optional[str] = None
+    indicative_capex_exposure: Optional[float] = None
 
 
 @dataclass

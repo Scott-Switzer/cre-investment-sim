@@ -1,0 +1,34 @@
+{
+  "body": {
+    "decisions": [
+      {
+        "action": "BID",
+        "bid": 31.353076,
+        "ltv": 0.6,
+        "property_id": "OC-INDU-09",
+        "team_id": "student"
+      },
+      {
+        "action": "BID",
+        "bid": 21.128888,
+        "ltv": 0.6,
+        "property_id": "OC-OFFI-10",
+        "team_id": "student"
+      },
+      {
+        "action": "BID",
+        "bid": 9.894987,
+        "ltv": 0.6,
+        "property_id": "OC-MULT-11",
+        "team_id": "value"
+      }
+    ],
+    "state": {
+      "$state_ref": "_states/15-open-round3-state.json.gz",
+      "sha256": "4fc1d579be924dcec891c40c2bb072bfd637a2f392f5d90bbb642e0ce01332ae"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/resolve-round"
+}

@@ -1,0 +1,11 @@
+{
+  "body": {
+    "state": {
+      "$state_ref": "_states/09-resolve-practice-no-bids-state.json.gz",
+      "sha256": "297447edd4209229b7c6bd5e828fef4646ff836beaae7c337503161ce6cb2b4a"
+    }
+  },
+  "expected_status": 200,
+  "method": "POST",
+  "path": "/v1/open-round"
+}

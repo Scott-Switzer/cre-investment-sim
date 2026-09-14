@@ -1,0 +1,11 @@
+{
+  "body": {
+    "state": {
+      "$state_ref": "_states/07-create-initial-state-state.json.gz",
+      "sha256": "f48cfc90fb0a4273eacf8e42ee065f465d68793fb31ec0399189ea601d537385"
+    }
+  },
+  "expected_status": 409,
+  "method": "POST",
+  "path": "/v1/open-round"
+}

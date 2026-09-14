@@ -116,8 +116,18 @@ class TestEveryPageIsReachable:
 class TestPageLoads:
     """Each registered page must load and render without uncaught exception."""
 
+    # `AppTest` defaults to a 3-second timeout, which is a poll window rather than
+    # a total-runtime budget: if a page computes quietly for longer than that, the
+    # run is abandoned even though nothing is wrong. `pages/valuation_lab.py`
+    # fits a model on load and takes ~3.8s, so it failed intermittently under the
+    # load of the full suite. The page is not slow because it is broken, so the
+    # timeout is raised here instead of the page being made to look fast.
+    PAGE_TIMEOUT_SECONDS = 60
+
     def _page_runs_without_exception(self, page_file: str) -> str:
-        isolated = AppTest.from_file(str(REPO_ROOT / page_file))
+        isolated = AppTest.from_file(
+            str(REPO_ROOT / page_file), default_timeout=self.PAGE_TIMEOUT_SECONDS
+        )
         isolated.run()
         assert (isolated.exception == () or len(isolated.exception) == 0), (
             f"{page_file} raised: {isolated.exception}"

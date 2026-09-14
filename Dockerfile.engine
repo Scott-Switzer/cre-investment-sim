@@ -1,0 +1,46 @@
+# CRE Investment Committee — engine service.
+#
+# A private, stateless adjudicator. It is expected to be reachable only from the
+# game service over IAM/OIDC, and to have no public route at all.
+#
+# There is no state in this image and nothing is written at runtime: every call
+# carries the whole game in its request body and gets the whole next state back.
+# That is what makes it safe on Cloud Run, where instances scale to zero between
+# requests and may be recycled mid-round.
+#
+# Build:  docker build -f Dockerfile.engine -t cre-engine .
+# Run:    docker run --rm -p 8080:8080 cre-engine
+
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8080 \
+    HOST=0.0.0.0
+
+WORKDIR /app
+
+# Dependencies first, so a code change does not rebuild the dependency layer.
+COPY requirements-engine.txt ./
+RUN pip install --no-cache-dir -r requirements-engine.txt
+
+# Only what the service imports. In particular there is no `data/` directory: the
+# property pool is generated deterministically from the bundle's seed, so the image
+# carries no dataset that could drift out of step with the code that reads it.
+COPY src/ ./src/
+COPY service/ ./service/
+COPY config/ ./config/
+COPY scripts/serve_engine.py ./scripts/serve_engine.py
+
+# Unprivileged. The base image already provides `nobody`, but a named account with a
+# fixed uid is easier to reason about in an audit than an anonymous one.
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin engine
+USER engine
+
+EXPOSE 8080
+
+# Cloud Run sets PORT; serve_engine.py reads it and binds all interfaces there.
+# There is no shell wrapper, so the process receives signals directly and a
+# termination request is not swallowed by an intermediate sh.
+CMD ["python", "scripts/serve_engine.py"]

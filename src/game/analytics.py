@@ -276,10 +276,20 @@ def compute_team_analytics(game_manager, team_id: str) -> TeamAnalytics:
 
 
 def analytics_leaderboard(game_manager) -> List[TeamAnalytics]:
-    """Analytics ranking, best valuation first. Pure teaching output, not the win condition."""
+    """Analytics ranking, best valuation first. Pure teaching output, not the win condition.
+
+    Funds with no scored forecast sort last, and ties break on team id. The tie-break
+    matters: without it the order of two unscored funds depends on the order they
+    entered the game, which a round trip through canonical JSON does not preserve --
+    so the board could reorder itself merely by being serialised.
+    """
     board = [compute_team_analytics(game_manager, tid) for tid in game_manager.teams]
     board.sort(
-        key=lambda t: (t.valuation_mae if t.valuation_mae is not None else float("inf"))
+        key=lambda t: (
+            t.valuation_mae is None,
+            t.valuation_mae if t.valuation_mae is not None else 0.0,
+            t.team_id,
+        )
     )
     return board
 

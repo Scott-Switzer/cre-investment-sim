@@ -1,0 +1,94 @@
+{
+  "bundle": {
+    "bundle_id": "real605-fall26-v1",
+    "candidate_pool_hash": "24240d70b01ba2c2d5dc148112ba61c4eb9373c1923a5b496f757f4d906f638f",
+    "description": "The published REAL 605 dataset: 120 candidate properties and the 2,400-row historical training set, generated at seed 20240331. Every student model submitted for a session on this bundle must have been built against this candidate pool. The seed is system metadata and is deliberately not selectable by an instructor -- choosing a different one would keep the property ids and change what they mean, silently invalidating every pre-built model.",
+    "display_name": "REAL 605 \u2014 Fall 2026",
+    "economics_digest": "82b42656e8ab680288ba85cf2d8679147cb53bee979b646c5ec6962c3e82ec5c",
+    "economics_version": "2026.09.1",
+    "engine_version": "0.1.0",
+    "packet_version": "real605-fall26-v1",
+    "schema_version": 1,
+    "seed": 20240331
+  },
+  "public": {
+    "deals": [
+      {
+        "acquisition_cost_rate": 0.02,
+        "amortization_years": 25,
+        "asking_price": 18.2681,
+        "building_sf": 102774.0,
+        "capital_reserve_rate": 0.006,
+        "current_noi": 0.9335,
+        "debt_rate": 0.0631,
+        "going_in_cap": 0.0511,
+        "in_place_rent": 1.359,
+        "indicative_capex_exposure": 0.2636,
+        "indicative_capex_note": "Descriptive condition feature only. The simulation charges capital_reserve_rate, not this figure.",
+        "lease_expiry_profile": "6.5yr WALT, 33% rolling in 3yrs",
+        "market_rent": 1.405,
+        "max_ltv": 0.7,
+        "occupancy": 0.988,
+        "opex_ratio": 0.426,
+        "primary_risk": "Market / Lease-up Risk",
+        "property_id": "OC-INDU-01",
+        "property_name": "Anaheim Commerce Center",
+        "property_quality": 0.267,
+        "property_type": "Industrial",
+        "submarket": "Anaheim",
+        "tenant_concentration": 0.393,
+        "units": null,
+        "walt": 6.5,
+        "year_built": 1965
+      }
+    ],
+    "economics": {
+      "acquisition_cost_rate": 0.02,
+      "capital_reserve_rate": {
+        "Industrial": 0.006,
+        "Multifamily": 0.01,
+        "Office": 0.018,
+        "Retail": 0.015
+      }
+    },
+    "funds": [
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund"
+      },
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "team_id": "value",
+        "team_name": "Value Fund"
+      },
+      {
+        "assets": 0,
+        "cash": 100.0,
+        "cumulative_return": 0.0,
+        "debt": 0.0,
+        "nav": 100.0,
+        "team_id": "growth",
+        "team_name": "Growth Fund"
+      }
+    ],
+    "is_practice": true,
+    "market": null,
+    "round_number": -1,
+    "round_state": "open",
+    "stage": "PRACTICE",
+    "total_rounds": 4
+  },
+  "state": {
+    "$state_ref": "_states/07-create-initial-state-state.json.gz",
+    "sha256": "f48cfc90fb0a4273eacf8e42ee065f465d68793fb31ec0399189ea601d537385"
+  }
+}

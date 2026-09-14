@@ -1,0 +1,221 @@
+{
+  "analytics_updates": [
+    {
+      "avg_bid_override": 0.067037,
+      "avg_ltv_override": -0.0125,
+      "avg_realized_return": 0.046357,
+      "downside_brier": 0.51697,
+      "naive_valuation_mae": 1.434646,
+      "noi_growth_mae": 0.014195,
+      "override_count": 8,
+      "properties_scored": 16,
+      "properties_won": 8,
+      "team_id": "student",
+      "team_name": "REAL605 Student Fund",
+      "valuation_mae": 0.833157,
+      "valuation_mape": 0.029778,
+      "value_added_vs_naive": 0.41926
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": 0.045725,
+      "downside_brier": null,
+      "naive_valuation_mae": 1.434646,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 1,
+      "team_id": "growth",
+      "team_name": "Growth Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": 0.026195,
+      "downside_brier": null,
+      "naive_valuation_mae": 1.434646,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 3,
+      "team_id": "value",
+      "team_name": "Value Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    }
+  ],
+  "game_complete": false,
+  "public_results": {
+    "auctions": [
+      {
+        "asking_price": 16.7768,
+        "cap_rate_actual": 0.056941,
+        "noi_growth_actual": 0.038654,
+        "property_id": "OC-INDU-13",
+        "realized_noi": 1.007183,
+        "realized_value": 17.688311,
+        "reason": "Awarded to student",
+        "reserve_price": 15.232951,
+        "sold": true,
+        "winning_bid": 15.53761,
+        "winning_ltv": 0.6,
+        "winning_team_id": "student"
+      },
+      {
+        "asking_price": 46.3344,
+        "cap_rate_actual": 0.072985,
+        "noi_growth_actual": 0.00187,
+        "property_id": "OC-OFFI-14",
+        "realized_noi": 2.984871,
+        "realized_value": 40.897118,
+        "reason": "Awarded to student",
+        "reserve_price": 42.229106,
+        "sold": true,
+        "winning_bid": 43.073688,
+        "winning_ltv": 0.6,
+        "winning_team_id": "student"
+      },
+      {
+        "asking_price": 15.0304,
+        "cap_rate_actual": 0.053045,
+        "noi_growth_actual": 0.022254,
+        "property_id": "OC-MULT-15",
+        "realized_noi": 0.75749,
+        "realized_value": 14.28006,
+        "reason": "Awarded to student",
+        "reserve_price": 13.948791,
+        "sold": true,
+        "winning_bid": 14.227767,
+        "winning_ltv": 0.6,
+        "winning_team_id": "student"
+      },
+      {
+        "asking_price": 15.9545,
+        "cap_rate_actual": 0.067204,
+        "noi_growth_actual": -0.028783,
+        "property_id": "OC-RETA-16",
+        "realized_noi": 1.022691,
+        "realized_value": 15.217778,
+        "reason": "Awarded to student",
+        "reserve_price": 14.811099,
+        "sold": true,
+        "winning_bid": 15.107321,
+        "winning_ltv": 0.6,
+        "winning_team_id": "student"
+      }
+    ],
+    "market": {
+      "cap_rate": {
+        "Industrial": 0.057578,
+        "Multifamily": 0.053548,
+        "Office": 0.073244,
+        "Retail": 0.066607
+      },
+      "credit_conditions": 0.569615,
+      "employment_growth": 0.008392,
+      "inflation": 0.028232,
+      "policy_rate": 0.054456,
+      "round_number": 3,
+      "unemployment": 0.035396,
+      "vacancy": {
+        "Industrial": 0.046204,
+        "Multifamily": 0.030296,
+        "Office": 0.130006,
+        "Retail": 0.06795
+      }
+    },
+    "pnl": [
+      {
+        "acquisition_costs": 4.269772,
+        "assets": 8,
+        "cumulative_return": 0.092437,
+        "gross_ltv": 0.564377,
+        "interest_paid": 16.118319,
+        "nav": 109.243674,
+        "net_carry": 6.510971,
+        "noi_income": 28.892403,
+        "reserves": 6.263113,
+        "return_on_cost": 0.138798,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund",
+        "value_channel": 7.002475,
+        "weighted_debt_rate": 0.064797
+      },
+      {
+        "acquisition_costs": 1.542547,
+        "assets": 3,
+        "cumulative_return": 0.039615,
+        "gross_ltv": 0.517126,
+        "interest_paid": 7.654173,
+        "nav": 103.961521,
+        "net_carry": 3.80763,
+        "noi_income": 13.810466,
+        "reserves": 2.348663,
+        "return_on_cost": 0.170604,
+        "team_id": "value",
+        "team_name": "Value Fund",
+        "value_channel": 1.696438,
+        "weighted_debt_rate": 0.065457
+      },
+      {
+        "acquisition_costs": 0.219153,
+        "assets": 1,
+        "cumulative_return": 0.005511,
+        "gross_ltv": 0.525951,
+        "interest_paid": 1.097462,
+        "nav": 100.551149,
+        "net_carry": 0.26927,
+        "noi_income": 1.699984,
+        "reserves": 0.333253,
+        "return_on_cost": 0.170453,
+        "team_id": "growth",
+        "team_name": "Growth Fund",
+        "value_channel": 0.501033,
+        "weighted_debt_rate": 0.0607
+      }
+    ],
+    "round_number": 3,
+    "standings": [
+      {
+        "assets": 8,
+        "cash": 13.192748,
+        "cumulative_return": 0.092437,
+        "debt": 124.440145,
+        "nav": 109.243674,
+        "rank": 1,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund"
+      },
+      {
+        "assets": 3,
+        "cash": 65.899579,
+        "cumulative_return": 0.039615,
+        "debt": 40.761841,
+        "nav": 103.961521,
+        "rank": 2,
+        "team_id": "value",
+        "team_name": "Value Fund"
+      },
+      {
+        "assets": 1,
+        "cash": 95.119181,
+        "cumulative_return": 0.005511,
+        "debt": 6.026699,
+        "nav": 100.551149,
+        "rank": 3,
+        "team_id": "growth",
+        "team_name": "Growth Fund"
+      }
+    ]
+  },
+  "rejected_decisions": [],
+  "state": {
+    "$state_ref": "_states/18-resolve-round4-state.json.gz",
+    "sha256": "baeae425fef40280f76cd9b30a91200d7b9e17653d0431bbca3ee90fba8c4546"
+  }
+}

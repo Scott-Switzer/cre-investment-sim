@@ -1,0 +1,39 @@
+# The engine image copies an explicit allow-list of directories, so this file is not
+# what makes the image small -- it is what keeps the *build context* small, which is
+# the part that gets uploaded to the daemon on every build.
+#
+# Everything here is either regenerable, local-only, or large.
+
+# Version control and editor state
+.git
+.gitignore
+.ruff_cache
+.pytest_cache
+__pycache__
+*.pyc
+
+# The virtualenv: the image installs its own pinned dependencies
+.venv
+venv
+
+# Data and generated artifacts. The engine needs none of them -- the property pool is
+# generated deterministically from the bundle's seed, and shipping a dataset would
+# create a second source of truth for the same buildings.
+data
+student_packet
+artifacts
+*.duckdb
+
+# Tests, docs and fixtures are not part of the runtime image
+tests
+docs
+README.md
+*.md
+
+# Frontend and deployment configuration for the other surfaces
+.streamlit
+runtime.txt
+requirements.txt
+Dockerfile
+Dockerfile.engine
+.dockerignore

@@ -1,0 +1,248 @@
+{
+  "fixture_schema_version": 1,
+  "fixtures": [
+    {
+      "expected_status": 200,
+      "method": "GET",
+      "name": "01-health",
+      "notes": "Version identity. A deploy that changes economics moves the digest.",
+      "path": "/v1/health"
+    },
+    {
+      "expected_status": 200,
+      "method": "GET",
+      "name": "02-bundles-list",
+      "notes": "Datasets a professor may choose. Note the absence of a seed.",
+      "path": "/v1/bundles"
+    },
+    {
+      "expected_status": 200,
+      "method": "GET",
+      "name": "03-bundle-detail",
+      "notes": "Operator view, including the seed and the integrity check.",
+      "path": "/v1/bundles/real605-fall26-v1"
+    },
+    {
+      "expected_status": 400,
+      "method": "POST",
+      "name": "04-create-unknown-bundle",
+      "notes": "An unknown bundle is an error, never a fallback to a default.",
+      "path": "/v1/create-game-state"
+    },
+    {
+      "expected_status": 409,
+      "method": "POST",
+      "name": "05-create-mismatched-model",
+      "notes": "Hard rejection. A model built for another dataset is refused, not warned about.",
+      "path": "/v1/create-game-state"
+    },
+    {
+      "expected_status": 409,
+      "method": "POST",
+      "name": "06-create-duplicate-team-id",
+      "notes": "Two funds with one id would silently share a portfolio.",
+      "path": "/v1/create-game-state"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "07-create-initial-state",
+      "notes": "Practice round is open on one property; the scored pool is untouched.",
+      "path": "/v1/create-game-state"
+    },
+    {
+      "expected_status": 409,
+      "method": "POST",
+      "name": "08-open-round-too-early",
+      "notes": "A round cannot be opened while one is open. Ordering is enforced.",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "09-resolve-practice-no-bids",
+      "notes": "Practice resolves with no decisions: the market moves, no fund transacts.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 409,
+      "method": "POST",
+      "name": "10-resolve-wrong-phase",
+      "notes": "A resolved round cannot be resolved twice.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "11-open-round1",
+      "notes": "Round 1: four properties, and every reserve still hidden.",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "12-resolve-round1",
+      "notes": "One round, four outcomes: an over-levered bid refused, an unaffordable bid refused, a bid below the seller's reserve refused by the seller, and a valid bid that wins.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "13-open-round2",
+      "notes": "Round 2, with round 1's purchases carried in the P&L bridge.",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "14-resolve-round2",
+      "notes": "Price tie broken by lower leverage; an identical price AND leverage settled by the seeded draw; three funds contesting one property; and a bid deliberately above the team's own policy ceiling.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "15-open-round3",
+      "notes": "",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "16-resolve-round3",
+      "notes": "Three rounds of holdings: the bridge now shows income, interest and reserves.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "17-open-round4",
+      "notes": "",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "18-resolve-round4",
+      "notes": "Final scored round. Equity is now the binding constraint for some funds.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "19-open-after-final",
+      "notes": "Past the last round, opening reports completion instead of erroring.",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "20-team-view-student",
+      "notes": "One fund's own forecast, policy, book and overrides -- and nobody else's.",
+      "path": "/v1/team-view"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "21-finalize-game",
+      "notes": "Standings, the analytics board, and the ten answers, from history alone.",
+      "path": "/v1/finalize-game"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "22-finalize-idempotent",
+      "notes": "Finalising is a view, not a step: the second call returns the same state and the same debrief as the first.",
+      "path": "/v1/finalize-game"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "23-create-edge-game",
+      "notes": "A second session on the same bundle, for boundary cases.",
+      "path": "/v1/create-game-state"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "24-edge-resolve-practice",
+      "notes": "",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "25-edge-open-round1",
+      "notes": "Every remaining edge case resolves from THIS state.",
+      "path": "/v1/open-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "26-edge-bid-at-exact-reserve",
+      "notes": "A bid at exactly the reserve sells. The boundary is inclusive, so a tie against the seller's floor is not silently treated as a loss.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "27-edge-bid-just-below-reserve",
+      "notes": "A thousand dollars below the reserve does not. Together with 26 this pins the boundary from both sides.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "28-edge-ltv-at-max",
+      "notes": "Leverage at the property's ceiling is legal.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "29-edge-ltv-above-max",
+      "notes": "Leverage one notch above the ceiling is refused, and refused legibly.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "30-edge-duplicate-decision",
+      "notes": "Two bids from one fund for one property: the second is rejected, not silently merged.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "31-edge-unknown-team",
+      "notes": "A bid from a fund that is not in the game is reported, not crashed on.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "32-edge-bid-without-price",
+      "notes": "A BID missing its price is refused: an incomplete decision is not a pass.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "33-edge-no-decisions",
+      "notes": "Nobody bids on anything: no sales, no error, the market still moves.",
+      "path": "/v1/resolve-round"
+    },
+    {
+      "expected_status": 200,
+      "method": "POST",
+      "name": "34-edge-identical-bid-and-ltv",
+      "notes": "Identical price and identical leverage: settled by the seeded draw, so the result is reproducible rather than arbitrary.",
+      "path": "/v1/resolve-round"
+    }
+  ],
+  "generated_from": "service/engine_api (the verified Python engine)",
+  "normalisation": {
+    "engine_state": "stored once under _states/ as gzipped canonical JSON, referenced by sha256",
+    "timestamps": "event_log[*].at replaced with a constant"
+  }
+}

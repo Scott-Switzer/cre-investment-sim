@@ -1,0 +1,345 @@
+{
+  "analytics": [
+    {
+      "avg_bid_override": 0.067037,
+      "avg_ltv_override": -0.0125,
+      "avg_realized_return": 0.046357,
+      "downside_brier": 0.51697,
+      "naive_valuation_mae": 1.434646,
+      "noi_growth_mae": 0.014195,
+      "override_count": 8,
+      "properties_scored": 16,
+      "properties_won": 8,
+      "team_id": "student",
+      "team_name": "REAL605 Student Fund",
+      "valuation_mae": 0.833157,
+      "valuation_mape": 0.029778,
+      "value_added_vs_naive": 0.41926
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": 0.045725,
+      "downside_brier": null,
+      "naive_valuation_mae": 1.434646,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 1,
+      "team_id": "growth",
+      "team_name": "Growth Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    },
+    {
+      "avg_bid_override": null,
+      "avg_ltv_override": null,
+      "avg_realized_return": 0.026195,
+      "downside_brier": null,
+      "naive_valuation_mae": 1.434646,
+      "noi_growth_mae": null,
+      "override_count": 0,
+      "properties_scored": 0,
+      "properties_won": 3,
+      "team_id": "value",
+      "team_name": "Value Fund",
+      "valuation_mae": null,
+      "valuation_mape": null,
+      "value_added_vs_naive": null
+    }
+  ],
+  "debrief": {
+    "analytics": [
+      {
+        "avg_bid_override": 0.067037,
+        "avg_ltv_override": -0.0125,
+        "avg_realized_return": 0.046357,
+        "downside_brier": 0.51697,
+        "naive_valuation_mae": 1.434646,
+        "noi_growth_mae": 0.014195,
+        "override_count": 8,
+        "properties_scored": 16,
+        "properties_won": 8,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund",
+        "valuation_mae": 0.833157,
+        "valuation_mape": 0.029778,
+        "value_added_vs_naive": 0.41926
+      },
+      {
+        "avg_bid_override": null,
+        "avg_ltv_override": null,
+        "avg_realized_return": 0.045725,
+        "downside_brier": null,
+        "naive_valuation_mae": 1.434646,
+        "noi_growth_mae": null,
+        "override_count": 0,
+        "properties_scored": 0,
+        "properties_won": 1,
+        "team_id": "growth",
+        "team_name": "Growth Fund",
+        "valuation_mae": null,
+        "valuation_mape": null,
+        "value_added_vs_naive": null
+      },
+      {
+        "avg_bid_override": null,
+        "avg_ltv_override": null,
+        "avg_realized_return": 0.026195,
+        "downside_brier": null,
+        "naive_valuation_mae": 1.434646,
+        "noi_growth_mae": null,
+        "override_count": 0,
+        "properties_scored": 0,
+        "properties_won": 3,
+        "team_id": "value",
+        "team_name": "Value Fund",
+        "valuation_mae": null,
+        "valuation_mape": null,
+        "value_added_vs_naive": null
+      }
+    ],
+    "answers": [
+      {
+        "answer": "REAL605 Student Fund finished with $109.24M NAV (+9.2% on $100M of equity).",
+        "detail": "8 assets, $124.4M of debt.",
+        "number": 1,
+        "question": "Who won the game?",
+        "team_id": "student"
+      },
+      {
+        "answer": "REAL605 Student Fund, with a valuation MAE of $0.83M over 16 properties priced.",
+        "detail": "NOI-growth MAE 0.0142.",
+        "number": 2,
+        "question": "Who had the best model?",
+        "team_id": "student"
+      },
+      {
+        "answer": "Yes \u2014 the best analysis also won.",
+        "detail": "Analytical quality and game outcome agreed in this run.",
+        "number": 3,
+        "question": "Were the winner and the best model the same team?",
+        "team_id": null
+      },
+      {
+        "answer": "REAL605 Student Fund deviated from its own stated bid ceiling 11 times.",
+        "detail": "11 deliberate overrides across all funds.",
+        "number": 4,
+        "question": "Who overrode their own model most often?",
+        "team_id": "student"
+      },
+      {
+        "answer": "Overridden purchases returned -2.2% against +7.1% for disciplined ones (-9.3% difference, 4 vs 4 deals).",
+        "detail": "Overrides hurt \u2014 discipline would have paid better.",
+        "number": 5,
+        "question": "Did those overrides help or hurt?",
+        "team_id": null
+      },
+      {
+        "answer": "REAL605 Student Fund ran 56% gross LTV across 8 assets, at a weighted debt rate of 6.48%.",
+        "detail": "$124.4M of debt outstanding.",
+        "number": 6,
+        "question": "Who used the most leverage?",
+        "team_id": "student"
+      },
+      {
+        "answer": "3 of 3 levered funds earned positive net carry (NOI received minus interest paid).",
+        "detail": "REAL605 Student Fund: 56% LTV, return on cost +13.9% vs debt rate 6.48% \u2192 accretive (return on cost beat the debt rate) | Value Fund: 52% LTV, return on cost +17.1% vs debt rate 6.55% \u2192 accretive (return on cost beat the debt rate) | Growth Fund: 53% LTV, return on cost +17.0% vs debt rate 6.07% \u2192 accretive (return on cost beat the debt rate)",
+        "number": 7,
+        "question": "Did leverage create or destroy value?",
+        "team_id": null
+      },
+      {
+        "answer": "REAL605 Student Fund bought OC-INDU-09 in round 3 at or below the asking price and still lost money (-1.2% over the year).",
+        "detail": "Nothing was wrong with the process; the realised year differed from the ex-ante expectation.",
+        "number": 8,
+        "question": "Which decision looked right beforehand but went wrong?",
+        "team_id": "student"
+      },
+      {
+        "answer": "No team was paid for an above-market bid this run.",
+        "detail": "",
+        "number": 9,
+        "question": "Which team got lucky?",
+        "team_id": null
+      },
+      {
+        "answer": "The best model won, so analytical quality and decision quality were aligned. Check the override record before concluding the model alone earned it.",
+        "detail": "A good forecast is necessary but not sufficient: it has to be converted into a bid you are actually willing to win with, under a capital constraint, and then it has to survive the year.",
+        "number": 10,
+        "question": "What should a student conclude?",
+        "team_id": null
+      }
+    ],
+    "case_counts": {
+      "GOOD DECISION + BAD REALIZED OUTCOME": 2,
+      "MODEL GOOD + BAD OVERRIDE": 1
+    },
+    "channels": [
+      {
+        "acquisition_costs": 4.269772,
+        "assets": 8,
+        "cumulative_return": 0.092437,
+        "gross_ltv": 0.564377,
+        "interest_paid": 16.118319,
+        "nav": 109.243674,
+        "net_carry": 6.510971,
+        "noi_income": 28.892403,
+        "reserves": 6.263113,
+        "return_on_cost": 0.138798,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund",
+        "value_channel": 7.002475,
+        "weighted_debt_rate": 0.064797
+      },
+      {
+        "acquisition_costs": 1.542547,
+        "assets": 3,
+        "cumulative_return": 0.039615,
+        "gross_ltv": 0.517126,
+        "interest_paid": 7.654173,
+        "nav": 103.961521,
+        "net_carry": 3.80763,
+        "noi_income": 13.810466,
+        "reserves": 2.348663,
+        "return_on_cost": 0.170604,
+        "team_id": "value",
+        "team_name": "Value Fund",
+        "value_channel": 1.696438,
+        "weighted_debt_rate": 0.065457
+      },
+      {
+        "acquisition_costs": 0.219153,
+        "assets": 1,
+        "cumulative_return": 0.005511,
+        "gross_ltv": 0.525951,
+        "interest_paid": 1.097462,
+        "nav": 100.551149,
+        "net_carry": 0.26927,
+        "noi_income": 1.699984,
+        "reserves": 0.333253,
+        "return_on_cost": 0.170453,
+        "team_id": "growth",
+        "team_name": "Growth Fund",
+        "value_channel": 0.501033,
+        "weighted_debt_rate": 0.0607
+      }
+    ],
+    "examples": {
+      "GOOD DECISION + BAD REALIZED OUTCOME": {
+        "asking_price": 33.8466,
+        "bid_override": 0.755176,
+        "case_labels": [
+          "GOOD DECISION + BAD REALIZED OUTCOME"
+        ],
+        "decision_label": "GOOD_DECISION",
+        "headline": "GOOD_MODEL / GOOD_DECISION / BAD_OUTCOME",
+        "ltv_override": 0.0,
+        "model_label": "GOOD_MODEL",
+        "outcome_label": "BAD_OUTCOME",
+        "override_label": "OVERRODE_UP",
+        "property_id": "OC-INDU-09",
+        "realized_return": -0.012225,
+        "round_number": 2,
+        "team_id": "student",
+        "valuation_error_pct": 0.018547,
+        "won": true
+      },
+      "MODEL GOOD + BAD OVERRIDE": {
+        "asking_price": 41.9059,
+        "bid_override": 2.605794,
+        "case_labels": [
+          "MODEL GOOD + BAD OVERRIDE"
+        ],
+        "decision_label": "BAD_DECISION",
+        "headline": "GOOD_MODEL / BAD_DECISION / BAD_OUTCOME",
+        "ltv_override": -0.05,
+        "model_label": "GOOD_MODEL",
+        "outcome_label": "BAD_OUTCOME",
+        "override_label": "OVERRODE_UP",
+        "property_id": "OC-RETA-08",
+        "realized_return": -0.026969,
+        "round_number": 1,
+        "team_id": "student",
+        "valuation_error_pct": 0.00047,
+        "won": true
+      }
+    },
+    "override_summary": {
+      "disciplined_avg_return": 0.071339,
+      "disciplined_count": 4.0,
+      "overridden_avg_return": -0.021512,
+      "overridden_count": 4.0
+    },
+    "standings": [
+      {
+        "assets": 8,
+        "cash": 13.192748,
+        "cumulative_return": 0.092437,
+        "debt": 124.440145,
+        "nav": 109.243674,
+        "rank": 1,
+        "team_id": "student",
+        "team_name": "REAL605 Student Fund"
+      },
+      {
+        "assets": 3,
+        "cash": 65.899579,
+        "cumulative_return": 0.039615,
+        "debt": 40.761841,
+        "nav": 103.961521,
+        "rank": 2,
+        "team_id": "value",
+        "team_name": "Value Fund"
+      },
+      {
+        "assets": 1,
+        "cash": 95.119181,
+        "cumulative_return": 0.005511,
+        "debt": 6.026699,
+        "nav": 100.551149,
+        "rank": 3,
+        "team_id": "growth",
+        "team_name": "Growth Fund"
+      }
+    ]
+  },
+  "game_complete": true,
+  "standings": [
+    {
+      "assets": 8,
+      "cash": 13.192748,
+      "cumulative_return": 0.092437,
+      "debt": 124.440145,
+      "nav": 109.243674,
+      "rank": 1,
+      "team_id": "student",
+      "team_name": "REAL605 Student Fund"
+    },
+    {
+      "assets": 3,
+      "cash": 65.899579,
+      "cumulative_return": 0.039615,
+      "debt": 40.761841,
+      "nav": 103.961521,
+      "rank": 2,
+      "team_id": "value",
+      "team_name": "Value Fund"
+    },
+    {
+      "assets": 1,
+      "cash": 95.119181,
+      "cumulative_return": 0.005511,
+      "debt": 6.026699,
+      "nav": 100.551149,
+      "rank": 3,
+      "team_id": "growth",
+      "team_name": "Growth Fund"
+    }
+  ],
+  "state": {
+    "$state_ref": "_states/19-open-after-final-state.json.gz",
+    "sha256": "a240fc22fe92564e4b684667fb6054c35d776d718a7d788dd6857c9ae8caa301"
+  }
+}
