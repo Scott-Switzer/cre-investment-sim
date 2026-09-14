@@ -79,7 +79,7 @@ function ProfessorConsole() {
               <div className="stat-label" style={{ color: "var(--slate-500)", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>
                 Join code
               </div>
-              <span className="topbar-code" style={{ fontSize: 20, padding: "6px 14px" }} data-testid="join-code">
+              <span className="topbar-code" style={{ fontSize: 32, padding: "10px 22px", fontWeight: 700 }} data-testid="join-code">
                 {joinCode}
               </span>
             </div>

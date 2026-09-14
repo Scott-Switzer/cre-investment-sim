@@ -472,7 +472,16 @@ describe("the professor's grid", () => {
       "submitted",
       "submittedAt",
     ]);
-    expect(JSON.stringify(professorView.grid)).not.toContain("99");
+    // Never the amount itself: check the numeric/status fields, not the raw JSON —
+    // a timestamp or fundId hash can legitimately contain "99".
+    for (const field of ["submittedAt", "bids", "passes", "bidsAboveOwnCeiling", "ltvAboveOwnTarget"]) {
+      const value = (row as unknown as Record<string, unknown>)[field];
+      if (value !== null && value !== undefined) {
+        expect(String(value)).not.toBe("99");
+      }
+    }
+    expect(JSON.stringify(professorView.grid)).not.toContain("winning_bid");
+    expect(JSON.stringify(professorView.grid)).not.toContain("reserve_price");
   });
 
   it("is absent for a student, who sees only their own decision", async () => {

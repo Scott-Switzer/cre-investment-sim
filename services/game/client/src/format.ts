@@ -26,10 +26,34 @@ export function pct(value: number | null | undefined, digits = 1): string {
   return `${(value * 100).toFixed(digits)}%`;
 }
 
-export function pctSigned(value: number | null | undefined, digits = 1): string {
+/**
+ * A signed percentage (a rate expressed as a fraction of 1): +3.3%.
+ * For predicted upside, NOI growth, valuation error and returns — all of which
+ * are rates, not differences between rates.
+ */
+export function signedPercent(value: number | null | undefined, digits = 1): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+  const v = value * 100;
+  return `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(digits)}%`;
+}
+
+/**
+ * A signed difference between two percentage rates: +3.0 pp.
+ * Reserved for *differences* (e.g. "your LTV was 3 pp over your target"),
+ * never for a rate itself.
+ */
+export function signedPoints(value: number | null | undefined, digits = 1): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
   const v = value * 100;
   return `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(digits)} pp`;
+}
+
+/**
+ * Legacy alias — migrated to `signedPercent`. Kept only so stale imports fail
+ * loudly in code review rather than silently changing what a screen shows.
+ */
+export function pctSigned(value: number | null | undefined, digits = 1): string {
+  return signedPercent(value, digits);
 }
 
 export function num(value: number | null | undefined, digits = 0): string {
@@ -66,4 +90,16 @@ export function capitalImpact(bid: number, ltv: number, acquisitionCostRate: num
   const equity = bid - loan;
   const dealCosts = bid * acquisitionCostRate;
   return { price: bid, loan, equity, dealCosts, total: equity + dealCosts };
+}
+
+/**
+ * Debt yield: NOI ÷ loan amount. At ask and max LTV the loan is ask × max LTV,
+ * so debt yield = NOI ÷ (ask × max LTV) — a lender's measure of the income
+ * cushion, independent of leverage.
+ */
+export function debtYieldAt(noi: number | null, price: number | null, ltv: number | null): number | null {
+  if (noi === null || price === null || ltv === null) return null;
+  const loan = price * ltv;
+  if (!Number.isFinite(loan) || loan <= 0) return null;
+  return noi / loan;
 }

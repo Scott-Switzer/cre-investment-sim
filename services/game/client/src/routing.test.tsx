@@ -143,7 +143,7 @@ describe("practice result semantics", () => {
         isOpenForSubmissions: false,
         public: { deals: [], funds: [], economics: { acquisition_cost_rate: 0.02, capital_reserve_rate: {} }, market: null, round_number: -1, stage: "practice", is_practice: true, round_state: "resolved", total_rounds: 4 },
         myForecast: [],
-        myDecision: { items: [], submittedAt: "t" },
+        myDecision: { items: [{ propertyId: "OC-INDU-01", action: "BID" as const, bid: 42.0, ltv: 0.6 }], submittedAt: "t" },
         submittedFunds: 1,
         totalFunds: 1,
         rejected: [],
@@ -172,6 +172,145 @@ describe("practice result semantics", () => {
     renderAtUrl("/game/results");
     expect(screen.getByTestId("practice-not-booked")).toHaveTextContent("Transaction not booked");
     expect(screen.getByTestId("practice-not-booked").textContent).not.toMatch(/^NO SALE$/);
+    // A would-have-won practice bid is a success: never a bare "No sale" badge.
+    expect(screen.getByTestId("would-have-won")).toBeInTheDocument();
+    expect(screen.queryByText("No sale")).not.toBeInTheDocument();
+    expect(screen.getByText("Would win — practice not booked")).toBeInTheDocument();
+  });
+
+  it("a rival's sold asset is never rendered as my acquisition", () => {
+    // fund_2 wins. The authenticated fund is fund_1, so the badge must read Sold,
+    // not "You acquired this".
+    const view = sessionState({
+      session: { ...baseRound, phase: "round_results" },
+      round: {
+        round: 0,
+        roundLabel: "Round 1",
+        isPractice: false,
+        openedAt: "t",
+        closedAt: "t",
+        resolvedAt: "t",
+        isOpenForSubmissions: false,
+        public: { deals: [], funds: [], economics: { acquisition_cost_rate: 0.02, capital_reserve_rate: {} }, market: null, round_number: 0, stage: "scored", is_practice: false, round_state: "resolved", total_rounds: 4 },
+        myForecast: [],
+        myDecision: { items: [{ propertyId: "OC-INDU-01", action: "BID" as const, bid: 40.0, ltv: 0.6 }], submittedAt: "t" },
+        submittedFunds: 2,
+        totalFunds: 2,
+        rejected: [],
+        results: {
+          round_number: 0,
+          auctions: [{
+            property_id: "OC-INDU-01",
+            sold: true,
+            reason: "sold",
+            winning_team_id: "fund_2",
+            winning_bid: 41.5,
+            winning_ltv: 0.6,
+            reserve_price: 40.0,
+            realized_value: 44.2,
+            realized_noi: 2.1,
+            noi_growth_actual: 0.031,
+            cap_rate_actual: 0.052,
+            asking_price: 43.2,
+          }],
+          pnl: [],
+          standings: [],
+        },
+      },
+    });
+    stateRef.current = view;
+    renderAtUrl("/game/results");
+    expect(screen.getByText("Sold")).toBeInTheDocument();
+    expect(screen.queryByText("You acquired this")).not.toBeInTheDocument();
+  });
+
+  it("my own sold asset is rendered as my acquisition", () => {
+    const view = sessionState({
+      session: { ...baseRound, phase: "round_results" },
+      round: {
+        round: 0,
+        roundLabel: "Round 1",
+        isPractice: false,
+        openedAt: "t",
+        closedAt: "t",
+        resolvedAt: "t",
+        isOpenForSubmissions: false,
+        public: { deals: [], funds: [], economics: { acquisition_cost_rate: 0.02, capital_reserve_rate: {} }, market: null, round_number: 0, stage: "scored", is_practice: false, round_state: "resolved", total_rounds: 4 },
+        myForecast: [],
+        myDecision: { items: [{ propertyId: "OC-INDU-01", action: "BID" as const, bid: 42.0, ltv: 0.6 }], submittedAt: "t" },
+        submittedFunds: 2,
+        totalFunds: 2,
+        rejected: [],
+        results: {
+          round_number: 0,
+          auctions: [{
+            property_id: "OC-INDU-01",
+            sold: true,
+            reason: "sold",
+            winning_team_id: "fund_1",
+            winning_bid: 42.0,
+            winning_ltv: 0.6,
+            reserve_price: 40.0,
+            realized_value: 44.2,
+            realized_noi: 2.1,
+            noi_growth_actual: 0.031,
+            cap_rate_actual: 0.052,
+            asking_price: 43.2,
+          }],
+          pnl: [],
+          standings: [],
+        },
+      },
+    });
+    stateRef.current = view;
+    renderAtUrl("/game/results");
+    expect(screen.getByText("You acquired this")).toBeInTheDocument();
+  });
+
+  it("a scored no-sale never receives practice wording", () => {
+    const view = sessionState({
+      session: { ...baseRound, phase: "round_results" },
+      round: {
+        round: 0,
+        roundLabel: "Round 1",
+        isPractice: false,
+        openedAt: "t",
+        closedAt: "t",
+        resolvedAt: "t",
+        isOpenForSubmissions: false,
+        public: { deals: [], funds: [], economics: { acquisition_cost_rate: 0.02, capital_reserve_rate: {} }, market: null, round_number: 0, stage: "scored", is_practice: false, round_state: "resolved", total_rounds: 4 },
+        myForecast: [],
+        myDecision: { items: [{ propertyId: "OC-INDU-01", action: "BID" as const, bid: 38.0, ltv: 0.6 }], submittedAt: "t" },
+        submittedFunds: 2,
+        totalFunds: 2,
+        rejected: [],
+        results: {
+          round_number: 0,
+          auctions: [{
+            property_id: "OC-INDU-01",
+            sold: false,
+            reason: "reserve not met",
+            winning_team_id: null,
+            winning_bid: null,
+            winning_ltv: null,
+            reserve_price: 40.0,
+            realized_value: 44.2,
+            realized_noi: 2.1,
+            noi_growth_actual: 0.031,
+            cap_rate_actual: 0.052,
+            asking_price: 43.2,
+          }],
+          pnl: [],
+          standings: [],
+        },
+      },
+    });
+    stateRef.current = view;
+    renderAtUrl("/game/results");
+    expect(screen.getByText("No sale")).toBeInTheDocument();
+    expect(screen.queryByText("Would win — practice not booked")).not.toBeInTheDocument();
+    expect(screen.queryByText("Practice — not booked")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("practice-not-booked")).not.toBeInTheDocument();
   });
 
   it("counts decision overrides separately from invested overrides", () => {

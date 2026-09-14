@@ -13,7 +13,7 @@ import { Navigate } from "react-router-dom";
 
 import { api, ApiError, type UploadReport } from "../api";
 import { Badge, ErrorBox, Panel } from "../components";
-import { money, pct } from "../format";
+import { money, pct, signedPercent } from "../format";
 import { SessionTopbar } from "../chrome";
 import { useSession } from "../session";
 
@@ -111,7 +111,7 @@ export function ModelCheckIn() {
                 <>
                   <div className="kv"><span className="k">Model name</span><span className="v small">{summary.modelName}</span></div>
                   <div className="kv"><span className="k">Mean target LTV</span><span className="v" data-testid="mean-target-ltv">{pct(summary.meanTargetLtv, 0)}</span></div>
-                  <div className="kv"><span className="k">Mean max-bid vs ask</span><span className="v">{pctSignedFormat(summary.meanMaxBidDiscountToAsk)}</span></div>
+                  <div className="kv"><span className="k">Mean max-bid vs ask</span><span className="v">{signedPercent(summary.meanMaxBidDiscountToAsk)}</span></div>
                 </>
               ) : (
                 <p className="help" style={{ marginTop: 0 }}>
@@ -184,8 +184,8 @@ export function ModelCheckIn() {
                 <div className="grid-2">
                   <div>
                     <div className="kv"><span className="k">Properties matched</span><span className="v" data-testid="matched-count">{summary.propertiesMatched} / {session.poolCount}</span></div>
-                    <div className="kv"><span className="k">Mean predicted upside vs ask</span><span className="v">{pctSignedFormat(summary.meanPredictedUpsideVsAsk)}</span></div>
-                    <div className="kv"><span className="k">Mean predicted NOI growth</span><span className="v">{pctSignedFormat(summary.meanPredictedNoiGrowth)}</span></div>
+                    <div className="kv"><span className="k">Mean predicted upside vs ask</span><span className="v">{signedPercent(summary.meanPredictedUpsideVsAsk)}</span></div>
+                    <div className="kv"><span className="k">Mean predicted NOI growth</span><span className="v">{signedPercent(summary.meanPredictedNoiGrowth)}</span></div>
                   </div>
                   <div>
                     <div className="kv"><span className="k">Mean downside probability</span><span className="v">{pct(summary.meanDownsideProbability, 0)}</span></div>
@@ -226,12 +226,6 @@ export function ModelCheckIn() {
       </main>
     </div>
   );
-}
-
-function pctSignedFormat(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return "—";
-  const v = value * 100;
-  return `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)}%`;
 }
 
 // Re-exported so the import above stays meaningful if this file grows.

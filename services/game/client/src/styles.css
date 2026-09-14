@@ -227,6 +227,10 @@ a { color: var(--navy-700); }
 .deal-card:hover { border-color: var(--slate-400); box-shadow: 0 3px 10px rgba(10, 20, 32, 0.1); }
 .deal-card.decided-pass { border-color: var(--slate-300); opacity: 0.78; }
 .deal-card.decided-bid { border-color: var(--navy-600); box-shadow: 0 0 0 1px var(--navy-600); }
+/* A one-deal round (Practice) centers its single card deliberately so the empty
+   canvas reads as intention, not as three cards that failed to load. */
+.deal-card.deal-card-single .deal-img { aspect-ratio: 16 / 6; }
+.deal-card.deal-card-single .deal-metrics { grid-template-columns: repeat(3, 1fr); }
 .deal-img { position: relative; aspect-ratio: 16 / 7; background: var(--navy-800); overflow: hidden; }
 .deal-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .deal-img .type-chip {
@@ -255,7 +259,7 @@ a { color: var(--navy-700); }
   display: flex; justify-content: flex-end; z-index: 60;
 }
 .drawer {
-  width: min(560px, 92vw); height: 100%; background: var(--paper);
+  width: min(880px, 94vw); height: 100%; background: var(--paper);
   box-shadow: var(--shadow-2); display: flex; flex-direction: column;
   animation: slide-in 180ms ease;
 }
@@ -275,6 +279,38 @@ a { color: var(--navy-700); }
 .drawer-section { margin-bottom: 18px; }
 .drawer-section > .panel-label {
   display: block; padding-bottom: 6px; border-bottom: 2px solid var(--navy-800); margin-bottom: 4px;
+}
+
+/* ── two-column underwriting drawer ─────────────────────────────────── */
+/* Left: asset facts scroll. Right: the analysis chain stays sticky so
+   forecast → policy → decision is visible without scrolling. */
+.drawer-2col {
+  display: grid; grid-template-columns: 1fr 380px; gap: 0; min-height: 100%;
+  align-items: start;
+}
+.drawer-facts { padding-right: 18px; border-right: 1px solid var(--slate-200); }
+.drawer-analysis {
+  padding-left: 18px; position: sticky; top: 0;
+  max-height: calc(100vh - 120px); overflow-y: auto;
+}
+.analysis-block {
+  background: var(--white); border: 1px solid var(--slate-200);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px;
+}
+.analysis-block:first-child {
+  background: var(--navy-900); color: var(--white); border-color: var(--navy-900);
+}
+.analysis-block:first-child .panel-label { color: var(--slate-300); }
+.analysis-block:first-child .analysis-sub { color: var(--slate-400); font-size: 12px; }
+.analysis-head {
+  display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--navy-700); margin-bottom: 8px;
+}
+.analysis-block:first-child .analysis-head { color: var(--slate-300); }
+@media (max-width: 900px) {
+  .drawer-2col { grid-template-columns: 1fr; }
+  .drawer-facts { border-right: none; padding-right: 0; }
+  .drawer-analysis { position: static; max-height: none; padding-left: 0; }
 }
 
 /* ── decision panel ─────────────────────────────────────────────────── */

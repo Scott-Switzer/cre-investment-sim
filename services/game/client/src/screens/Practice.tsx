@@ -5,6 +5,12 @@
  * the board. Every number shown is either the engine's (deal data, forecasts,
  * results) or presentation arithmetic on a bid the player has typed (capital impact),
  * from the engine's own published rates.
+ *
+ * The underwriting drawer is a two-column surface: asset facts scroll on the left,
+ * while YOUR ANALYSIS (pre-class forecast → investment policy → your decision →
+ * capital impact → policy override) stays sticky on the right, so the central
+ * teaching chain — market facts → model forecast → policy → decision — is visible
+ * at all times.
  */
 
 import { useEffect, useState } from "react";
@@ -12,7 +18,17 @@ import { Navigate, useNavigate } from "react-router-dom";
 
 import { api, ApiError, type DecisionItem, type Deal, type ForecastRow, type RoundView } from "../api";
 import { Badge, Drawer, ErrorBox, Kv, Modal, Section } from "../components";
-import { capitalImpact, money, num, pct, pctSigned, qualityLabel, sqft } from "../format";
+import {
+  capitalImpact,
+  debtYieldAt,
+  money,
+  num,
+  pct,
+  qualityLabel,
+  signedPercent,
+  signedPoints,
+  sqft,
+} from "../format";
 import { SessionTopbar } from "../chrome";
 import { imageForProperty } from "../propertyImages";
 import { useSession } from "../session";
@@ -121,6 +137,7 @@ export function Practice() {
 
   const drawerDeal = deals.find((d) => d.property_id === drawerFor) ?? null;
   const submitted = round?.myDecision !== null && round?.myDecision !== undefined;
+  const singleDeal = deals.length === 1;
 
   async function submit() {
     setBusy(true);
@@ -184,7 +201,11 @@ export function Practice() {
           </div>
         </div>
 
-        <div className="board" data-testid="deal-board">
+        <div
+          className="board"
+          data-testid="deal-board"
+          style={singleDeal ? { gridTemplateColumns: "minmax(520px, 720px)", justifyContent: "center" } : undefined}
+        >
           {deals.map((deal) => (
             <DealCard
               key={deal.property_id}
@@ -195,6 +216,7 @@ export function Practice() {
               forecast={forecasts.get(deal.property_id)}
               acqRate={acqRate}
               disabled={submitted || !round?.isOpenForSubmissions}
+              enlarged={singleDeal}
             />
           ))}
         </div>
@@ -228,6 +250,10 @@ export function Practice() {
         <UnderwritingDrawer
           deal={drawerDeal}
           forecast={forecasts.get(drawerDeal.property_id)}
+          draft={drafts[drawerDeal.property_id] ?? { action: "PASS", bid: "", ltv: "" }}
+          onDraft={(d) => setDrafts((prev) => ({ ...prev, [drawerDeal.property_id]: d }))}
+          acqRate={acqRate}
+          disabled={submitted || !round?.isOpenForSubmissions}
           onClose={() => setDrawerFor(null)}
         />
       ) : null}
@@ -253,6 +279,7 @@ function DealCard({
   forecast,
   acqRate,
   disabled,
+  enlarged,
 }: {
   deal: Deal;
   draft: Draft;
@@ -261,6 +288,7 @@ function DealCard({
   forecast: ForecastRow | undefined;
   acqRate: number;
   disabled: boolean;
+  enlarged: boolean;
 }) {
   const image = imageForProperty(deal.property_type);
   const ask = deal.asking_price;
@@ -274,7 +302,7 @@ function DealCard({
 
   return (
     <article
-      className={`deal-card ${decided ? "decided-bid" : bidding ? "decided-pass" : ""}`}
+      className={`deal-card ${decided ? "decided-bid" : bidding ? "decided-pass" : ""}${enlarged ? " deal-card-single" : ""}`}
       data-testid={`deal-card-${deal.property_id}`}
     >
       <div className="deal-img">
@@ -310,7 +338,7 @@ function DealCard({
           </div>
           <div className="deal-metric">
             <div className="m-label">Predicted upside</div>
-            <div className="m-value">{upside === null ? "—" : pctSigned(upside)}</div>
+            <div className="m-value">{upside === null ? "—" : signedPercent(upside)}</div>
           </div>
           <div className="deal-metric">
             <div className="m-label">Downside prob.</div>
@@ -402,106 +430,264 @@ function DealCard({
   );
 }
 
+/**
+ * The two-column underwriting surface.
+ *
+ * Left: asset facts (Property / Operations / Capital markets / Ownership costs).
+ * Right (sticky): the analysis chain — pre-class forecast, investment policy,
+ * the live decision, capital impact, and any policy override. The right column is
+ * what the game is about; it must never be below the fold.
+ */
 function UnderwritingDrawer({
   deal,
   forecast,
+  draft,
+  onDraft,
+  acqRate,
+  disabled,
   onClose,
 }: {
   deal: Deal;
   forecast: ForecastRow | undefined;
+  draft: Draft;
+  onDraft: (d: Draft) => void;
+  acqRate: number;
+  disabled: boolean;
   onClose: () => void;
 }) {
+  const bidding = draft.action === "BID";
+  const bidValue = bidding && draft.bid.trim() !== "" ? Number(draft.bid) : null;
+  const ltvValue = bidding && draft.ltv.trim() !== "" ? Number(draft.ltv) / 100 : null;
+  const impact =
+    bidValue !== null && ltvValue !== null && Number.isFinite(ltvValue)
+      ? capitalImpact(bidValue, ltvValue, acqRate)
+      : null;
+
+  const override = forecast && bidValue !== null
+    ? {
+        priceOver: bidValue > forecast.policy.maxBid + 1e-9,
+        ltvOver: ltvValue !== null && ltvValue > forecast.policy.targetLtv + 1e-9,
+        priceDelta: bidValue - forecast.policy.maxBid,
+        ltvDelta: ltvValue !== null ? ltvValue - forecast.policy.targetLtv : 0,
+      }
+    : null;
+
+  const dynDebtYield = debtYieldAt(deal.current_noi, bidValue, ltvValue);
+
   return (
     <Drawer
       title={deal.property_name}
       subtitle={`${deal.property_type} · ${deal.submarket}${deal.units ? ` · ${num(deal.units)} units` : ""}`}
       onClose={onClose}
     >
-      <Section label="Property">
-        <Kv k="Building" v={sqft(deal.building_sf)} />
-        {deal.units ? <Kv k="Units" v={num(deal.units)} /> : null}
-        <Kv k="Year built" v={deal.year_built ?? "—"} />
-        <Kv k="Occupancy" v={pct(deal.occupancy, 1)} />
-        <Kv k="WALT" v={deal.walt === null ? "—" : `${deal.walt.toFixed(1)} yrs`} />
-        <Kv k="Tenant concentration" v={pct(deal.tenant_concentration, 0)} />
-        <Kv k="Lease rollover" v={deal.lease_expiry_profile ?? "—"} />
-      </Section>
+      <div className="drawer-2col">
+        <div className="drawer-facts">
+          <Section label="Property">
+            <Kv k="Building" v={sqft(deal.building_sf)} />
+            {deal.units ? <Kv k="Units" v={num(deal.units)} /> : null}
+            <Kv k="Year built" v={deal.year_built ?? "—"} />
+            <Kv k="Occupancy" v={pct(deal.occupancy, 1)} />
+            <Kv k="WALT" v={deal.walt === null ? "—" : `${deal.walt.toFixed(1)} yrs`} />
+            <Kv k="Tenant concentration" v={pct(deal.tenant_concentration, 0)} />
+            <Kv k="Lease rollover" v={deal.lease_expiry_profile ?? "—"} />
+            <Kv
+              k="Property quality"
+              v={<span className="v small">{qualityLabel(deal.property_quality)}</span>}
+              title="Letter grade derived from the teaching dataset's synthetic condition score. Shown as a grade only; the raw score is an engine-internal teaching feature."
+            />
+          </Section>
 
-      <Section label="Operations">
-        <Kv k="Current NOI" v={money(deal.current_noi, 2)} />
-        <Kv k="Market rent" v={deal.market_rent === null ? "—" : `$${deal.market_rent.toFixed(2)}/SF/mo`} />
-        <Kv k="In-place rent" v={deal.in_place_rent === null ? "—" : `$${deal.in_place_rent.toFixed(2)}/SF/mo`} />
-        <Kv k="Opex ratio" v={pct(deal.opex_ratio, 1)} />
-        <Kv k="Property quality" v={`${qualityLabel(deal.property_quality)} · ${pct(deal.property_quality, 0)}`} />
-        <Kv k="Primary risk" v={<span className="v small">{deal.primary_risk ?? "—"}</span>} />
-        {deal.indicative_capex_exposure !== null && deal.indicative_capex_exposure !== undefined ? (
-          <div className="mt-12">
-            <Kv k="Indicative Capex Exposure" v={money(deal.indicative_capex_exposure, 2)} />
-            <div className="capex-note mt-8" data-testid="capex-note">
-              {deal.indicative_capex_note ??
-                "Analytical property-condition feature. Not directly deducted from NAV."}
+          <Section label="Operations">
+            <Kv k="Current NOI" v={money(deal.current_noi, 2)} />
+            <Kv k="Market rent" v={deal.market_rent === null ? "—" : `$${deal.market_rent.toFixed(2)}/SF/mo`} />
+            <Kv k="In-place rent" v={deal.in_place_rent === null ? "—" : `$${deal.in_place_rent.toFixed(2)}/SF/mo`} />
+            <Kv k="Opex ratio" v={pct(deal.opex_ratio, 1)} />
+            <Kv k="Primary risk" v={<span className="v small">{deal.primary_risk ?? "—"}</span>} />
+            {deal.indicative_capex_exposure !== null && deal.indicative_capex_exposure !== undefined ? (
+              <div className="mt-12">
+                <Kv k="Indicative Capex Exposure" v={money(deal.indicative_capex_exposure, 2)} />
+                <div className="capex-note mt-8" data-testid="capex-note">
+                  Condition indicator only. This amount is not deducted directly. The game
+                  instead charges the annual capital reserve shown under Ownership costs.
+                </div>
+              </div>
+            ) : null}
+          </Section>
+
+          <Section label="Capital markets">
+            <Kv k="Asking price" v={money(deal.asking_price)} strong />
+            <Kv k="Going-in cap" v={pct(deal.going_in_cap, 2)} />
+            <Kv k="Debt rate" v={pct(deal.debt_rate, 2)} />
+            <Kv
+              k="Max LTV"
+              v={pct(deal.max_ltv, 0)}
+              title="Maximum loan-to-value the game's lender will fund"
+            />
+            <Kv
+              k="Loan term (descriptive)"
+              v={deal.amortization_years ? `${deal.amortization_years} yrs — not amortizing` : "—"}
+              title="The game's debt is interest-only; this term is descriptive only and does not affect cash flows."
+            />
+            {deal.asking_price && deal.current_noi && deal.max_ltv ? (
+              <Kv
+                k="Debt yield at ask, max LTV"
+                v={pct(debtYieldAt(deal.current_noi, deal.asking_price, deal.max_ltv), 1)}
+                title="NOI ÷ loan amount (ask × max LTV) — a lender's measure of the income cushion on the largest possible loan"
+              />
+            ) : null}
+            {deal.asking_price && deal.current_noi && deal.debt_rate && deal.max_ltv ? (
+              <Kv
+                k="IO DSCR at ask, max LTV"
+                v={`${(deal.current_noi / (deal.asking_price * deal.max_ltv * deal.debt_rate)).toFixed(2)}×`}
+                title="NOI ÷ annual interest at the property's maximum loan-to-value. Game debt is interest-only, so this is an interest-coverage ratio, not an amortizing DSCR."
+              />
+            ) : null}
+          </Section>
+
+          <Section label="Ownership costs">
+            <Kv
+              k="Acquisition costs"
+              v={`${pct(deal.acquisition_cost_rate ?? 0.02, 1)} of price — cash at close`}
+            />
+            <div className="mt-8">
+              <span className="reserve-chip" data-testid="reserve-rate-chip">
+                Annual capital reserve {pct(deal.capital_reserve_rate ?? null, 1)} of value — charged
+                every year held
+              </span>
             </div>
-          </div>
-        ) : null}
-      </Section>
-
-      <Section label="Capital markets">
-        <Kv k="Asking price" v={money(deal.asking_price)} strong />
-        <Kv k="Going-in cap" v={pct(deal.going_in_cap, 2)} />
-        <Kv k="Debt rate" v={pct(deal.debt_rate, 2)} />
-        <Kv k="Max LTV" v={pct(deal.max_ltv, 0)} />
-        <Kv k="Amortization" v={deal.amortization_years ? `${deal.amortization_years} yrs` : "—"} />
-        {deal.asking_price && deal.current_noi ? (
-          <Kv
-            k="Debt yield at ask"
-            v={pct(deal.current_noi / deal.asking_price, 1)}
-            title="NOI ÷ price — a lender's measure of the income cushion, independent of leverage"
-          />
-        ) : null}
-        {deal.asking_price && deal.current_noi && deal.debt_rate && deal.max_ltv ? (
-          <Kv
-            k="DSCR at ask, max LTV"
-            v={`${(deal.current_noi / (deal.asking_price * deal.max_ltv * deal.debt_rate)).toFixed(2)}×`}
-            title="NOI ÷ annual interest at the property's maximum loan-to-value"
-          />
-        ) : null}
-      </Section>
-
-      <Section label="Game ownership costs">
-        <Kv
-          k="Acquisition costs"
-          v={`${pct(deal.acquisition_cost_rate ?? 0.02, 1)} of price — cash at close`}
-        />
-        <div className="mt-8">
-          <span className="reserve-chip" data-testid="reserve-rate-chip">
-            Annual capital reserve {pct(deal.capital_reserve_rate ?? null, 1)} of value — charged
-            every year held
-          </span>
+            <p className="help mt-8">
+              The capital reserve above is a real annual cash charge in the game. The capex
+              figure under Operations is a condition indicator only, not a cash charge.
+            </p>
+          </Section>
         </div>
-        <p className="help mt-8">
-          The reserve above is an actual annual cash charge in the game. The capex figure under
-          Operations is not — it is an analytical condition feature.
-        </p>
-      </Section>
 
-      {forecast ? (
-        <Section label="Your team's pre-class forecast">
-          <Kv k="Predicted fair value" v={money(forecast.forecast.predictedFairValue)} strong />
-          <Kv
-            k="Upside vs ask"
-            v={deal.asking_price ? pctSigned(forecast.forecast.predictedFairValue / deal.asking_price - 1) : "—"}
-          />
-          <Kv k="Predicted NOI growth" v={pctSigned(forecast.forecast.predictedNoiGrowth)} />
-          <Kv k="Downside probability" v={pct(forecast.forecast.probabilityOfDownside, 0)} />
-          <Kv k="Confidence" v={pct(forecast.forecast.confidence, 0)} />
-          <Kv k="Model" v={<span className="v small">{forecast.forecast.modelName}</span>} />
-          <hr className="divider" />
-          <span className="panel-label">Your investment policy</span>
-          <div style={{ height: 6 }} />
-          <Kv k="Maximum price" v={money(forecast.policy.maxBid)} />
-          <Kv k="Target LTV" v={pct(forecast.policy.targetLtv, 0)} />
-        </Section>
-      ) : null}
+        <div className="drawer-analysis">
+          <div className="analysis-block">
+            <span className="panel-label">Your analysis</span>
+            <div style={{ height: 8 }} />
+            <div className="analysis-sub">Market facts → model forecast → policy → decision</div>
+          </div>
+
+          {forecast ? (
+            <div className="analysis-block">
+              <span className="analysis-head">Pre-class forecast</span>
+              <Kv k="Predicted value" v={money(forecast.forecast.predictedFairValue)} strong />
+              <Kv
+                k="Upside vs ask"
+                v={deal.asking_price ? signedPercent(forecast.forecast.predictedFairValue / deal.asking_price - 1) : "—"}
+              />
+              <Kv k="Predicted NOI growth" v={signedPercent(forecast.forecast.predictedNoiGrowth)} />
+              <Kv k="Downside probability" v={pct(forecast.forecast.probabilityOfDownside, 0)} />
+              <Kv k="Confidence" v={pct(forecast.forecast.confidence, 0)} />
+              <Kv k="Model" v={<span className="v small">{forecast.forecast.modelName}</span>} />
+            </div>
+          ) : null}
+
+          {forecast ? (
+            <div className="analysis-block">
+              <span className="analysis-head">Investment policy</span>
+              <Kv k="Maximum price" v={money(forecast.policy.maxBid)} />
+              <Kv k="Target LTV" v={pct(forecast.policy.targetLtv, 0)} />
+            </div>
+          ) : null}
+
+          <div className="analysis-block" data-testid="drawer-decision">
+            <span className="analysis-head">Your decision</span>
+            <div className="seg" role="group" aria-label="Decision in drawer">
+              <button
+                type="button"
+                className={draft.action === "PASS" ? "active" : ""}
+                onClick={() => onDraft({ ...draft, action: "PASS" })}
+                disabled={disabled}
+                data-testid={`drawer-pass-${deal.property_id}`}
+              >
+                Pass
+              </button>
+              <button
+                type="button"
+                className={bidding ? "active" : ""}
+                onClick={() => onDraft({ ...draft, action: "BID" })}
+                disabled={disabled}
+                data-testid={`drawer-bid-${deal.property_id}`}
+              >
+                Bid
+              </button>
+            </div>
+            {bidding ? (
+              <div className="mt-8" style={{ display: "flex", gap: 8 }}>
+                <div className="money-input" style={{ flex: 1 }}>
+                  <span className="prefix">$</span>
+                  <input
+                    className="input"
+                    inputMode="decimal"
+                    value={draft.bid}
+                    onChange={(e) => onDraft({ ...draft, bid: e.target.value })}
+                    placeholder={forecast ? String(forecast.policy.maxBid) : "0.0"}
+                    aria-label={`Bid price in millions for ${deal.property_name} (drawer)`}
+                    disabled={disabled}
+                    data-testid={`drawer-bid-price-${deal.property_id}`}
+                  />
+                </div>
+                <div className="pct-input" style={{ width: 110 }}>
+                  <input
+                    className="input"
+                    inputMode="numeric"
+                    value={draft.ltv}
+                    onChange={(e) => onDraft({ ...draft, ltv: e.target.value })}
+                    placeholder={forecast ? String(Math.round(forecast.policy.targetLtv * 100)) : "60"}
+                    aria-label={`Loan-to-value percent for ${deal.property_name} (drawer)`}
+                    disabled={disabled}
+                    data-testid={`drawer-bid-ltv-${deal.property_id}`}
+                  />
+                  <span className="suffix">%</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {impact ? (
+            <div className="analysis-block">
+              <span className="analysis-head">Capital impact</span>
+              <Kv k="Equity required" v={money(impact.equity)} />
+              <Kv k={`Deal costs (${pct(acqRate, 1)})`} v={money(impact.dealCosts, 2)} />
+              <Kv k="Total cash required" v={money(impact.total)} strong />
+              {dynDebtYield !== null ? (
+                <Kv
+                  k="Debt yield at your bid"
+                  v={pct(dynDebtYield, 1)}
+                  title="NOI ÷ loan at your proposed price and LTV"
+                />
+              ) : null}
+            </div>
+          ) : null}
+
+          {override && (override.priceOver || override.ltvOver) ? (
+            <div className="analysis-block" data-testid="drawer-override">
+              <span className="analysis-head">Policy override</span>
+              <p className="help" style={{ marginTop: 0 }}>
+                Deviating from your locked policy is allowed and recorded, not penalized.
+              </p>
+              {override.priceOver ? (
+                <div className="kv">
+                  <span className="k">Price</span>
+                  <span className="v">
+                    {money(bidValue)} — {signedPoints(override.priceDelta / (forecast?.policy.maxBid || 1))} vs max
+                  </span>
+                </div>
+              ) : null}
+              {override.ltvOver ? (
+                <div className="kv">
+                  <span className="k">LTV</span>
+                  <span className="v">
+                    {pct(ltvValue, 0)} — {signedPoints(override.ltvDelta)} vs target
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </Drawer>
   );
 }
@@ -578,8 +764,13 @@ function OverrideCell({
   const { state } = useSession();
   const forecast = state?.round?.myForecast.find((f) => f.propertyId === propertyId);
   if (!forecast || bid === null) return <span className="deal-sub">—</span>;
-  const priceOver = bid > forecast.policy.maxBid + 1e-9;
-  const ltvOver = ltv !== null && ltv > forecast.policy.targetLtv + 1e-9;
+  const priceDelta = bid - forecast.policy.maxBid;
+  const priceOver = priceDelta > 1e-9;
+  const ltvDelta = ltv !== null ? ltv - forecast.policy.targetLtv : 0;
+  const ltvOver = ltvDelta > 1e-9;
   if (!priceOver && !ltvOver) return <Badge tone="ok">within policy</Badge>;
-  return <Badge tone="warn">override</Badge>;
+  const parts: string[] = [];
+  if (priceOver) parts.push(`Price +${money(priceDelta)}`);
+  if (ltvOver) parts.push(`LTV ${signedPoints(ltvDelta)}`);
+  return <Badge tone="warn">{parts.join(" · ")}</Badge>;
 }

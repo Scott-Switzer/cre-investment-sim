@@ -9,10 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { capitalImpact, money, pctSigned } from "./format";
-
-// pctSigned is used for pp deltas (leverage overrides); pctSignedFormat in screens is
-// the %-version. The two are deliberately distinct.
+import { capitalImpact, debtYieldAt, money, pctSigned, signedPercent, signedPoints } from "./format";
 
 describe("presentation arithmetic", () => {
   it("capital impact follows the engine's published rule", () => {
@@ -31,10 +28,45 @@ describe("presentation arithmetic", () => {
     expect(money(null)).toBe("—");
     expect(money(1500)).toBe("$1.5B");
   });
+});
 
-  it("formats signed percentage-point deltas with a real minus", () => {
-    expect(pctSigned(0.086)).toBe("+8.6 pp");
-    expect(pctSigned(-0.031)).toBe("−3.1 pp");
-    expect(pctSigned(null)).toBe("—");
+describe("percentage semantics", () => {
+  it("signedPercent emits % for rates: upside, growth, valuation error", () => {
+    expect(signedPercent(0.086)).toBe("+8.6%");
+    expect(signedPercent(-0.031)).toBe("−3.1%");
+    expect(signedPercent(0)).toBe("+0.0%");
+    expect(signedPercent(null)).toBe("—");
+  });
+
+  it("signedPoints emits pp only for differences between rates", () => {
+    expect(signedPoints(0.03)).toBe("+3.0 pp");
+    expect(signedPoints(-0.012)).toBe("−1.2 pp");
+    expect(signedPoints(null)).toBe("—");
+  });
+
+  it("pctSigned (legacy alias) now emits % — never pp", () => {
+    // A rate like predicted upside must never read "+3.3 pp".
+    expect(pctSigned(0.033)).toBe("+3.3%");
+    expect(pctSigned(-0.078)).toBe("−7.8%");
+  });
+});
+
+describe("debt yield", () => {
+  it("is NOI ÷ loan amount, not NOI ÷ price", () => {
+    // Known deal: NOI 2.1, ask 43.2, max LTV 0.65.
+    // Cap rate = 2.1/43.2 = 4.86%; debt yield = 2.1/(43.2×0.65) = 7.48%.
+    const noi = 2.1;
+    const ask = 43.2;
+    const maxLtv = 0.65;
+    expect(debtYieldAt(noi, ask, maxLtv)).toBeCloseTo(2.1 / (43.2 * 0.65), 8);
+    // And it must NOT equal the cap rate.
+    expect(debtYieldAt(noi, ask, maxLtv)).not.toBeCloseTo(2.1 / 43.2, 8);
+  });
+
+  it("handles missing inputs without throwing", () => {
+    expect(debtYieldAt(null, 43.2, 0.65)).toBeNull();
+    expect(debtYieldAt(2.1, null, 0.65)).toBeNull();
+    expect(debtYieldAt(2.1, 43.2, null)).toBeNull();
+    expect(debtYieldAt(2.1, 0, 0.65)).toBeNull();
   });
 });

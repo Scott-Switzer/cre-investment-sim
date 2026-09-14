@@ -6,6 +6,10 @@
  * exactly that. After reveal the seller's reserve, the realized year and the would-be
  * winner are shown, because that is the teaching payoff of the rehearsal.
  *
+ * Ownership is decided by the authenticated student's fund id, never by comparing an
+ * auction field to itself. The round's practice flag arrives from the session view —
+ * the round mode is real, not inferred from the auction.
+ *
  * Feedback states are FORECAST / POLICY / OUTCOME. Override terminology is explicit:
  * a *decision* override is any submitted choice that deviated from the locked policy,
  * whether or not the bid won; an *invested* override is one that became an acquired
@@ -17,7 +21,7 @@ import { Navigate } from "react-router-dom";
 
 import { SessionTopbar } from "../chrome";
 import { Badge, Kv, Panel } from "../components";
-import { money, moneySigned, pct, pctSigned } from "../format";
+import { money, moneySigned, pct, signedPercent } from "../format";
 import { imageForProperty } from "../propertyImages";
 import { useSession } from "../session";
 import type { Auction, Deal, ForecastRow, RoundResults, StateView } from "../api";
@@ -63,23 +67,25 @@ export function Results() {
     (round?.myDecision?.items ?? []).map((i) => [i.propertyId, i as DecisionRecord]),
   );
   const pnl = results.pnl.find((p) => p.team_id === state.you.fundId) ?? null;
+  const isPractice = Boolean(round?.isPractice);
+  const myFundId = state.you.fundId;
 
   return (
     <div className="shell">
       <SessionTopbar state={state} />
       <main className="shell-main">
         <div className="page-head">
-          <span className="panel-label">{round?.isPractice ? "Practice outcome" : "Market result"}</span>
+          <span className="panel-label">{isPractice ? "Practice outcome" : "Market result"}</span>
           <h2>{round?.roundLabel ?? session.roundLabel} — resolved</h2>
           <p className="sub">
-            {round?.isPractice
+            {isPractice
               ? "Practice does not add properties to your portfolio or change NAV."
               : "The reserve is published, the year is realized, and holdings are marked."}
           </p>
         </div>
 
         <div className="stack">
-          {round?.isPractice ? <PracticeNotBooked /> : null}
+          {isPractice ? <PracticeNotBooked /> : null}
 
           {results.auctions.map((auction) => (
             <AuctionBlock
@@ -88,6 +94,8 @@ export function Results() {
               deal={deals.find((d) => d.property_id === auction.property_id) ?? null}
               forecast={forecasts.get(auction.property_id)}
               myItem={myItems.get(auction.property_id) ?? null}
+              myFundId={myFundId}
+              isPractice={isPractice}
               rejectedReason={
                 round?.rejected.find(
                   (r) => r.propertyId === auction.property_id && r.fundId === state.you.fundId,
@@ -101,11 +109,11 @@ export function Results() {
             forecasts={forecasts}
             results={results}
             myItems={myItems}
-            isPractice={Boolean(round?.isPractice)}
+            isPractice={isPractice}
           />
 
           {pnl ? (
-            <Panel label={round?.isPractice ? "Practice leaves your books unchanged" : "Your fund after this year"}>
+            <Panel label={isPractice ? "Practice leaves your books unchanged" : "Your fund after this year"}>
               <div className="grid-2">
                 <div>
                   <Kv k="NAV" v={money(pnl.nav)} strong />
@@ -113,7 +121,7 @@ export function Results() {
                 </div>
                 <div>
                   <Kv k="Cumulative return" v={pct(pnl.cumulative_return, 1)} />
-                  {round && !round.isPractice ? (
+                  {round && !isPractice ? (
                     <>
                       <Kv k="NOI income" v={moneySigned(pnl.noi_income, 2)} />
                       <Kv k="Interest paid" v={moneySigned(-Math.abs(pnl.interest_paid), 2)} />
@@ -157,17 +165,22 @@ function AuctionBlock({
   deal,
   forecast,
   myItem,
+  myFundId,
+  isPractice,
   rejectedReason,
 }: {
   auction: Auction;
   deal: Deal | null;
   forecast: ForecastRow | undefined;
   myItem: DecisionRecord | null;
+  myFundId: string | null;
+  isPractice: boolean;
   rejectedReason: string | null;
 }) {
   const image = imageForProperty(deal?.property_type ?? "Office");
   const won = auction.sold && auction.winning_team_id !== null;
-  const iWon = won && auction.winning_team_id === myWinnerTeamId(auction);
+  // Ownership is the authenticated fund id, not the auction echoing itself.
+  const iWon = won && myFundId !== null && auction.winning_team_id === myFundId;
   const myBid = myItem?.action === "BID" ? myItem.bid : null;
   const wouldHaveWon = !won && myBid !== null && auction.reserve_price !== null && myBid >= auction.reserve_price;
   const belowReserve = !won && myBid !== null && !wouldHaveWon;
@@ -180,6 +193,21 @@ function AuctionBlock({
           ltvDelta: (myItem?.ltv ?? 0) - forecast.policy.targetLtv,
         }
       : null;
+
+  // The badge must never contradict the teaching outcome. In practice a would-have-won
+  // bid is a success — "No sale" would read as an auction failure.
+  let outcomeBadge: React.ReactNode;
+  if (iWon) {
+    outcomeBadge = <Badge tone="ok">You acquired this</Badge>;
+  } else if (won) {
+    outcomeBadge = <Badge tone="neutral">Sold</Badge>;
+  } else if (isPractice && wouldHaveWon) {
+    outcomeBadge = <Badge tone="navy">Would win — practice not booked</Badge>;
+  } else if (isPractice) {
+    outcomeBadge = <Badge tone="neutral">Practice — not booked</Badge>;
+  } else {
+    outcomeBadge = <Badge tone="neutral">No sale</Badge>;
+  }
 
   return (
     <div className="card" data-testid={`auction-${auction.property_id}`}>
@@ -195,15 +223,7 @@ function AuctionBlock({
             </div>
           </div>
         </div>
-        <div>
-          {won ? (
-            <Badge tone="ok" pulse={false}>
-              {iWon ? "You acquired this" : "Sold"}
-            </Badge>
-          ) : (
-            <Badge tone="neutral">No sale</Badge>
-          )}
-        </div>
+        <div>{outcomeBadge}</div>
       </div>
 
       <div className="card-pad" style={{ paddingTop: 10 }}>
@@ -216,11 +236,11 @@ function AuctionBlock({
             </div>
             <div>
               <Kv k="Realized Yr-1 value" v={money(auction.realized_value)} />
-              <Kv k="Realized NOI growth" v={pctSigned(auction.noi_growth_actual)} />
+              <Kv k="Realized NOI growth" v={signedPercent(auction.noi_growth_actual)} />
               <Kv k="Year-end cap rate" v={pct(auction.cap_rate_actual, 2)} />
             </div>
           </div>
-        ) : wouldHaveWon && round_isPractice(auction) ? (
+        ) : isPractice && wouldHaveWon ? (
           <div data-testid="would-have-won">
             <div className="spread mb-12">
               <span className="panel-label">Your bid would have won</span>
@@ -233,7 +253,7 @@ function AuctionBlock({
               </div>
               <div>
                 <Kv k="Realized Yr-1 value" v={money(auction.realized_value)} />
-                <Kv k="Realized NOI growth" v={pctSigned(auction.noi_growth_actual)} />
+                <Kv k="Realized NOI growth" v={signedPercent(auction.noi_growth_actual)} />
               </div>
             </div>
             <div className="note-box mt-12">
@@ -247,7 +267,7 @@ function AuctionBlock({
             <Kv k="Winning bid" v={money(auction.winning_bid)} />
             <Kv k="Seller reserve" v={money(auction.reserve_price)} />
             <Kv k="Realized Yr-1 value" v={money(auction.realized_value)} />
-            <Kv k="Realized NOI growth" v={pctSigned(auction.noi_growth_actual)} />
+            <Kv k="Realized NOI growth" v={signedPercent(auction.noi_growth_actual)} />
             {myBid !== null ? (
               <Kv k="Your bid" v={`${money(myBid)} — ${belowReserve ? "below the reserve" : "not the highest valid bid"}`} />
             ) : (
@@ -258,7 +278,7 @@ function AuctionBlock({
           <div>
             <Kv k="Seller reserve" v={money(auction.reserve_price)} />
             <Kv k="Realized Yr-1 value" v={money(auction.realized_value)} />
-            <Kv k="Realized NOI growth" v={pctSigned(auction.noi_growth_actual)} />
+            <Kv k="Realized NOI growth" v={signedPercent(auction.noi_growth_actual)} />
             {myBid !== null && belowReserve ? (
               <div className="mt-8">
                 <Kv
@@ -286,14 +306,14 @@ function AuctionBlock({
                   k="Valuation error"
                   v={
                     auction.realized_value
-                      ? pctSigned(forecast.forecast.predictedFairValue / auction.realized_value - 1)
+                      ? signedPercent(forecast.forecast.predictedFairValue / auction.realized_value - 1)
                       : "—"
                   }
                 />
               </div>
               <div>
-                <Kv k="Predicted NOI growth" v={pctSigned(forecast.forecast.predictedNoiGrowth)} />
-                <Kv k="Actual NOI growth" v={pctSigned(auction.noi_growth_actual)} />
+                <Kv k="Predicted NOI growth" v={signedPercent(forecast.forecast.predictedNoiGrowth)} />
+                <Kv k="Actual NOI growth" v={signedPercent(auction.noi_growth_actual)} />
               </div>
             </div>
           </div>
@@ -301,17 +321,6 @@ function AuctionBlock({
       </div>
     </div>
   );
-}
-
-/** The engine does not name funds in a would-have-won branch; the student's own id is what matters. */
-function myWinnerTeamId(auction: Auction): string | null {
-  return auction.winning_team_id;
-}
-
-function round_isPractice(_auction: Auction): boolean {
-  // Practice semantics are decided by the round, not the auction; the caller only
-  // reaches this branch in a practice round because scored rounds render iWon / won.
-  return true;
 }
 
 // ── feedback: forecast / policy / outcome ─────────────────────────────────

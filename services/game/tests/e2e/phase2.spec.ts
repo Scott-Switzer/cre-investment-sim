@@ -28,7 +28,7 @@ const FIXTURE_CSV = resolve(REPO, "tests/fixtures/student_submission_realistic.c
 const ARTIFACTS = resolve(REPO, "artifacts/phase2-ui");
 
 const PASSCODE = "frenzel";
-const CLASS_NAME = "REAL 605 — Phase 2 Visual Review";
+const CLASS_NAME = "REAL 605 — CRE Investment Committee";
 const FUND_NAME = "Pacific CRE Partners";
 const STUDENT_A = "Dana Whitfield";
 const STUDENT_B = "Ravi Mehta";
@@ -38,19 +38,6 @@ const STUDENT_B_STATE = resolve(HERE, ".state-studentB.json");
 
 async function screenshot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: resolve(ARTIFACTS, `${name}.png`), fullPage: false });
-}
-
-/** Join through the browser and persist the resulting seat for later tests to reuse. */
-async function joinAndSave(page: Page, studentName: string, code: string, statePath: string): Promise<void> {
-  await page.goto("/join");
-  await page.getByLabel("Your name").fill(studentName);
-  await page.getByLabel("Class code").fill(code);
-  await page.getByTestId("join-continue").click();
-  await page.getByTestId("mode-create").click();
-  await page.getByTestId("fund-name").fill(FUND_NAME);
-  await page.getByTestId("fund-submit").click();
-  await expect(page.getByTestId("lobby-fund-name")).toHaveText(FUND_NAME);
-  await page.context().storageState({ path: statePath });
 }
 
 test.describe.serial("the playable practice UX", () => {
@@ -203,8 +190,11 @@ test.describe.serial("the playable practice UX", () => {
       await expect(page.getByRole("dialog")).toContainText("Property");
       await expect(page.getByRole("dialog")).toContainText("Operations");
       await expect(page.getByRole("dialog")).toContainText("Capital markets");
-      await expect(page.getByRole("dialog")).toContainText("Game ownership costs");
-      await expect(page.getByRole("dialog")).toContainText("Your team's pre-class forecast");
+      await expect(page.getByRole("dialog")).toContainText("Ownership costs");
+      // The analysis chain (forecast → policy → decision) is its own sticky column.
+      await expect(page.getByRole("dialog")).toContainText("Pre-class forecast");
+      await expect(page.getByRole("dialog")).toContainText("Investment policy");
+      await expect(page.getByTestId("drawer-decision")).toBeVisible();
       // The reserve-rate charge is visually distinct from indicative capex.
       await expect(page.getByTestId("reserve-rate-chip")).toBeVisible();
       if (i === 0) await screenshot(page, "06-underwriting-drawer");
