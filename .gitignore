@@ -30,3 +30,7 @@ services/game/.firebase/
 services/game/firestore-debug.log
 firebase-debug.log
 ui-debug.log
+
+# Test artifacts
+services/game/test-results/
+services/game/tests/e2e/.state-*.json

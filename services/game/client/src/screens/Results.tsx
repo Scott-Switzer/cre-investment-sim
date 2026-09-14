@@ -177,7 +177,7 @@ function AuctionBlock({
   isPractice: boolean;
   rejectedReason: string | null;
 }) {
-  const image = imageForProperty(deal?.property_type ?? "Office");
+  const image = imageForProperty(deal?.property_type ?? "Office", auction.property_id);
   const won = auction.sold && auction.winning_team_id !== null;
   // Ownership is the authenticated fund id, not the auction echoing itself.
   const iWon = won && myFundId !== null && auction.winning_team_id === myFundId;
@@ -214,7 +214,7 @@ function AuctionBlock({
       <div className="spread" style={{ padding: "14px 20px 0" }}>
         <div className="row">
           <div className="deal-img" style={{ width: 108, borderRadius: 8, flex: "0 0 auto", aspectRatio: "16/10" }}>
-            <img src={image.url} alt="" aria-hidden="true" style={{ borderRadius: 8 }} />
+            <img src={image.url} alt="" aria-hidden="true" style={{ borderRadius: 8 }} title={`${image.credit} — illustrative, not this address`} />
           </div>
           <div>
             <div className="deal-name">{deal?.property_name ?? auction.property_id}</div>

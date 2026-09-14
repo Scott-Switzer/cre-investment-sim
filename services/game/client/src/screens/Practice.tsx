@@ -290,7 +290,7 @@ function DealCard({
   disabled: boolean;
   enlarged: boolean;
 }) {
-  const image = imageForProperty(deal.property_type);
+  const image = imageForProperty(deal.property_type, deal.property_id);
   const ask = deal.asking_price;
   const upside = ask && forecast ? forecast.forecast.predictedFairValue / ask - 1 : null;
   const bidding = draft.action === "BID";
@@ -306,23 +306,27 @@ function DealCard({
       data-testid={`deal-card-${deal.property_id}`}
     >
       <div className="deal-img">
-        <img src={image.url} alt="" aria-hidden="true" />
+        <img src={image.url} alt="" aria-hidden="true" title={`${image.credit} — illustrative, not this address`} />
         <span className="type-chip">{deal.property_type}</span>
-        <span className="status-chip">
-          {decided ? (
-            <span className="badge badge-navy">BID {money(bidValue)}</span>
-          ) : bidding ? (
-            <span className="badge badge-neutral">BID — enter price</span>
-          ) : (
-            <span className="badge badge-neutral">PASS</span>
-          )}
-        </span>
+        <span className="illustrative-chip">illustrative</span>
       </div>
       <div className="deal-body">
-        <div>
-          <div className="deal-name" data-testid={`deal-name-${deal.property_id}`}>{deal.property_name}</div>
-          <div className="deal-sub">{deal.submarket} · {deal.property_type}</div>
+        <div className="deal-head">
+          <div>
+            <div className="deal-name" data-testid={`deal-name-${deal.property_id}`}>{deal.property_name}</div>
+            <div className="deal-sub">{deal.submarket} · {deal.property_type}</div>
+          </div>
+          <span className="status-chip">
+            {decided ? (
+              <span className="badge badge-navy">BID {money(bidValue)}</span>
+            ) : bidding ? (
+              <span className="badge badge-neutral">BID — enter price</span>
+            ) : (
+              <span className="badge badge-neutral">PASS</span>
+            )}
+          </span>
         </div>
+
         <div className="deal-metrics">
           <div className="deal-metric">
             <div className="m-label">Asking price</div>
@@ -337,7 +341,7 @@ function DealCard({
             <div className="m-value">{pct(deal.occupancy, 0)}</div>
           </div>
           <div className="deal-metric">
-            <div className="m-label">Predicted upside</div>
+            <div className="m-label">Model upside</div>
             <div className="m-value">{upside === null ? "—" : signedPercent(upside)}</div>
           </div>
           <div className="deal-metric">
@@ -350,7 +354,7 @@ function DealCard({
           </div>
         </div>
 
-        <div className="bid-inputs">
+        <div className="deal-controls">
           <div className="seg" role="group" aria-label="Decision for this deal">
             <button
               type="button"
@@ -401,26 +405,14 @@ function DealCard({
               </div>
             </>
           ) : null}
-        </div>
-
-        {impact && ltvValue !== null ? (
-          <div className="capital" aria-label="Capital impact of this bid">
-            <div className="capital-rows">
-              <Kv k="Purchase price" v={money(impact.price)} />
-              <Kv k="Loan" v={money(impact.loan)} />
-              <Kv k="Equity required" v={money(impact.equity)} />
-              <Kv k={`Deal costs (${pct(acqRate, 1)})`} v={money(impact.dealCosts, 2)} />
-            </div>
-            <div className="capital-total">
-              <span className="t-label">Total cash required</span>
-              <span className="t-value" data-testid={`total-cash-${deal.property_id}`}>
+          {impact && ltvValue !== null ? (
+            <div className="capital-inline" aria-label="Capital impact of this bid">
+              <span className="ci-label">Total cash required</span>
+              <span className="ci-value" data-testid={`total-cash-${deal.property_id}`}>
                 {money(impact.total)}
               </span>
             </div>
-          </div>
-        ) : null}
-
-        <div className="deal-actions">
+          ) : null}
           <button className="btn btn-secondary" onClick={onOpen} data-testid={`underwrite-${deal.property_id}`}>
             Underwrite
           </button>

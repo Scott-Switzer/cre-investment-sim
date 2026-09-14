@@ -217,11 +217,14 @@ a { color: var(--navy-700); }
 
 /* ── deal board ─────────────────────────────────────────────────────── */
 
-.board { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.board { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 16px; }
+/* Compact horizontal card: the image supports the decision, never dominates it.
+   Everything decision-relevant fits at 1366×768 without scrolling. */
 .deal-card {
-  display: flex; flex-direction: column; background: var(--white);
-  border: 1px solid var(--slate-200); border-radius: var(--radius-lg);
-  overflow: hidden; box-shadow: var(--shadow-1); min-width: 0;
+  display: flex; flex-direction: row; align-items: stretch;
+  background: var(--white); border: 1px solid var(--slate-200);
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-1); min-width: 0; min-height: 0;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .deal-card:hover { border-color: var(--slate-400); box-shadow: 0 3px 10px rgba(10, 20, 32, 0.1); }
@@ -229,28 +232,51 @@ a { color: var(--navy-700); }
 .deal-card.decided-bid { border-color: var(--navy-600); box-shadow: 0 0 0 1px var(--navy-600); }
 /* A one-deal round (Practice) centers its single card deliberately so the empty
    canvas reads as intention, not as three cards that failed to load. */
-.deal-card.deal-card-single .deal-img { aspect-ratio: 16 / 6; }
-.deal-card.deal-card-single .deal-metrics { grid-template-columns: repeat(3, 1fr); }
-.deal-img { position: relative; aspect-ratio: 16 / 7; background: var(--navy-800); overflow: hidden; }
-.deal-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.deal-card.deal-card-single { max-width: 720px; }
+.deal-img {
+  position: relative; flex: 0 0 168px; min-height: 100%; background: var(--navy-800);
+  overflow: hidden;
+}
+.deal-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
 .deal-img .type-chip {
-  position: absolute; left: 10px; top: 10px;
+  position: absolute; left: 8px; top: 8px;
   background: rgba(10, 20, 32, 0.78); color: var(--white);
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   padding: 3px 9px; border-radius: 4px; backdrop-filter: blur(2px);
 }
-.deal-img .status-chip { position: absolute; right: 10px; top: 10px; }
-.deal-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.deal-name { font-size: 15.5px; font-weight: 650; color: var(--ink); line-height: 1.25; }
-.deal-sub { font-size: 12.5px; color: var(--slate-500); }
-.deal-metrics {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px;
-  border-top: 1px solid var(--slate-100); padding-top: 10px; margin-top: auto;
+.deal-img .illustrative-chip {
+  position: absolute; left: 8px; bottom: 8px;
+  background: rgba(255, 255, 255, 0.82); color: var(--slate-600);
+  font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px;
 }
-.deal-metric .m-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--slate-500); }
-.deal-metric .m-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
-.deal-actions { display: flex; gap: 8px; }
-.deal-actions .btn { flex: 1; }
+.deal-body { padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.deal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.deal-head .status-chip { flex: 0 0 auto; }
+.deal-name { font-size: 14.5px; font-weight: 650; color: var(--ink); line-height: 1.25; }
+.deal-sub { font-size: 12px; color: var(--slate-500); }
+.deal-metrics {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px 10px;
+  border-top: 1px solid var(--slate-100); padding-top: 8px;
+}
+.deal-metric .m-label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--slate-500); white-space: nowrap; }
+.deal-metric .m-value { font-size: 13.5px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.deal-controls { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--slate-100); padding-top: 8px; margin-top: auto; }
+.deal-controls .money-input { flex: 0 1 96px; }
+.deal-controls .pct-input { flex: 0 1 76px; }
+.deal-controls .btn { margin-left: auto; flex: 0 0 auto; }
+.capital-inline {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  background: var(--slate-50); border: 1px solid var(--slate-200);
+  border-radius: 6px; padding: 4px 8px; white-space: nowrap;
+}
+.capital-inline .ci-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slate-500); }
+.capital-inline .ci-value { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--navy-700); }
+@media (max-width: 1100px) {
+  .deal-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .deal-card { flex-direction: column; }
+  .deal-img { flex: 0 0 auto; min-height: 0; aspect-ratio: 16 / 6; }
+}
 
 /* ── drawer ─────────────────────────────────────────────────────────── */
 

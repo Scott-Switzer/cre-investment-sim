@@ -1,0 +1,130 @@
+{
+  "Office": [
+    {
+      "file": "images/properties/office-1.jpg",
+      "license": "by-sa",
+      "license_version": "2.0",
+      "title": "Wainwright Building, 7th Street and Chestnut Street, St. Louis, MO - 53051647915",
+      "creator": "w_lemay",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=134543318",
+      "width": 2722,
+      "height": 3630
+    },
+    {
+      "file": "images/properties/office-2.jpg",
+      "license": "by-sa",
+      "license_version": "2.0",
+      "title": "Rookery Building, LaSalle Street and Adams Street, Chicago, IL",
+      "creator": "w_lemay",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=134419763",
+      "width": 4032,
+      "height": 3024
+    },
+    {
+      "file": "images/properties/office-3.jpg",
+      "license": "by-sa",
+      "license_version": null,
+      "title": "KeyBank Tower, 2nd Street and Main Street, Dayton, OH",
+      "creator": "Warren LeMay",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=147053210",
+      "width": null,
+      "height": null
+    }
+  ],
+  "Industrial": [
+    {
+      "file": "images/properties/industrial-1.jpg",
+      "license": "by-sa",
+      "license_version": "4.0",
+      "title": "High-bay warehouse in the central industrial warehouse in Erligheim",
+      "creator": "JanatAMANNGroup",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=93324916",
+      "width": 1879,
+      "height": 2893
+    },
+    {
+      "file": "images/properties/industrial-2.jpg",
+      "license": "by-sa",
+      "license_version": "4.0",
+      "title": "Industrial warehouse",
+      "creator": "Castle Hills AS",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=122996371",
+      "width": 4000,
+      "height": 2696
+    },
+    {
+      "file": "images/properties/industrial-3.jpg",
+      "license": "by-sa",
+      "license_version": "3.0",
+      "title": "Industrial Warehouse - Early 20th Century Building - panoramio",
+      "creator": "agracier - NO VIEWS",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=57316156",
+      "width": 2004,
+      "height": 1165
+    }
+  ],
+  "Multifamily": [
+    {
+      "file": "images/properties/multifamily-1.jpg",
+      "license": "by-sa",
+      "license_version": null,
+      "title": "Wohnbebauung an der Johannesstra\u00dfe, Kiel-Gaarden-Ost",
+      "creator": "DYVER",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=196004619",
+      "width": null,
+      "height": null
+    },
+    {
+      "file": "images/properties/multifamily-2.jpg",
+      "license": "by-sa",
+      "license_version": "3.0",
+      "title": "Apartment buildings at Praia da Rocha, Portim\u00e3o",
+      "creator": "Steven Fruitsmaak",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=4872535",
+      "width": 1588,
+      "height": 1046
+    },
+    {
+      "file": "images/properties/multifamily-3.jpg",
+      "license": "by-sa",
+      "license_version": "4.0",
+      "title": "20140723 Postmodern apartment buildings in Helmond 02",
+      "creator": "Mark Ahsmann",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=37923995",
+      "width": 3264,
+      "height": 1836
+    }
+  ],
+  "Retail": [
+    {
+      "file": "images/properties/retail-1.jpg",
+      "license": "by-sa",
+      "license_version": "2.0",
+      "title": "Toptani Shopping Mall Tirana 2016",
+      "creator": "Photo: Chris Walts",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=52560642",
+      "width": 5871,
+      "height": 3914
+    },
+    {
+      "file": "images/properties/retail-2.jpg",
+      "license": "by-sa",
+      "license_version": "3.0",
+      "title": "File:Cevahir Shopping Mall in Istanbul.jpg",
+      "creator": "CherryX",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=26504385",
+      "width": 4118,
+      "height": 3182
+    },
+    {
+      "file": "images/properties/retail-3.jpg",
+      "license": "by-sa",
+      "license_version": "3.0",
+      "title": "Aquarium in shopping mall, Kaunas",
+      "creator": "Foledman",
+      "source": "https://commons.wikimedia.org/w/index.php?curid=7046986",
+      "width": 3131,
+      "height": 2320
+    }
+  ]
+}

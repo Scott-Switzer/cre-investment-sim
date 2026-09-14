@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Property Image Library</title>
+  <style>
+    :root {
+      --ink: #101f33; --slate-600: #47566a; --slate-200: #dde4ec;
+      --paper: #f7f9fb; --white: #ffffff; --navy-900: #0e1c2e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--paper); color: var(--ink); }
+    header { background: var(--navy-900); color: #fff; padding: 18px 28px; }
+    header h1 { margin: 0; font-size: 18px; }
+    header p { margin: 4px 0 0; font-size: 12.5px; color: #aeb9c7; }
+    main { padding: 24px 28px; }
+    .type-row { margin-bottom: 26px; }
+    .type-row h2 { font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-600); margin: 0 0 10px; }
+    .variants { display: flex; gap: 14px; }
+    .variant { background: var(--white); border: 1px solid var(--slate-200); border-radius: 8px; overflow: hidden; width: 300px; }
+    .variant img { width: 100%; height: 180px; object-fit: cover; display: block; }
+    .variant .cap { padding: 8px 10px; font-size: 11.5px; color: var(--slate-600); }
+    footer { padding: 0 28px 24px; font-size: 12px; color: var(--slate-600); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Property image library — illustrative only</h1>
+    <p>CC-licensed photography, deterministic by property type + id. No image represents a real address.
+       Sources: docs/PROPERTY_IMAGE_SOURCES.md</p>
+  </header>
+  <main>
+    <div class="type-row">
+      <h2>Office</h2>
+      <div class="variants">
+        <div class="variant"><img src="/images/properties/office-1.jpg" alt="Office variant 1" /><div class="cap">office-1</div></div>
+        <div class="variant"><img src="/images/properties/office-2.jpg" alt="Office variant 2" /><div class="cap">office-2</div></div>
+        <div class="variant"><img src="/images/properties/office-3.jpg" alt="Office variant 3" /><div class="cap">office-3</div></div>
+      </div>
+    </div>
+    <div class="type-row">
+      <h2>Industrial</h2>
+      <div class="variants">
+        <div class="variant"><img src="/images/properties/industrial-1.jpg" alt="Industrial variant 1" /><div class="cap">industrial-1</div></div>
+        <div class="variant"><img src="/images/properties/industrial-2.jpg" alt="Industrial variant 2" /><div class="cap">industrial-2</div></div>
+        <div class="variant"><img src="/images/properties/industrial-3.jpg" alt="Industrial variant 3" /><div class="cap">industrial-3</div></div>
+      </div>
+    </div>
+    <div class="type-row">
+      <h2>Multifamily</h2>
+      <div class="variants">
+        <div class="variant"><img src="/images/properties/multifamily-1.jpg" alt="Multifamily variant 1" /><div class="cap">multifamily-1</div></div>
+        <div class="variant"><img src="/images/properties/multifamily-2.jpg" alt="Multifamily variant 2" /><div class="cap">multifamily-2</div></div>
+        <div class="variant"><img src="/images/properties/multifamily-3.jpg" alt="Multifamily variant 3" /><div class="cap">multifamily-3</div></div>
+      </div>
+    </div>
+    <div class="type-row">
+      <h2>Retail</h2>
+      <div class="variants">
+        <div class="variant"><img src="/images/properties/retail-1.jpg" alt="Retail variant 1" /><div class="cap">retail-1</div></div>
+        <div class="variant"><img src="/images/properties/retail-2.jpg" alt="Retail variant 2" /><div class="cap">retail-2</div></div>
+        <div class="variant"><img src="/images/properties/retail-3.jpg" alt="Retail variant 3" /><div class="cap">retail-3</div></div>
+      </div>
+    </div>
+  </main>
+  <footer>All imagery CC-licensed. Attribution and source links: docs/PROPERTY_IMAGE_SOURCES.md</footer>
+</body>
+</html>

@@ -157,7 +157,7 @@ test.describe.serial("the playable practice UX", () => {
     await prof.context().close();
   });
 
-  test("06 — professor opens practice; deal board renders", async ({ browser }) => {
+  test("06 — professor opens practice; deal board renders at 1366×768", async ({ browser }) => {
     const prof = await newPage(browser, resolve(HERE, ".state-professor.json"));
     await prof.goto("/professor");
     await prof.getByTestId("open-practice").click();
@@ -166,10 +166,14 @@ test.describe.serial("the playable practice UX", () => {
 
     // Student A re-enters the seat; the phase gate lands them on the board.
     const page = await newPage(browser, STUDENT_A_STATE);
+    await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/game/practice");
     await expect(page.getByTestId("deal-board")).toBeVisible({ timeout: 30_000 });
     const cards = page.locator("[data-testid^='deal-card-']");
     await expect(cards.first()).toBeVisible();
+    // The decision-critical elements must all be above the fold at laptop height.
+    await expect(page.getByTestId("cash-available")).toBeInViewport();
+    await expect(cards.first().getByTestId("underwrite-" + (await cards.first().getAttribute("data-testid"))!.replace("deal-card-", ""))).toBeInViewport();
     await screenshot(page, "05-practice-deal-board");
     await page.context().close();
   });
@@ -306,7 +310,6 @@ test.describe.serial("the playable practice UX", () => {
     const page = await newPage(browser, STUDENT_A_STATE);
     await page.goto("/game/results");
     await expect(page.getByTestId("practice-not-booked")).toBeVisible({ timeout: 30_000 });
-
     const offenders = await page.evaluate(() => {
       const out: string[] = [];
       for (const el of Array.from(document.querySelectorAll("p, li, .help, .note-box, .sub"))) {
@@ -318,6 +321,26 @@ test.describe.serial("the playable practice UX", () => {
       return out;
     });
     expect(offenders, JSON.stringify(offenders)).toEqual([]);
+    await page.context().close();
+  });
+
+  test("12 — local image library gallery shows four distinct property types", async ({ browser }) => {
+    const page = await newPage(browser);
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto("/property-gallery.html");
+    await expect(page.getByRole("heading", { name: "Property image library — illustrative only" })).toBeVisible();
+    // All four type rows render, each with three variants.
+    for (const type of ["Office", "Industrial", "Multifamily", "Retail"]) {
+      await expect(page.getByRole("heading", { name: type, exact: true })).toBeVisible();
+      const imgs = page.locator(`img[alt^="${type} variant"]`);
+      await expect(imgs).toHaveCount(3);
+      for (let i = 0; i < 3; i += 1) {
+        await expect(imgs.nth(i)).toBeVisible();
+        const natural = await imgs.nth(i).evaluate((el: HTMLImageElement) => el.naturalWidth);
+        expect(natural).toBeGreaterThan(0);
+      }
+    }
+    await screenshot(page, "11-property-image-library");
     await page.context().close();
   });
 });
