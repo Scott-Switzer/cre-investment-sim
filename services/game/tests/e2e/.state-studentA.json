@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "cre_game_sess_57884cb4430449c89088",
+      "value": "eyJzZXNzaW9uSWQiOiJzZXNzXzU3ODg0Y2I0NDMwNDQ5Yzg5MDg4IiwibWVtYmVySWQiOiJtZW1fNTEzMWM2ODdjMjQyNDY2YWJlNjEiLCJmdW5kSWQiOiJmdW5kXzFfMWUwMTBmNThlZjY5NDQ0NjlhNzMiLCJyb2xlIjoic3R1ZGVudCIsImRpc3BsYXlOYW1lIjoiRGFuYSBXaGl0ZmllbGQiLCJpYXQiOjE3ODkzNzE1NTMsImV4cCI6MTc4OTQxNDc1M30.LUmgSw0A2drXynCqo_z6ptfdkl7JLQY3DKpG7NHrOAI",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1789414753.226981,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

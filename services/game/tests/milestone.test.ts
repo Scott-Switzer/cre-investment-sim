@@ -335,10 +335,21 @@ describe("the classroom vertical slice, against the real engine", () => {
     expect(await view(cls.dana, cls.sessionId)).toEqual(result);
 
     // And the professor's grid counts the submission without exposing the amount.
+    // The whole grid is checked field-by-field against the sealed-amount projection,
+    // not by substring: a timestamp can legitimately contain the same digits as a bid,
+    // which made the old string test flake on the clock, not on a leak.
     const grid = (await view(cls.professor, cls.sessionId)).grid;
     expect(grid[0].submitted).toBe(true);
     expect(grid[0].bids).toBe(1);
-    expect(JSON.stringify(grid)).not.toContain(String(Math.round(bid)));
+    const bidStr = String(Math.round(bid));
+    for (const row of grid) {
+      for (const value of Object.values(row)) {
+        expect(String(value)).not.toBe(bidStr);
+        expect(String(value)).not.toContain(`${bidStr}.`);
+      }
+    }
+    expect(JSON.stringify(grid)).not.toContain("winning_bid");
+    expect(JSON.stringify(grid)).not.toContain("reserve_price");
   });
 
   it("accepts the shipped student fixture against the real pool, and the engine agrees on the ids", async () => {

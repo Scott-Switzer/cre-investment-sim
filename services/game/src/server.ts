@@ -21,11 +21,15 @@
 
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import fastifyStatic from "@fastify/static";
 
 import { AppError, asAppError, badRequest, forbidden, notFound } from "./errors.js";
 import { buildCookie, verifyGrant, type CookieSpec, type Grant } from "./auth.js";
 import type { AppContext } from "./context.js";
 import { buildStateView, createSession, joinSession, listBundles, professorSignIn, reclaimSeat, requireGrant } from "./sessions.js";
+import { canonicalJoinCode, isJoinCodeShaped } from "./ids.js";
 import { lockModel, readModel, uploadModel } from "./checkin.js";
 import { beginCheckIn, closeRound, openRound, startGame, submitDecision } from "./rounds.js";
 import type { DecisionItem } from "./domain.js";
@@ -34,6 +38,43 @@ import type { ServiceConfig } from "./config.js";
 interface Deps {
   config: ServiceConfig;
   context: AppContext;
+}
+
+/**
+ * The built React client, served by this same process.
+ *
+ * One service, one origin: on Cloud Run the API and the frontend are the same
+ * deployment, so the session cookie is first-party and no CORS exists at all. The
+ * directory may be absent (pure-API deployments, tests); serving is then skipped
+ * rather than failing boot, because the API surface does not depend on it.
+ */
+function mountClient(app: FastifyInstance): void {
+  const root = resolve(process.env.CLIENT_DIST ?? "dist/client");
+  const indexHtml = join(root, "index.html");
+  if (!existsSync(indexHtml)) return;
+
+  app.register(fastifyStatic, { root, prefix: "/", index: "index.html", wildcard: true });
+  // `index: 'index.html'` serves the app at `/`; with `index: false` the plugin
+  // refuses the bare root path outright. Every URL that is not a real file still
+  // falls through the wildcard route's 404 into the SPA handler below.
+
+  // The SPA's own routes (`/join`, `/lobby`, `/game/...`, `/professor`). The static
+  // plugin answers files; everything that is not a file and not the API is the app.
+  app.setNotFoundHandler((req, reply) => {
+    const url = (req.raw.url ?? "/").split("?")[0] ?? "/";
+    if (url.startsWith("/v1/") || url.startsWith("/assets/")) {
+      reply.status(404).send({ error: "not_found", detail: `no route for ${url}` });
+      return;
+    }
+    // Read per request: a rebuilt client swaps hashed asset names on disk, and an
+    // index cached at boot would point at files that no longer exist. Cloud Run
+    // images are immutable so this costs nothing there; locally it keeps the
+    // standing review stack honest across rebuilds.
+    reply
+      .header("content-type", "text/html; charset=utf-8")
+      .header("cache-control", "no-store")
+      .send(readFileSync(indexHtml, "utf8"));
+  });
 }
 
 /** Cookies, parsed from the one header that carries them. */
@@ -85,6 +126,7 @@ function revisionHeader(reply: FastifyReply, revision: unknown): void {
 export function buildServer(deps: Deps): FastifyInstance {
   const { config, context } = deps;
   const app = Fastify({ logger: false, bodyLimit: 8 * 1024 * 1024 });
+  mountClient(app);
 
   // Raw CSV uploads: a student posts the file, not a JSON envelope.
   app.addContentTypeParser(
@@ -157,6 +199,24 @@ export function buildServer(deps: Deps): FastifyInstance {
   }
 
   // ── health and datasets ─────────────────────────────────────────────────
+
+  /**
+   * Which session, if any, this browser's cookies name. The client mounts by asking
+   * this instead of parsing the URL: the cookie is per session and only the server
+   * can read it, so a shared or stale link can never borrow another seat's screen.
+   * Returns what the signature already asserts — ids and role, never game state.
+   */
+  app.get("/v1/whoami", async (req) => {
+    for (const [name, token] of readCookies(req)) {
+      if (!name.startsWith(`${config.cookieName}_`)) continue;
+      const sessionId = name.slice(config.cookieName.length + 1);
+      const grant = verifyGrant(token, config.cookieSecret);
+      if (grant && grant.sessionId === sessionId) {
+        return { sessionId, role: grant.role, memberId: grant.memberId };
+      }
+    }
+    return { sessionId: null };
+  });
 
   app.get("/v1/health", async () => {
     const engine = await context.engine.health().catch((err: unknown) => ({
@@ -301,6 +361,44 @@ export function buildServer(deps: Deps): FastifyInstance {
       fundId: result.fundId,
       createdFund: result.createdFund,
       displayName: result.grant.displayName,
+    };
+  });
+
+  /** The join screen's fund picker. No cookie, no mutation, no PII — fund names and
+   *  occupancy only, exactly what is already announced in a lobby. */
+  app.get("/v1/join/preview", async (req) => {
+    const query = req.query as { code?: string };
+    const code = (query.code ?? "").trim();
+    if (!isJoinCodeShaped(code)) {
+      throw badRequest("a six-character join code is required");
+    }
+    const sessionId = await context.store.findSessionByJoinCode(code);
+    if (!sessionId) {
+      throw notFound(
+        `no session has the join code '${canonicalJoinCode(code)}'. Check it with your professor.`,
+      );
+    }
+    const session = await context.store.getSession(sessionId);
+    if (!session) throw notFound("that session no longer exists");
+    const aggregate = await context.store.transact(sessionId, (tx) => tx.aggregate);
+    const funds = [...aggregate.funds.values()]
+      .sort((a, b) => (a.name < b.name ? -1 : 1))
+      .map((f) => ({
+        id: f.id,
+        name: f.name,
+        memberCount: f.memberIds.length,
+        modelStatus: f.modelStatus,
+      }));
+    return {
+      session: {
+        id: session.id,
+        name: session.name,
+        mode: session.mode,
+        maxTeamSize: session.maxTeamSize,
+        phase: session.phase,
+        bundleDisplayName: session.bundleDisplayName,
+      },
+      funds,
     };
   });
 
