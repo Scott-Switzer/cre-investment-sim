@@ -61,6 +61,34 @@ def wait_for(url: str, deadline_s: float = 90.0) -> None:
     raise RuntimeError(f"{url} never became healthy ({last})")
 
 
+def wait_for_firestore_game(url: str, deadline_s: float = 90.0) -> None:
+    """Require the exact store identity expected by the classroom browser run."""
+    started = time.time()
+    last = "no attempt"
+    while time.time() - started < deadline_s:
+        try:
+            with urllib.request.urlopen(url, timeout=3) as res:
+                import json
+                body = json.load(res)
+                if body.get("status") == "ok" and body.get("store") == "firestore":
+                    return
+                last = f"unexpected health identity: {body}"
+        except urllib.error.URLError as exc:
+            last = str(exc)
+        except Exception as exc:  # noqa: BLE001 - reporting only
+            last = str(exc)
+        time.sleep(0.4)
+    raise RuntimeError(f"{url} did not report Firestore identity ({last})")
+
+
+def _load_project_id():
+    try:
+        with open("/tmp/fenrix-firestore-project-id") as f:
+            return f.read().strip()
+    except Exception:
+        return "demo-cre"
+
+
 def main() -> int:
     engine_port = ENGINE_PORT
     game_port = GAME_PORT
@@ -75,7 +103,7 @@ def main() -> int:
     }
 
     engine = subprocess.Popen(
-        ["uv", "run", "python", "scripts/serve_engine.py"],
+        [str(REPO / ".venv" / "bin" / "python"), "scripts/serve_engine.py"],
         cwd=REPO,
         env={**env, "PORT": str(engine_port), "HOST": "127.0.0.1", "LOG_LEVEL": "warning"},
         stdout=subprocess.DEVNULL,
@@ -123,10 +151,28 @@ def main() -> int:
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)
 
+    # Wait for Firestore emulator to accept TCP connections before starting game service
+    def wait_for_emulator(host_port: str, deadline_s: float = 30.0) -> None:
+        """Wait for the emulator to accept TCP connections."""
+        import socket
+        host, port = host_port.split(":")
+        started = time.time()
+        while time.time() - started < deadline_s:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(2)
+                    s.connect((host, int(port)))
+                    return
+            except (ConnectionRefusedError, OSError):
+                pass
+            time.sleep(0.3)
+        raise RuntimeError(f"Emulator at {host_port} never became reachable")
+
     try:
+        wait_for_emulator(EMULATOR_HOST)
         wait_for(f"http://127.0.0.1:{engine_port}/v1/health")
         print(f"engine healthy on :{engine_port}", flush=True)
-        wait_for(f"http://127.0.0.1:{game_port}/v1/health")
+        wait_for_firestore_game(f"http://127.0.0.1:{game_port}/v1/health")
         print(f"game service healthy on :{game_port} (client at /)", flush=True)
         # Stay in the foreground for the lifetime of the stack.
         while True:

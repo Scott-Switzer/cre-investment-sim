@@ -9,13 +9,15 @@ export function Panel({
   label,
   children,
   className = "",
+  "data-testid": dataTestId,
 }: {
   label?: string;
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 }) {
   return (
-    <div className={`card card-pad ${className}`.trim()}>
+    <div className={`card card-pad ${className}`.trim()} data-testid={dataTestId}>
       {label ? <span className="panel-label">{label}</span> : null}
       {label ? <div style={{ height: 10 }} /> : null}
       {children}

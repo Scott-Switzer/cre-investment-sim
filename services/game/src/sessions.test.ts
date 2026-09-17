@@ -258,6 +258,16 @@ describe("authentication", () => {
     expect(Array.isArray(ok.body.sessions)).toBe(true);
   });
 
+  it("allows a signed professor session to read its bounded classroom list", async () => {
+    const fixture = await createClass(harness);
+    const signed = await fixture.professor.get("/v1/sessions");
+    expect(signed.status).toBe(200);
+    expect(signed.body.sessions.map((session: { id: string }) => session.id)).toEqual([
+      fixture.sessionId,
+    ]);
+    expect((await harness.browser("x").get("/v1/sessions")).status).toBe(403);
+  });
+
   it("reports a seat that no longer exists distinctly from one that is not signed in", async () => {
     // The distinction the client needs: "join again" versus "sign in".
     const fixture = await createClass(harness);

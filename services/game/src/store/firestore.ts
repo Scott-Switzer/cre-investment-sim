@@ -136,6 +136,7 @@ class FirestoreTransaction implements Transaction {
   private readonly dirtyMembers = new Map<string, MemberState>();
   private readonly dirtyDecisions = new Map<string, DecisionState>();
   private readonly removedDecisions = new Set<string>();
+  private readonly removedDecisionRounds = new Map<string, string>();
   private roundDirty = false;
   private sessionDirty = false;
 
@@ -164,12 +165,14 @@ class FirestoreTransaction implements Transaction {
     this.aggregate.decisions.set(decision.fundId, decision);
     this.dirtyDecisions.set(decision.fundId, decision);
     this.removedDecisions.delete(decision.fundId);
+    this.removedDecisionRounds.delete(decision.fundId);
   }
 
   deleteDecision(fundId: string): void {
     this.aggregate.decisions.delete(fundId);
     this.dirtyDecisions.delete(fundId);
     this.removedDecisions.add(fundId);
+    this.removedDecisionRounds.set(fundId, roundKey(this.aggregate.session.currentRound));
   }
 
   touch(): void {
@@ -210,7 +213,12 @@ class FirestoreTransaction implements Transaction {
       );
     }
     for (const fundId of this.removedDecisions) {
-      this.tx.delete(rounds.doc(roundId).collection("decisions").doc(fundId));
+      this.tx.delete(
+        rounds
+          .doc(this.removedDecisionRounds.get(fundId) ?? roundId)
+          .collection("decisions")
+          .doc(fundId),
+      );
     }
     this.tx.set(this.sessionRef, toDoc(this.aggregate.session));
   }

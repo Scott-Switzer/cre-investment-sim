@@ -267,6 +267,14 @@ export async function openRound(
       throw conflict("the round changed while the next one was opening; reload and try again");
     }
 
+    // Decisions are scoped to the round. The aggregate is loaded with the
+    // resolved round's decisions, so remove those documents before switching
+    // the session to the newly opened round; otherwise students appear locked
+    // in the new round with their prior submission.
+    for (const fundId of tx.aggregate.decisions.keys()) {
+      tx.deleteDecision(fundId);
+    }
+
     const state = encodeState(opened.state);
     const round = roundNumberOf(opened.public);
     session.engineState = state;

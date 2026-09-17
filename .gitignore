@@ -22,6 +22,7 @@ Thumbs.db
 docs/reference/*.png
 venv*/
 .streamlit/secrets.toml
+.wrangler/
 
 # The Phase 1 game service (Node). Its dependencies are installed, not committed.
 services/game/node_modules/

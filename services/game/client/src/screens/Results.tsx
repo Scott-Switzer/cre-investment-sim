@@ -104,6 +104,7 @@ export function Results() {
   }
   if (session.phase === "lobby") return <Navigate to="/lobby" replace />;
   if (session.phase === "model_checkin") return <Navigate to="/model" replace />;
+  if (session.phase === "finale") return <Navigate to="/game/finale" replace />;
 
   const round = state.round;
   const results = round?.results;

@@ -72,6 +72,7 @@ function ProfessorConsole() {
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "The action failed.");
+    } finally {
       setBusy(false);
     }
   }

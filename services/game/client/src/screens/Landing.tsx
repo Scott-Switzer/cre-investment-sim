@@ -21,6 +21,12 @@ export function Landing() {
   if (status === "ready" && state) {
     const phase = state.session.phase;
     if (phase === "finale") return <Navigate to="/game/finale" replace />;
+    if (phase === "model_checkin") return <Navigate to="/model" replace />;
+    if (phase === "practice" || phase === "practice_results")
+      return <Navigate to="/game/practice" replace />;
+    if (phase === "round" || phase === "round_results")
+      return <Navigate to="/game/results" replace />;
+    // lobby, model_lock, practice_lock → lobby
     return <Navigate to="/lobby" replace />;
   }
   if (status === "loading") return null;
@@ -29,9 +35,12 @@ export function Landing() {
     setDemoBusy(true);
     setDemoError(null);
     try {
-      await api.createDemoSession("Demo Player");
+      const demo = await api.createDemoSession("Demo Player");
+      await api.demoAdvance(demo.sessionId);
       // The cookie now holds the demo seat; the session provider will route.
-      window.location.assign("/lobby");
+      // Demo sessions are provisioned with locked models and an open practice
+      // round; enter the actual playable board immediately.
+      window.location.assign("/game/practice");
     } catch (err) {
       setDemoError(err instanceof Error ? err.message : "The demo could not be created.");
       setDemoBusy(false);

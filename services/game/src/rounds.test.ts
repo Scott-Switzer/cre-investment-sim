@@ -370,6 +370,42 @@ describe("results and the reveal", () => {
 });
 
 describe("four scored rounds", () => {
+  it("opens Round 1 with fresh, writable decision state after practice", async () => {
+    const fixture = await playablePractice(harness, { members: [["Dana"]] });
+    const student = fixture.students[0]!;
+    const practice = await state(student.browser, fixture.sessionId);
+    const practiceDeals = practice.round.public.deals as { property_id: string }[];
+
+    expect(
+      (await student.browser.post(`/v1/sessions/${fixture.sessionId}/rounds/decision`, {
+        fundId: student.fundId,
+        items: decisionsFor(practiceDeals),
+      })).status,
+    ).toBe(200);
+    expect(
+      (await fixture.professor.post(
+        `/v1/sessions/${fixture.sessionId}/rounds/close`,
+        {},
+        { "if-match": String(await revisionOfSession(harness, fixture.sessionId)) },
+      )).status,
+    ).toBe(200);
+    expect(
+      (await fixture.professor.post(
+        `/v1/sessions/${fixture.sessionId}/rounds/open`,
+        {},
+        { "if-match": String(await revisionOfSession(harness, fixture.sessionId)) },
+      )).status,
+    ).toBe(200);
+
+    const roundOne = await state(student.browser, fixture.sessionId);
+    expect(roundOne.session.currentRound).toBe(0);
+    expect(roundOne.session.phase).toBe("round");
+    expect(roundOne.round.round).toBe(0);
+    expect(roundOne.round.myDecision).toBeNull();
+    expect(roundOne.round.isOpenForSubmissions).toBe(true);
+    expect(roundOne.round.public.deals).not.toEqual(practiceDeals);
+  });
+
   it("plays practice and four rounds to completion without the phase drifting", async () => {
     const fixture = await playablePractice(harness, { members: [["Dana"]] });
     const student = fixture.students[0]!;

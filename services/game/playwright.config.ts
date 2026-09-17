@@ -19,6 +19,7 @@ export default defineConfig({
   reporter: [["list"]],
   use: {
     baseURL: "http://127.0.0.1:8080",
+    testIdAttribute: "data-testid",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -27,14 +28,10 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // The firebase CLI is installed globally; resolving it through npx would depend
-      // on the local package tree, which does not carry it. `emulators:exec` also
-      // requires a script argument, and Playwright spawns without a shell — so the
-      // launcher script carries the quoting and the cd into services/game, where
-      // firebase.json pins the emulator to :8085 (without it the CLI defaults to
-      // :8080 and collides with the game service).
       command: "bash tests/e2e/start-emulator.sh",
       url: "http://127.0.0.1:8085",
+      // The emulator is state-cleared by firebase for each managed run; allow
+      // Playwright to attach when the emulator wrapper is still draining.
       reuseExistingServer: true,
       timeout: 120_000,
       cwd: ".",
@@ -43,7 +40,8 @@ export default defineConfig({
       command: "uv run python scripts/stack_test.py",
       url: "http://127.0.0.1:8080/v1/health",
       cwd: "../..",
-      reuseExistingServer: !process.env.CI,
+      // A stale service can be healthy while serving the wrong store/config.
+      reuseExistingServer: false,
       timeout: 240_000,
     },
   ],

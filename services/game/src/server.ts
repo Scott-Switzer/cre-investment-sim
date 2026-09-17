@@ -314,10 +314,23 @@ export function buildServer(deps: Deps): FastifyInstance {
 
   app.get("/v1/sessions", async (req) => {
     const passcode = req.headers["x-professor-passcode"];
+    let sessions = await context.store.listSessions();
     if (typeof passcode !== "string" || passcode !== config.professorPasscode) {
-      throw forbidden("a professor passcode is required to list sessions");
+      // Bigscreen is a read-only classroom surface. It has the professor's
+      // signed, per-session cookie but cannot send the professor passcode from
+      // browser code. Scope the list to sessions whose cookie proves professor
+      // authority; students and anonymous browsers still receive no sessions.
+      const professorSessionIds = new Set<string>();
+      for (const [name, token] of readCookies(req)) {
+        if (!name.startsWith(`${config.cookieName}_`)) continue;
+        const grant = verifyGrant(token, config.cookieSecret);
+        if (grant?.role === "professor") professorSessionIds.add(grant.sessionId);
+      }
+      if (professorSessionIds.size === 0) {
+        throw forbidden("a professor passcode or signed professor session is required");
+      }
+      sessions = sessions.filter((session) => professorSessionIds.has(session.id));
     }
-    const sessions = await context.store.listSessions();
     return {
       sessions: sessions
         .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
