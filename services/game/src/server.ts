@@ -30,7 +30,7 @@ import { buildCookie, verifyGrant, type CookieSpec, type Grant } from "./auth.js
 import type { AppContext } from "./context.js";
 import { buildStateView, createDemoSession, createSession, joinSession, listBundles, professorSignIn, reclaimSeat, requireGrant } from "./sessions.js";
 import { canonicalJoinCode, isJoinCodeShaped } from "./ids.js";
-import { lockModel, readModel, uploadModel } from "./checkin.js";
+import { lockManualModel, lockModel, readModel, uploadModel } from "./checkin.js";
 import { beginCheckIn, closeRound, demoAdvance, finalizeGame, openRound, pauseTimer, resumeTimer, setRoundTimer, startGame, submitDecision } from "./rounds.js";
 import { assertSafeView } from "./views.js";
 import { buildExport, zipStore } from "./export.js";
@@ -687,6 +687,22 @@ export function buildServer(deps: Deps): FastifyInstance {
         fundId: params.fundId,
         grant,
         expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
+      }) },
+    }));
+    reply.status(result.status);
+    return result.body;
+  });
+
+  app.post("/v1/sessions/:sessionId/funds/:fundId/model/manual", async (req, reply) => {
+    const params = req.params as { sessionId: string; fundId: string };
+    const grant = requireGrant(grantFor(req, config, params.sessionId), params.sessionId);
+    const result = await idempotent(req, params.sessionId, grant.memberId, "model/manual", async () => ({
+      status: 200,
+      body: { fund: await lockManualModel(context, {
+        sessionId: params.sessionId,
+        fundId: params.fundId,
+        grant,
+        expectedRevision: ifMatch(req),
       }) },
     }));
     reply.status(result.status);

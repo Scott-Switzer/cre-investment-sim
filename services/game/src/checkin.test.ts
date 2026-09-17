@@ -41,6 +41,18 @@ async function classAtCheckIn(options: { displayName?: string; fundNames?: strin
 }
 
 describe("uploading a model", () => {
+  it("allows a fund to lock a built-in baseline without a CSV", async () => {
+    const fixture = await classAtCheckIn();
+    const res = await fixture.student.browser.post(
+      `/v1/sessions/${fixture.sessionId}/funds/${fixture.student.fundId}/model/manual`,
+      {},
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.fund.modelStatus).toBe("locked");
+    expect(res.body.fund.modelName).toBe("On-screen inputs");
+    expect(res.body.fund.modelRowCount).toBe(FAKE_POOL.length);
+  });
+
   it("validates, stores and reports without ever scoring the forecast", async () => {
     const fixture = await classAtCheckIn();
     const res = await fixture.student.browser.post(fixture.url, buildCsv());

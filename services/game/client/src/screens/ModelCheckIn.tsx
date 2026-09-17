@@ -80,6 +80,19 @@ export function ModelCheckIn() {
     }
   }
 
+  async function onUseOnScreenInputs() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.lockManualModel(session.id, fund!.id);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not start with on-screen inputs.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="shell">
       <SessionTopbar state={state} />
@@ -147,6 +160,18 @@ export function ModelCheckIn() {
               >
                 {busy ? "Validating…" : "Upload prediction CSV"}
               </button>
+              <button
+                className="btn btn-primary btn-block mt-8"
+                onClick={onUseOnScreenInputs}
+                disabled={busy}
+                data-testid="use-on-screen-inputs"
+              >
+                {busy ? "Preparing…" : "Skip file — use on-screen inputs"}
+              </button>
+              <p className="mt-8 help">
+                No model or CSV is required. The game will use neutral starting assumptions;
+                you enter your bid and financing inputs on each deal screen.
+              </p>
               {fileName && validated ? (
                 <p className="mt-8 help" data-testid="upload-success">
                   {fileName} — {summary?.propertiesMatched ?? 0} / {session.poolCount} properties matched

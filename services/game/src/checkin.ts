@@ -121,6 +121,49 @@ export async function uploadModel(
   return { ok: true, report, fund };
 }
 
+/** Lock a playable baseline when a class does not have a prepared CSV. */
+export async function lockManualModel(ctx: AppContext, input: LockModelInput) {
+  if (input.grant.role !== "professor" && input.grant.fundId !== input.fundId) {
+    throw forbidden("you can only set inputs for your own fund");
+  }
+  const context = await ctx.store.transact(input.sessionId, (tx) => {
+    const session = tx.aggregate.session;
+    assertRevision(session, input.expectedRevision ?? null);
+    if (session.phase !== "model_checkin") throw conflict("model check-in is closed");
+    const member = requireMember(tx, input.grant.memberId);
+    const fund = requireFund(tx, input.fundId);
+    assertMayActForFund(member, fund);
+    if (fund.modelStatus === "locked") throw conflict(`'${fund.name}' has already locked its model`);
+    return { bundleId: session.bundleId, fundName: fund.name };
+  });
+  const poolResponse = await pool(ctx, context.bundleId);
+  const rows: ModelRow[] = poolResponse.properties.map((property) => {
+    const asking = property.asking_price ?? 1;
+    return {
+      propertyId: property.property_id,
+      forecast: { modelName: "On-screen inputs", predictedFairValue: asking, predictedNoiGrowth: 0, probabilityOfDownside: 0.5, confidence: null },
+      policy: { maxBid: asking, targetLtv: 0.6 },
+    };
+  });
+  const now = nowIso();
+  await ctx.store.putModel({ sessionId: input.sessionId, fundId: input.fundId, modelName: "On-screen inputs", rowCount: rows.length, validatedAt: now, lockedAt: now, rows });
+  const fund = await ctx.store.transact(input.sessionId, (tx) => {
+    const member = requireMember(tx, input.grant.memberId);
+    const live = requireFund(tx, input.fundId);
+    assertMayActForFund(member, live);
+    live.modelStatus = "locked";
+    live.modelName = "On-screen inputs";
+    live.modelRowCount = rows.length;
+    live.modelValidatedAt = now;
+    live.modelLockedAt = now;
+    live.forecastSummary = null;
+    tx.putFund(live);
+    return fundOwnerView(live);
+  });
+  assertSafeView(fund, `lockManualModel(fund=${input.fundId})`);
+  return fund;
+}
+
 export interface LockModelInput {
   sessionId: string;
   fundId: string;

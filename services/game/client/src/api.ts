@@ -387,6 +387,12 @@ export const api = {
     }>;
   },
 
+  lockManualModel(sessionId: string, fundId: string) {
+    return post(`/v1/sessions/${sessionId}/funds/${fundId}/model/manual`, {}) as Promise<{
+      fund: FundView;
+    }>;
+  },
+
   readModel(sessionId: string, fundId: string): Promise<ModelRead> {
     return fetch(`/v1/sessions/${sessionId}/funds/${fundId}/model`).then(handle) as Promise<ModelRead>;
   },
