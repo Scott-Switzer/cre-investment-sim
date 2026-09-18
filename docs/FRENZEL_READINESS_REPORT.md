@@ -208,8 +208,9 @@ bypasses the Cloudflare deployment entirely and is the recommended demo method.
 Is `scripts/serve_engine.py` healthy on port 8081 inside the container? Is Streamlit
 starting and binding to port 8080? The `cloudflare/Dockerfile.cloudflare` shows the
 container runs `scripts/serve_engine.py` (engine on 8081) + `node dist/index.js`
-(the Vue frontend). If the Streamlit app is the actual backend, it may not be starting
-in the container at all.
++(the Vue frontend). The Vue app is the Cloudflare deployment's frontend; the actual
++game logic is Streamlit. If the Vue frontend is the entry point, check whether it is
++proxying requests to the Streamlit backend correctly.
 
 ---
 
@@ -232,7 +233,7 @@ All in /tmp/cre-investment-sim/docs/:
 3. **FRENZEL_MEETING_BRIEF.md** — one-page meeting brief: 30-second pitch, what to demo, why REAL 605, what's proven, honest limitations, 10 questions for Frenzel, the ask. 6,501 bytes.
 4. **FRENZEL_QA.md** — 15 Q&A with honest limitations: why this, why not Excel, class time, prep needed, what breaks if unprepared, grading, luck, realism, trust economics, control, real data, before-class work, pilot measures, what to change after, can I trust the economics. 18,117 bytes.
 5. **FRENZEL_PILOT_MEASUREMENT.md** — lightweight pilot measurement plan: pre-game, during-game, post-game measures, success criteria, data collection, what not to measure, after-pilot plan. 6,096 bytes.
-6. **FRENZEL_DEMO_SCRIPT.md** — updated 8-10 minute demo script with current-head notes (manual path, SPA hydration, thesis gap). Patched from original.
+6. **FRENZEL_DEMO_SCRIPT.md** — updated 8-10 minute demo script with current-head notes (manual path, Cloudflare deployment bug, thesis gap). Patched from original.
 
 Plus the pre-existing:
 - REAL605_LEARNING_OBJECTIVES.md (implementation map, IMPLEMENTED/PARTIAL/PLANNED)
