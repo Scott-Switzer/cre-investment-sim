@@ -1,9 +1,12 @@
-# Frenzel Demo Script — 10 minutes
+# Frenzel Demo Script — 8–10 minutes
+### Updated for current head (c88e848, manual input path)
 
 **One sentence to open with:** *This is model-first, not game-first. Students build
 the model before class; the game is only the decision environment.*
 
 Run everything from the landing page. No terminal, no database, no uploads.
+**Note:** If the page appears stuck on first load, this is a Vue SPA hydration delay
+on the preview deployment — hard-refresh to render. The game is not broken.
 
 ---
 
@@ -27,7 +30,7 @@ Point at the two files that matter and say why the split exists:
 If asked whether the task is real modelling or a toy: **`uv run python
 scripts/model_skill_gradient.py`** shows the gradient. A naive "it's worth the
 asking price" model gets an AUC of 0.500 on *is this a good deal*. Ordinary OLS
-gets 0.896. A model that uses the structure of real estate valuation gets 0.978.
+gets 0.896. A model that uses the structure of real estate valuation gets 0.958.
 That is a real spread, and it is the spread the course is teaching.
 
 ---
@@ -54,20 +57,24 @@ uploaded file. The app is not generating a strategy; it is reflecting theirs.
 
 ## 3:00 — 3 min · Start a game and play one round
 
-Landing page → **Professor Control → TRY DEMO**.
+Open **Professor Control**.
 
 > "You are Buy&Hold Capital. Value Fund, Growth Fund, Risk Fund are the
 > competition. You have a model preloaded — no setup."
 
+Click **TRY DEMO**.
+
 Note the progress strip: **PRACTICE › ROUND 1 › ROUND 2 › ROUND 3 › ROUND 4 ›
 DEBRIEF**, with the current stage filled in.
 
-Walk the practice round once, then **Round 1**. On the deal screen, point at the
+Walk the practice round once, then **Round 1**. On the deal screen (**Deal Room**), point at the
 left column, then the **YOUR MODEL** pane:
 
 > "Fair value, asking price, the model's max bid, target LTV, downside
 > probability. Those are *your* numbers, from *your* file. No other team sees
 > them, and the game is not computing them."
+
+Then go to **Investment Decision**. Point at the thesis + falsification fields. These are collected but — honest limitation — the current debrief does not yet surface them back to the student. This is the #1 improvement before a pilot.
 
 Then press **Auto-Advance Next Round** to lock and resolve. Show the result: who
 won each of the four assets, at what price, against the seller's reserve.
@@ -180,3 +187,8 @@ competitive strategy — it wins 62% of seeds against the strong model's 61%, wi
 lower ending NAV ($109.89M vs $110.72M). Analysis wins on average, not on every seed,
 which is exactly the point: the debrief has to separate model quality from decision
 quality because outcome alone will not.
+
+**What's new in this version (c88e848):** Classroom play without a model CSV is now
+possible — the investment decision page accepts manual on-screen inputs. This is an
+accessibility fallback, not an equivalent to pre-class modeling. The analytics
+leaderboard can only score model quality when a model is uploaded.
