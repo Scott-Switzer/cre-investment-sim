@@ -75,7 +75,7 @@ The game is ready for a one-session pilot with Professor Frenzel. The pedagogy i
 
 **Professor controls:** Professor Control page has: TRY DEMO button, setup form (scenario, equity, rounds, seed, practice toggle, demo teams toggle), round actions (open, lock, resolve, advance), leaderboard, reset demo, end game early. Auto-advance available in demo mode. **Clarity assessment:** controls are reasonably clear. Lock before resolve is enforced (button disabled if not LOCKED). Advance before resolve is enforced. **Risk:** no hard timer — professor manages pace verbally. No "late student" recovery beyond late submission before lock.
 
-**Classroom risks:** (1) No hard timer means rounds can run long. (2) Professor must verbally enforce the model-first expectation — the manual path makes it easy to skip. (3) The Vue SPA hydration delay on the preview deployment can confuse first-time users (page appears stuck). (4) The thesis/falsification gap means professor mustfacilitate communication assessment manually.
+**Classroom risks:** (1) No hard timer means rounds can run long. (2) Professor must verbally enforce the model-first expectation — the manual path makes it easy to skip. (3) The Cloudflare Workers preview deployment may not render the Streamlit app correctly on all routes — test the locally-running version before the meeting. (4) The thesis/falsification gap means professor mustfacilitate communication assessment manually.
 
 **Professor can:** tell students what to do next (progress strip + page links), recover from late student (accept submission before lock), NOT advance too early (enforced), see submission completeness (professor control page), explain what happened (debrief answers 10 questions from recorded history), run debrief without knowing codebase (all answers computed from history).
 
@@ -185,7 +185,31 @@ The game is ready for a one-session pilot with Professor Frenzel. The pedagogy i
 
 **No-model path:** Works (c88e848). Manual inputs accepted on investment decision page. **Must be clearly labeled as fallback.**
 
-**Vue SPA hydration issue:** The preview deployment (cre-game-preview.scswitzer.workers.dev) is a Vue 3 + TypeScript + Vite SPA. On first load, the JS bundle (184KB) must download and execute before the game renders. This can feel like "stuck" on slower connections or with TLS interception. **Not a game bug** — a deployment/hydration concern. Hard-refresh resolves it.
+**Cloudflare Workers deployment bug (confirmed, blocking):** The preview deployment
+(`cre-game-preview.scswitzer.workers.dev`) is served via Cloudflare Workers with a
+Durable Object container running the Streamlit app. During the 2026-09-18 playtest,
+the landing page (`/`) and game routes (`/game/...`, `/professor`) consistently
+returned empty `document.body.innerText` after multiple wait cycles — the Streamlit
+app was not rendering on those routes. Only the `/join` route rendered content. **This
+is a blocking issue for any browser-based playthrough and must be resolved before the
+Frenzel demo.**
+
+**Root cause:** Undetermined. The JS bundle (363KB) is served correctly (HTTP 200,
+correct content-type), so the Cloudflare Worker responds to requests. But the Streamlit
+app inside the container is not rendering. Possible causes: container not started,
+engine service (port 8081) not healthy, Streamlit not binding to the right port, or
+a Worker routing issue.
+
+**Confirmed workaround:** Run the app locally with `uv run python -m streamlit run
+app.py` from `/tmp/cre-investment-sim` on port 8501. Open http://localhost:8501. This
+bypasses the Cloudflare deployment entirely and is the recommended demo method.
+
+**If the Cloudflare deployment is needed:** Diagnose the container — is it running?
+Is `scripts/serve_engine.py` healthy on port 8081 inside the container? Is Streamlit
+starting and binding to port 8080? The `cloudflare/Dockerfile.cloudflare` shows the
+container runs `scripts/serve_engine.py` (engine on 8081) + `node dist/index.js`
+(the Vue frontend). If the Streamlit app is the actual backend, it may not be starting
+in the container at all.
 
 ---
 
@@ -218,11 +242,20 @@ Plus the pre-existing:
 
 ---
 
-## Demo Recommendation for Tomorrow
+**Demo Recommendation for Tomorrow**
+
+**Run the app locally for the demo if the Cloudflare Workers deployment is not rendering correctly.** Start with:
+
+```bash
+cd /tmp/cre-investment-sim
+uv run python -m streamlit run app.py
+```
+
+Then open http://localhost:8501 in a browser. The locally-running Streamlit app eliminates the deployment-layer issue entirely.
 
 **Show in this order (8-10 minutes):**
 
-1. **Home page** (1 min): one-line summary + data honesty. If stuck, hard-refresh.
+1. **Home page** (1 min): one-line summary + data honesty.
 2. **Model Check-In** (1 min): show the contract (predicted_fair_value, predicted_noi_growth, probability_of_downside, max_bid, target_ltv). Emphasize max_bid is where analysis becomes policy. Mention the manual fallback exists but is not equivalent.
 3. **Deal Room** (2 min): show 16 metrics per property. Point at YOUR MODEL panel (preloaded) — these are the student's numbers, not the game's.
 4. **Investment Decision** (1 min): show thesis + falsification fields. Note these are collected but the debrief doesn't yet surface them (honest limitation, #1 fix).

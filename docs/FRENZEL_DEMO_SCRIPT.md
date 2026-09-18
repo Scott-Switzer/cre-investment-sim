@@ -5,8 +5,8 @@
 the model before class; the game is only the decision environment.*
 
 Run everything from the landing page. No terminal, no database, no uploads.
-**Note:** If the page appears stuck on first load, this is a Vue SPA hydration delay
-on the preview deployment — hard-refresh to render. The game is not broken.
+**Note:** If the page appears stuck on first load, this is the Streamlit server
+needing time to initialize — wait a few seconds and refresh. The game is not broken.
 
 ---
 
