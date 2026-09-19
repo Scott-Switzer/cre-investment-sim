@@ -1,0 +1,76 @@
+Concurrency probes against the deployed stack — 2026-09-19
+=========================================================
+Target: https://cre-game-preview.scswitzer.workers.dev
+Deployed: merge cceedb0 -> deployment 36e28bf6 (V2, pre-fix)
+Method:  Node one-off probes firing N concurrent requests with a hard timeout, because
+         the milestone asks for evidence rather than a reproduction script.
+
+These are the measurements behind "the deployed stack cannot seat a classroom".
+The committed harness reports (`report-load.json`, `report-latency.json`) cover the
+passing scenarios; these cover the failing one, which the harness reports rather than
+fixes.
+
+-------------------------------------------------------------------------------
+1. Join burst: 50 concurrent students into one fresh 310 session
+-------------------------------------------------------------------------------
+$ node /tmp/joinprobe.mjs https://cre-game-preview.scswitzer.workers.dev 50 60000
+session sess_d2aa854432204ca682ea code B96UYP
+
+50 concurrent joins in 60.2s
+status histogram: {"0":46,"201":4}
+seated 4/50
+join latency p50=60164 p90=60173 p95=60173 max=60177 ms
+  0 (first): TimeoutError
+  201 (first): {"sessionId":"sess_d2aa854432204ca682ea","fundId":"fund_3_945ae3f402bd4329b534","createdFund":true,"displayName":"Probe 3"}
+
+Status 0 is the client hitting its own 60 s timeout: the requests never returned a
+response at all, so this is not a rate limit or a 5xx that a retry would clear.
+
+-------------------------------------------------------------------------------
+2. Where the ceiling is: 50 concurrent requests per route, warm container
+-------------------------------------------------------------------------------
+$ node /tmp/concurrency.mjs 50 45000
+session sess_c8c9c2db91b4426eae6b  (warm)
+
+50x GET /healthz               wall=8.9s  hist={"200":50}  p50=5262 p90=8345 p99=8844 max=8844
+50x GET /v1/whoami             wall=4.6s  hist={"200":50}  p50=3793 p90=4483 p99=4584 max=4584
+50x GET state (read)           wall=41.3s hist={"200":50}  p50=27639 p90=40901 p99=41298 max=41298
+50x GET portfolio              wall=11.8s hist={"409":50}  p50=7979 p90=11347 p99=11782 max=11782
+
+(409 above is the probe's own fault: it used the session id as the fund id.)
+
+Read: routes that touch only the container degrades 6-9x but completes. The route that
+reads Firestore-backed state degrades ~13x (p50 2.1 s -> 27.6 s) without any
+contention conflict, so the single `lite` instance is a real factor. The write path —
+joining — is the one that actually fails, which points at every join serialising on the
+same session-document transaction.
+
+-------------------------------------------------------------------------------
+3. Idempotency: the 500 caused by a slash in the scoped key
+-------------------------------------------------------------------------------
+$ node /tmp/idemprobe.mjs        # unkeyed vs keyed submit, same body
+create 201 / checkin 200 / manual lock 200 / game start 200 / open round 200
+
+submit WITHOUT idempotency-key: 200 {"decision":{...}}
+submit WITH idempotency-key:    500 {"error":"internal","detail":"Value for argument
+    \"documentPath\" must point to a document, but was
+    \"mem_b413bb35fd754bd4a23d:rounds/decision:probe-key\".
+    Your path does not contain an even number of components."}
+same key again:                 500 (same)
+
+After the fix, same probe, deployment 325d56c5:
+submit WITHOUT idempotency-key: 200
+submit WITH idempotency-key:    200
+same key again:                 200   identical submittedAt -> a replay, not a re-execution
+keyed finalize:                 409   illegal_phase (business logic, not a crash)
+
+-------------------------------------------------------------------------------
+4. Container cold start, immediately after a deployment
+-------------------------------------------------------------------------------
+$ curl -X POST .../v1/sessions        # first request after 325d56c5 rolled out
+{"error":"internal",...}   [http 500]
+$ retries (3x, seconds apart)
+[http 201] [http 201] [http 201]
+
+A request that lands while the container's engine process is still starting gets a 500
+rather than a retryable "engine is starting" answer. Narrow window, real nonetheless.

@@ -1,0 +1,2511 @@
+{
+  "scenario": "load",
+  "baseUrl": "https://cre-game-preview.scswitzer.workers.dev",
+  "startedAt": "2026-09-19T12:01:40.822Z",
+  "finishedAt": "2026-09-19T12:07:57.488Z",
+  "wallClockSeconds": 376.7,
+  "requests": {
+    "n": 196,
+    "ok": 190,
+    "successRate": 96.94,
+    "p50": 9505,
+    "p90": 16977.7,
+    "p95": 20696.6,
+    "p99": 24073.9,
+    "max": 28717.5,
+    "statuses": {
+      "200": 175,
+      "201": 15,
+      "401": 3,
+      "403": 1,
+      "409": 2
+    }
+  },
+  "byPhase": {
+    "setup": {
+      "n": 6,
+      "ok": 6,
+      "successRate": 100,
+      "p50": 1708.3,
+      "p90": 2209.8,
+      "p95": 2209.8,
+      "p99": 2209.8,
+      "max": 2209.8,
+      "statuses": {
+        "200": 3,
+        "201": 3
+      }
+    },
+    "A/join-burst": {
+      "n": 12,
+      "ok": 12,
+      "successRate": 100,
+      "p50": 14725.3,
+      "p90": 22012,
+      "p95": 23840.3,
+      "p99": 23840.3,
+      "max": 23840.3,
+      "statuses": {
+        "201": 12
+      }
+    },
+    "B/lobby-poll": {
+      "n": 30,
+      "ok": 30,
+      "successRate": 100,
+      "p50": 7227,
+      "p90": 9789.6,
+      "p95": 9893,
+      "p99": 9908.1,
+      "max": 9908.1,
+      "statuses": {
+        "200": 30
+      }
+    },
+    "C/checkin": {
+      "n": 6,
+      "ok": 6,
+      "successRate": 100,
+      "p50": 1965,
+      "p90": 2211.1,
+      "p95": 2211.1,
+      "p99": 2211.1,
+      "max": 2211.1,
+      "statuses": {
+        "200": 6
+      }
+    },
+    "C/model-lock": {
+      "n": 12,
+      "ok": 12,
+      "successRate": 100,
+      "p50": 16324.1,
+      "p90": 24073.9,
+      "p95": 28717.5,
+      "p99": 28717.5,
+      "max": 28717.5,
+      "statuses": {
+        "200": 12
+      }
+    },
+    "D/game-start": {
+      "n": 21,
+      "ok": 21,
+      "successRate": 100,
+      "p50": 3447.5,
+      "p90": 10198.8,
+      "p95": 10496,
+      "p99": 10716.6,
+      "max": 10716.6,
+      "statuses": {
+        "200": 21
+      }
+    },
+    "D/deal-bidding": {
+      "n": 33,
+      "ok": 33,
+      "successRate": 100,
+      "p50": 13600.2,
+      "p90": 20790.7,
+      "p95": 22298.7,
+      "p99": 23761,
+      "max": 23761,
+      "statuses": {
+        "200": 33
+      }
+    },
+    "D/reconnect-mid-round": {
+      "n": 9,
+      "ok": 6,
+      "successRate": 66.67,
+      "p50": 5572.7,
+      "p90": 5773.5,
+      "p95": 5773.5,
+      "p99": 5773.5,
+      "max": 5773.5,
+      "statuses": {
+        "200": 6,
+        "401": 3
+      }
+    },
+    "D/race-submit-vs-close": {
+      "n": 5,
+      "ok": 4,
+      "successRate": 80,
+      "p50": 5115.7,
+      "p90": 7129.5,
+      "p95": 7129.5,
+      "p99": 7129.5,
+      "max": 7129.5,
+      "statuses": {
+        "200": 4,
+        "409": 1
+      }
+    },
+    "E/idempotency": {
+      "n": 3,
+      "ok": 2,
+      "successRate": 66.67,
+      "p50": 2211,
+      "p90": 2714.7,
+      "p95": 2714.7,
+      "p99": 2714.7,
+      "max": 2714.7,
+      "statuses": {
+        "200": 2,
+        "409": 1
+      }
+    },
+    "G/results-burst": {
+      "n": 18,
+      "ok": 18,
+      "successRate": 100,
+      "p50": 13989.2,
+      "p90": 15299.2,
+      "p95": 15600,
+      "p99": 15600,
+      "max": 15600,
+      "statuses": {
+        "200": 18
+      }
+    },
+    "F/management-round": {
+      "n": 21,
+      "ok": 21,
+      "successRate": 100,
+      "p50": 9176.5,
+      "p90": 14257.6,
+      "p95": 16977.7,
+      "p99": 22018.9,
+      "max": 22018.9,
+      "statuses": {
+        "200": 21
+      }
+    },
+    "F/refresh-load": {
+      "n": 15,
+      "ok": 15,
+      "successRate": 100,
+      "p50": 9525.7,
+      "p90": 11334.9,
+      "p95": 11438.5,
+      "p99": 11438.5,
+      "max": 11438.5,
+      "statuses": {
+        "200": 15
+      }
+    },
+    "isolation": {
+      "n": 4,
+      "ok": 3,
+      "successRate": 75,
+      "p50": 676.1,
+      "p90": 2452.1,
+      "p95": 2452.1,
+      "p99": 2452.1,
+      "max": 2452.1,
+      "statuses": {
+        "200": 3,
+        "403": 1
+      }
+    },
+    "export": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 5452.2,
+      "p90": 5452.2,
+      "p95": 5452.2,
+      "p99": 5452.2,
+      "max": 5452.2,
+      "statuses": {
+        "200": 1
+      }
+    }
+  },
+  "byRoute": {
+    "/v1/sessions": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 2209.7,
+      "p90": 2209.8,
+      "p95": 2209.8,
+      "p99": 2209.8,
+      "max": 2209.8,
+      "statuses": {
+        "201": 3
+      }
+    },
+    "/v1/sessions/:session/professor": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 1697.9,
+      "p90": 1708.3,
+      "p95": 1708.3,
+      "p99": 1708.3,
+      "max": 1708.3,
+      "statuses": {
+        "200": 3
+      }
+    },
+    "/v1/join": {
+      "n": 12,
+      "ok": 12,
+      "successRate": 100,
+      "p50": 14725.3,
+      "p90": 22012,
+      "p95": 23840.3,
+      "p99": 23840.3,
+      "max": 23840.3,
+      "statuses": {
+        "201": 12
+      }
+    },
+    "/v1/sessions/:session/state": {
+      "n": 112,
+      "ok": 109,
+      "successRate": 97.32,
+      "p50": 9123.8,
+      "p90": 13799.8,
+      "p95": 14995.6,
+      "p99": 15299.2,
+      "max": 15600,
+      "statuses": {
+        "200": 109,
+        "401": 3
+      }
+    },
+    "/v1/sessions/:session/checkin/begin": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 1904.3,
+      "p90": 2211.1,
+      "p95": 2211.1,
+      "p99": 2211.1,
+      "max": 2211.1,
+      "statuses": {
+        "200": 3
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_d668bd904dc846c1b90f/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 11623.4,
+      "p90": 11623.4,
+      "p95": 11623.4,
+      "p99": 11623.4,
+      "max": 11623.4,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_c38033ed560f4f30ab84/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 11642.1,
+      "p90": 11642.1,
+      "p95": 11642.1,
+      "p99": 11642.1,
+      "max": 11642.1,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_bc01512e9b87458ea380/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 11644.6,
+      "p90": 11644.6,
+      "p95": 11644.6,
+      "p99": 11644.6,
+      "max": 11644.6,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_e7c7e09801184d0dafd5/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 13513.2,
+      "p90": 13513.2,
+      "p95": 13513.2,
+      "p99": 13513.2,
+      "max": 13513.2,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_5850dc9003ed4ec0b136/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 15827.9,
+      "p90": 15827.9,
+      "p95": 15827.9,
+      "p99": 15827.9,
+      "max": 15827.9,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_f64de68fdcb64fa286f4/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 16324.1,
+      "p90": 16324.1,
+      "p95": 16324.1,
+      "p99": 16324.1,
+      "max": 16324.1,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_ce74f2b3825b4d4b86c5/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 17177.8,
+      "p90": 17177.8,
+      "p95": 17177.8,
+      "p99": 17177.8,
+      "max": 17177.8,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_2c3950d0cdfd4df380fa/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 19622.8,
+      "p90": 19622.8,
+      "p95": 19622.8,
+      "p99": 19622.8,
+      "max": 19622.8,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_1fc6278e9afd47cb9820/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 20324,
+      "p90": 20324,
+      "p95": 20324,
+      "p99": 20324,
+      "max": 20324,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_00058a06a9d44ba9ad91/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 20626.1,
+      "p90": 20626.1,
+      "p95": 20626.1,
+      "p99": 20626.1,
+      "max": 20626.1,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8718e600a21e4920ad34/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 24073.9,
+      "p90": 24073.9,
+      "p95": 24073.9,
+      "p99": 24073.9,
+      "max": 24073.9,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_ca120b31e5814573a522/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 28717.5,
+      "p90": 28717.5,
+      "p95": 28717.5,
+      "p99": 28717.5,
+      "max": 28717.5,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/game/start": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 10496,
+      "p90": 10716.6,
+      "p95": 10716.6,
+      "p99": 10716.6,
+      "max": 10716.6,
+      "statuses": {
+        "200": 3
+      }
+    },
+    "/v1/sessions/:session/rounds/close": {
+      "n": 6,
+      "ok": 5,
+      "successRate": 83.33,
+      "p50": 4887,
+      "p90": 7129.5,
+      "p95": 7129.5,
+      "p99": 7129.5,
+      "max": 7129.5,
+      "statuses": {
+        "200": 5,
+        "409": 1
+      }
+    },
+    "/v1/sessions/:session/rounds/open": {
+      "n": 4,
+      "ok": 4,
+      "successRate": 100,
+      "p50": 4248.3,
+      "p90": 7061.8,
+      "p95": 7061.8,
+      "p99": 7061.8,
+      "max": 7061.8,
+      "statuses": {
+        "200": 4
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_5850dc9003ed4ec0b136/portfolio": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 8288.7,
+      "p90": 8288.7,
+      "p95": 8288.7,
+      "p99": 8288.7,
+      "max": 8288.7,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_ce74f2b3825b4d4b86c5/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 10204.5,
+      "p90": 11396.5,
+      "p95": 11396.5,
+      "p99": 11396.5,
+      "max": 11396.5,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_e7c7e09801184d0dafd5/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 12259.8,
+      "p90": 14010,
+      "p95": 14010,
+      "p99": 14010,
+      "max": 14010,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/rounds/decision": {
+      "n": 19,
+      "ok": 18,
+      "successRate": 94.74,
+      "p50": 12897.2,
+      "p90": 22298.7,
+      "p95": 23761,
+      "p99": 23761,
+      "max": 23761,
+      "statuses": {
+        "200": 18,
+        "409": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_c38033ed560f4f30ab84/portfolio": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 16892.1,
+      "p90": 16892.1,
+      "p95": 16892.1,
+      "p99": 16892.1,
+      "max": 16892.1,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_00058a06a9d44ba9ad91/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 8694.1,
+      "p90": 19939.3,
+      "p95": 19939.3,
+      "p99": 19939.3,
+      "max": 19939.3,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8718e600a21e4920ad34/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 14257.6,
+      "p90": 19379.2,
+      "p95": 19379.2,
+      "p99": 19379.2,
+      "max": 19379.2,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_2c3950d0cdfd4df380fa/portfolio": {
+      "n": 2,
+      "ok": 1,
+      "successRate": 50,
+      "p50": 846.5,
+      "p90": 20372.1,
+      "p95": 20372.1,
+      "p99": 20372.1,
+      "max": 20372.1,
+      "statuses": {
+        "200": 1,
+        "403": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_bc01512e9b87458ea380/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 4284.2,
+      "p90": 20696.6,
+      "p95": 20696.6,
+      "p99": 20696.6,
+      "max": 20696.6,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_ca120b31e5814573a522/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 14014.3,
+      "p90": 20790.7,
+      "p95": 20790.7,
+      "p99": 20790.7,
+      "max": 20790.7,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/whoami": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 567.6,
+      "p90": 676.1,
+      "p95": 676.1,
+      "p99": 676.1,
+      "max": 676.1,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/export": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 5452.2,
+      "p90": 5452.2,
+      "p95": 5452.2,
+      "p99": 5452.2,
+      "max": 5452.2,
+      "statuses": {
+        "200": 1
+      }
+    }
+  },
+  "checks": [
+    {
+      "name": "deployed stack reports a healthy engine",
+      "pass": true,
+      "detail": "{\"status\":\"ok\",\"service\":\"cre-investment-committee-game\",\"store\":\"firestore\",\"engine\":{\"status\":\"ok\",\"game\":\"cre-investment-committee\",\"engine_version\":\"0.1.0\",\"economics_version\":\"2026.09.2\",\"economics_digest\":\"1f3d72484171b0516657cf36321799ab91682f5234062cd6e83de847bfce1b40\",\"schema_version\":1,\"serde_schema_version\":3},\"build\":{\"sha\":null}}"
+    },
+    {
+      "name": "deployed engine is the V2 management engine",
+      "pass": true,
+      "detail": "serde_schema_version=3"
+    },
+    {
+      "name": "load-310-A: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "load-310-A: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_b2416f8fc66d43eba861\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "load-310-B: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "load-310-B: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_0a6f6159a61a4c11b689\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "load-605-C: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "load-605-C: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_ac08794d0b6342fab61c\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "load-605-C: all 3 students seated",
+      "pass": true,
+      "detail": "3/3 seated"
+    },
+    {
+      "name": "load-605-C: every student got a distinct fund",
+      "pass": true,
+      "detail": "3 distinct funds for 3 students"
+    },
+    {
+      "name": "load-310-B: all 3 students seated",
+      "pass": true,
+      "detail": "3/3 seated"
+    },
+    {
+      "name": "load-310-B: every student got a distinct fund",
+      "pass": true,
+      "detail": "3 distinct funds for 3 students"
+    },
+    {
+      "name": "load-310-A: all 6 students seated",
+      "pass": true,
+      "detail": "6/6 seated"
+    },
+    {
+      "name": "load-310-A: every student got a distinct fund",
+      "pass": true,
+      "detail": "6 distinct funds for 6 students"
+    },
+    {
+      "name": "load-605-C: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":6}"
+    },
+    {
+      "name": "load-310-B: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":6}"
+    },
+    {
+      "name": "load-310-A: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":9}"
+    },
+    {
+      "name": "load-310-B: all funds locked a model",
+      "pass": true,
+      "detail": "3/3 locked"
+    },
+    {
+      "name": "load-605-C: all funds locked a model",
+      "pass": true,
+      "detail": "3/3 locked"
+    },
+    {
+      "name": "load-310-A: all funds locked a model",
+      "pass": true,
+      "detail": "6/6 locked"
+    },
+    {
+      "name": "load-605-C: game started",
+      "pass": true,
+      "detail": "{\"phase\":\"practice\",\"round\":-1,\"fundCount\":3,\"engineStateBytes\":164858}"
+    },
+    {
+      "name": "load-310-B: game started",
+      "pass": true,
+      "detail": "{\"phase\":\"practice\",\"round\":-1,\"fundCount\":3,\"engineStateBytes\":164858}"
+    },
+    {
+      "name": "load-310-A: game started",
+      "pass": true,
+      "detail": "{\"phase\":\"practice\",\"round\":-1,\"fundCount\":6,\"engineStateBytes\":252221}"
+    },
+    {
+      "name": "load-605-C: every student's decision was accepted",
+      "pass": true,
+      "detail": "3/3"
+    },
+    {
+      "name": "load-310-B: every student's decision was accepted",
+      "pass": true,
+      "detail": "3/3"
+    },
+    {
+      "name": "load-310-A: every student's decision was accepted",
+      "pass": true,
+      "detail": "6/6"
+    },
+    {
+      "name": "reconnect: a cookie-less refresh is refused, not silently re-seated",
+      "pass": true,
+      "detail": "[401,401,401]"
+    },
+    {
+      "name": "reconnect: restoring the cookie restores the seat and the submitted decision",
+      "pass": true,
+      "detail": "[[200,true],[200,true],[200,true]]"
+    },
+    {
+      "name": "race: submissions landing during the close get 2xx or a clean refusal",
+      "pass": true,
+      "detail": "[409]"
+    },
+    {
+      "name": "race: no request in the race returned a server error",
+      "pass": true,
+      "detail": "{\"race\":[409],\"close\":[200]}"
+    },
+    {
+      "name": "race: the market closed",
+      "pass": true,
+      "detail": "attempts 200"
+    },
+    {
+      "name": "race: the round resolved exactly once",
+      "pass": true,
+      "detail": "resolvedRounds=1"
+    },
+    {
+      "name": "idempotency: a second close does not resolve the round twice",
+      "pass": true,
+      "detail": "409 'close_round' is not legal while the session is in 'round_results'. Available here: open_round, finalize."
+    },
+    {
+      "name": "load round 1: NAV bridge reconciles for all 6 funds",
+      "pass": true,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "no duplicate ownership: total assets equals the number of sold buildings",
+      "pass": true,
+      "detail": "assets=1 sold=1"
+    },
+    {
+      "name": "load-310-A: every student's decision was accepted",
+      "pass": true,
+      "detail": "6/6"
+    },
+    {
+      "name": "310 under load: management stances were submitted",
+      "pass": true,
+      "detail": "1 funds"
+    },
+    {
+      "name": "professor visibility: the round grid lists every fund",
+      "pass": true,
+      "detail": "6/6"
+    },
+    {
+      "name": "professor visibility: the grid reports stances set and a stance mix",
+      "pass": true,
+      "detail": "1 funds with stances"
+    },
+    {
+      "name": "professor visibility: submitted vs waiting is distinguishable",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "load round 2 (management): NAV bridge reconciles for all 6 funds",
+      "pass": true,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "isolation: a student cannot read another session's fund",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "name": "isolation: no fund of session B appears in session A",
+      "pass": true,
+      "detail": "0 leaked"
+    },
+    {
+      "name": "isolation: an explicit session hint wins over cookie order",
+      "pass": true,
+      "detail": "got sess_0a6f6159a61a4c11b689 (wanted sess_0a6f6159a61a4c11b689)"
+    },
+    {
+      "name": "isolation: without a hint, two held seats are reported as ambiguous rather than guessed",
+      "pass": true,
+      "detail": "{\"sessionId\":null,\"sessions\":[{\"sessionId\":\"sess_b2416f8fc66d43eba861\",\"role\":\"student\",\"memberId\":\"mem_f4bbe9d6ace045daacfd\"},{\"sessionId\":\"sess_0a6f6159a61a4c11b689\",\"role\":\"student\",\"memberId\":\"mem_394fca77618244d3832e\"}],\"ambiguous\":true}"
+    },
+    {
+      "name": "export: the professor receives a zip",
+      "pass": true,
+      "detail": "{\"_unparsed\":\"PK\\u0003\\u0004\\u0014\\u0000\\u0000\\b\\u0000\\u0000�`3]\\u0016��\\u0013�\\u0000\\u0000\\u0000�\\u0000\\u0000\\u0000\\u0013\\u0000\\u0000\\u0000session_summary.csvfield,value\\nsession_id,sess_b2416f8fc66d"
+    },
+    {
+      "name": "export: contains session_summary.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains fund_final_standings.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_decisions.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_management_stances.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_results.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains model_metrics.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains override_metrics.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: round_management_stances.csv carries the session's stances",
+      "pass": true,
+      "detail": "1 rows"
+    },
+    {
+      "name": "export: stance rows name the round, the fund, the building and the stance",
+      "pass": true,
+      "detail": "round,fund,property_id,stance"
+    },
+    {
+      "name": "export: every exported stance is a stance the engine publishes",
+      "pass": true,
+      "detail": "RUN LEAN"
+    },
+    {
+      "name": "export: session_summary.csv identifies this session",
+      "pass": true,
+      "detail": "field,value / session_id,sess_b2416f8fc66d43eba861"
+    }
+  ],
+  "checksPassed": 57,
+  "checksFailed": 0,
+  "notes": [
+    "join burst: 12 students in 23.8s",
+    "management: 1/6 funds submitted stances"
+  ],
+  "samples": [
+    {
+      "phase": "setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2209.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 1708.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2209.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 1558.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2206.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 1697.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 6075.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 9772.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 10875.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 11576.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 13673.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 14725.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 15240,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 16512.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 16973.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 18383,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 22012,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "A/join-burst",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 23840.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6926.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6935.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7076.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7125.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7130,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7135.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7133.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7131.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7227,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7324.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7324.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7424.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9505,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9558.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9697.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9893,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9694.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9694,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9500.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9789.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9591.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9789.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9714.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9908.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2723.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2913.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2806.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2939.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2997.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "B/lobby-poll",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3015.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 1965,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2116.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2125.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1824.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1904.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 2211.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_d668bd904dc846c1b90f/model/manual",
+      "status": 200,
+      "ms": 11623.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_c38033ed560f4f30ab84/model/manual",
+      "status": 200,
+      "ms": 11642.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_bc01512e9b87458ea380/model/manual",
+      "status": 200,
+      "ms": 11644.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_e7c7e09801184d0dafd5/model/manual",
+      "status": 200,
+      "ms": 13513.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_5850dc9003ed4ec0b136/model/manual",
+      "status": 200,
+      "ms": 15827.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_f64de68fdcb64fa286f4/model/manual",
+      "status": 200,
+      "ms": 16324.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_ce74f2b3825b4d4b86c5/model/manual",
+      "status": 200,
+      "ms": 17177.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_2c3950d0cdfd4df380fa/model/manual",
+      "status": 200,
+      "ms": 19622.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_1fc6278e9afd47cb9820/model/manual",
+      "status": 200,
+      "ms": 20324,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_00058a06a9d44ba9ad91/model/manual",
+      "status": 200,
+      "ms": 20626.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_8718e600a21e4920ad34/model/manual",
+      "status": 200,
+      "ms": 24073.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "C/model-lock",
+      "route": "/v1/sessions/:session/funds/:fund_ca120b31e5814573a522/model/manual",
+      "status": 200,
+      "ms": 28717.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2902.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3140.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3447.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 200,
+      "ms": 10198.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 200,
+      "ms": 10496,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 200,
+      "ms": 10716.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2697.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2736.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 200,
+      "ms": 4887,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3069.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 200,
+      "ms": 4409.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2346.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4024.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 200,
+      "ms": 4704.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2721.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 200,
+      "ms": 4119.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2498.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2471.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 200,
+      "ms": 5530.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2500.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/game-start",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 200,
+      "ms": 4248.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9701.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 10907.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 11599.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 12093.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13537.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13535.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13593.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13600.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13600.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13797.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13799.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 14325.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_5850dc9003ed4ec0b136/portfolio",
+      "status": 200,
+      "ms": 8288.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_ce74f2b3825b4d4b86c5/portfolio",
+      "status": 200,
+      "ms": 10204.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_e7c7e09801184d0dafd5/portfolio",
+      "status": 200,
+      "ms": 12259.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 14013.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_c38033ed560f4f30ab84/portfolio",
+      "status": 200,
+      "ms": 16892.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 20984.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_00058a06a9d44ba9ad91/portfolio",
+      "status": 200,
+      "ms": 19939.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_8718e600a21e4920ad34/portfolio",
+      "status": 200,
+      "ms": 19379.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_2c3950d0cdfd4df380fa/portfolio",
+      "status": 200,
+      "ms": 20372.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 12579.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 16381.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_bc01512e9b87458ea380/portfolio",
+      "status": 200,
+      "ms": 20696.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/funds/:fund_ca120b31e5814573a522/portfolio",
+      "status": 200,
+      "ms": 20790.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 23761,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 7148.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 14074.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 7914.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 9028.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 12897.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 17072.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/deal-bidding",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 22298.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5472,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5572.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5773.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 401,
+      "ms": 392.1,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 401,
+      "ms": 583.1,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 401,
+      "ms": 749.1,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5699,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5702.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/reconnect-mid-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5651.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/race-submit-vs-close",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4527.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/race-submit-vs-close",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5115.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/race-submit-vs-close",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 5218.2,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "D/race-submit-vs-close",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 200,
+      "ms": 7129.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "D/race-submit-vs-close",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3640.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "E/idempotency",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2714.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "E/idempotency",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1543.2,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "E/idempotency",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2211,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 12290.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 12689.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 13989.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 14088.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 14371.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 14687.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 14995.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 15085.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 15087.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 15087.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 15299.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 15600,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 10002,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9238.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9321.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9506,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9751.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "G/results-burst",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9539.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2700.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 200,
+      "ms": 7061.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 8721.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9123.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9163.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9176.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9366.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9482.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/funds/:fund_bc01512e9b87458ea380/portfolio",
+      "status": 200,
+      "ms": 4284.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/funds/:fund_00058a06a9d44ba9ad91/portfolio",
+      "status": 200,
+      "ms": 8694.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/funds/:fund_ce74f2b3825b4d4b86c5/portfolio",
+      "status": 200,
+      "ms": 11396.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 8560.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/funds/:fund_ca120b31e5814573a522/portfolio",
+      "status": 200,
+      "ms": 14014.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/funds/:fund_8718e600a21e4920ad34/portfolio",
+      "status": 200,
+      "ms": 14257.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/funds/:fund_e7c7e09801184d0dafd5/portfolio",
+      "status": 200,
+      "ms": 14010,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 8892.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 11287.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 12268.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 16977.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 22018.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/management-round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2601.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 8578.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 8624.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9436.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9519.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9525.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9628,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9714.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 11438.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 10598.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 11003.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 11106.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 11334.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2129.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 200,
+      "ms": 5542.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "F/refresh-load",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2472,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "isolation",
+      "route": "/v1/sessions/:session/funds/:fund_2c3950d0cdfd4df380fa/portfolio",
+      "status": 403,
+      "ms": 846.5,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "isolation",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2452.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "isolation",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 676.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "isolation",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 567.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "export",
+      "route": "/v1/sessions/:session/export",
+      "status": 200,
+      "ms": 5452.2,
+      "ok": true,
+      "note": null
+    }
+  ]
+}

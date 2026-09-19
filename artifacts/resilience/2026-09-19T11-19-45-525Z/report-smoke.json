@@ -1,0 +1,1843 @@
+{
+  "scenario": "smoke",
+  "baseUrl": "https://cre-game-preview.scswitzer.workers.dev",
+  "startedAt": "2026-09-19T11:19:45.537Z",
+  "finishedAt": "2026-09-19T11:24:00.031Z",
+  "wallClockSeconds": 254.5,
+  "requests": {
+    "n": 105,
+    "ok": 80,
+    "successRate": 76.19,
+    "p50": 2615.7,
+    "p90": 8800.4,
+    "p95": 10492.9,
+    "p99": 14810.2,
+    "max": 16586.6,
+    "statuses": {
+      "200": 68,
+      "201": 12,
+      "409": 25
+    }
+  },
+  "byPhase": {
+    "605/setup": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 1935.5,
+      "p90": 3154.5,
+      "p95": 3154.5,
+      "p99": 3154.5,
+      "max": 3154.5,
+      "statuses": {
+        "200": 1,
+        "201": 1
+      }
+    },
+    "605/join": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 7972.1,
+      "p90": 10489.6,
+      "p95": 10489.6,
+      "p99": 10489.6,
+      "max": 10489.6,
+      "statuses": {
+        "201": 3
+      }
+    },
+    "310/setup": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 1861.2,
+      "p90": 2685.3,
+      "p95": 2685.3,
+      "p99": 2685.3,
+      "max": 2685.3,
+      "statuses": {
+        "200": 1,
+        "201": 1
+      }
+    },
+    "310/join": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 6427.4,
+      "p90": 8830.1,
+      "p95": 8830.1,
+      "p99": 8830.1,
+      "max": 8830.1,
+      "statuses": {
+        "201": 3
+      }
+    },
+    "220/setup": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 2074.1,
+      "p90": 2717.6,
+      "p95": 2717.6,
+      "p99": 2717.6,
+      "max": 2717.6,
+      "statuses": {
+        "200": 1,
+        "201": 1
+      }
+    },
+    "220/join": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 7974.5,
+      "p90": 10492.9,
+      "p95": 10492.9,
+      "p99": 10492.9,
+      "max": 10492.9,
+      "statuses": {
+        "201": 3
+      }
+    },
+    "605/checkin": {
+      "n": 5,
+      "ok": 5,
+      "successRate": 100,
+      "p50": 11986.4,
+      "p90": 16586.6,
+      "p95": 16586.6,
+      "p99": 16586.6,
+      "max": 16586.6,
+      "statuses": {
+        "200": 5
+      }
+    },
+    "310/checkin": {
+      "n": 5,
+      "ok": 5,
+      "successRate": 100,
+      "p50": 7581.5,
+      "p90": 9887.8,
+      "p95": 9887.8,
+      "p99": 9887.8,
+      "max": 9887.8,
+      "statuses": {
+        "200": 5
+      }
+    },
+    "220/checkin": {
+      "n": 5,
+      "ok": 5,
+      "successRate": 100,
+      "p50": 8800.4,
+      "p90": 14810.2,
+      "p95": 14810.2,
+      "p99": 14810.2,
+      "max": 14810.2,
+      "statuses": {
+        "200": 5
+      }
+    },
+    "605/practice": {
+      "n": 3,
+      "ok": 2,
+      "successRate": 66.67,
+      "p50": 2721.6,
+      "p90": 4165.8,
+      "p95": 4165.8,
+      "p99": 4165.8,
+      "max": 4165.8,
+      "statuses": {
+        "200": 2,
+        "409": 1
+      }
+    },
+    "605/round-1": {
+      "n": 11,
+      "ok": 8,
+      "successRate": 72.73,
+      "p50": 2291.7,
+      "p90": 6193.4,
+      "p95": 6308.1,
+      "p99": 6308.1,
+      "max": 6308.1,
+      "statuses": {
+        "200": 8,
+        "409": 3
+      }
+    },
+    "605/refusal": {
+      "n": 3,
+      "ok": 1,
+      "successRate": 33.33,
+      "p50": 1501,
+      "p90": 2280.5,
+      "p95": 2280.5,
+      "p99": 2280.5,
+      "max": 2280.5,
+      "statuses": {
+        "200": 1,
+        "409": 2
+      }
+    },
+    "605/round-2": {
+      "n": 6,
+      "ok": 5,
+      "successRate": 83.33,
+      "p50": 4074,
+      "p90": 5379.4,
+      "p95": 5379.4,
+      "p99": 5379.4,
+      "max": 5379.4,
+      "statuses": {
+        "200": 5,
+        "409": 1
+      }
+    },
+    "310/practice": {
+      "n": 3,
+      "ok": 2,
+      "successRate": 66.67,
+      "p50": 2446.7,
+      "p90": 2620.7,
+      "p95": 2620.7,
+      "p99": 2620.7,
+      "max": 2620.7,
+      "statuses": {
+        "200": 2,
+        "409": 1
+      }
+    },
+    "310/round-1": {
+      "n": 11,
+      "ok": 8,
+      "successRate": 72.73,
+      "p50": 2491.6,
+      "p90": 4708.8,
+      "p95": 4840.8,
+      "p99": 4840.8,
+      "max": 4840.8,
+      "statuses": {
+        "200": 8,
+        "409": 3
+      }
+    },
+    "310/refusal": {
+      "n": 3,
+      "ok": 1,
+      "successRate": 33.33,
+      "p50": 1406.2,
+      "p90": 2884.5,
+      "p95": 2884.5,
+      "p99": 2884.5,
+      "max": 2884.5,
+      "statuses": {
+        "200": 1,
+        "409": 2
+      }
+    },
+    "310/round-2": {
+      "n": 9,
+      "ok": 5,
+      "successRate": 55.56,
+      "p50": 1906.1,
+      "p90": 4629.5,
+      "p95": 4629.5,
+      "p99": 4629.5,
+      "max": 4629.5,
+      "statuses": {
+        "200": 5,
+        "409": 4
+      }
+    },
+    "220/practice": {
+      "n": 3,
+      "ok": 2,
+      "successRate": 66.67,
+      "p50": 2700,
+      "p90": 2953.9,
+      "p95": 2953.9,
+      "p99": 2953.9,
+      "max": 2953.9,
+      "statuses": {
+        "200": 2,
+        "409": 1
+      }
+    },
+    "220/round-1": {
+      "n": 11,
+      "ok": 8,
+      "successRate": 72.73,
+      "p50": 2212.8,
+      "p90": 6577.3,
+      "p95": 6792.8,
+      "p99": 6792.8,
+      "max": 6792.8,
+      "statuses": {
+        "200": 8,
+        "409": 3
+      }
+    },
+    "220/refusal": {
+      "n": 3,
+      "ok": 1,
+      "successRate": 33.33,
+      "p50": 1457.9,
+      "p90": 2129.3,
+      "p95": 2129.3,
+      "p99": 2129.3,
+      "max": 2129.3,
+      "statuses": {
+        "200": 1,
+        "409": 2
+      }
+    },
+    "220/round-2": {
+      "n": 8,
+      "ok": 6,
+      "successRate": 75,
+      "p50": 2340,
+      "p90": 6516,
+      "p95": 6516,
+      "p99": 6516,
+      "max": 6516,
+      "statuses": {
+        "200": 6,
+        "409": 2
+      }
+    },
+    "export": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 3522.3,
+      "p90": 3522.3,
+      "p95": 3522.3,
+      "p99": 3522.3,
+      "max": 3522.3,
+      "statuses": {
+        "200": 1
+      }
+    }
+  },
+  "byRoute": {
+    "/v1/sessions": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 2717.6,
+      "p90": 3154.5,
+      "p95": 3154.5,
+      "p99": 3154.5,
+      "max": 3154.5,
+      "statuses": {
+        "201": 3
+      }
+    },
+    "/v1/sessions/:session/professor": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 1935.5,
+      "p90": 2074.1,
+      "p95": 2074.1,
+      "p99": 2074.1,
+      "max": 2074.1,
+      "statuses": {
+        "200": 3
+      }
+    },
+    "/v1/join": {
+      "n": 9,
+      "ok": 9,
+      "successRate": 100,
+      "p50": 7972.1,
+      "p90": 10492.9,
+      "p95": 10492.9,
+      "p99": 10492.9,
+      "max": 10492.9,
+      "statuses": {
+        "201": 9
+      }
+    },
+    "/v1/sessions/:session/state": {
+      "n": 52,
+      "ok": 52,
+      "successRate": 100,
+      "p50": 2700,
+      "p90": 6218.3,
+      "p95": 6516,
+      "p99": 6792.8,
+      "max": 6792.8,
+      "statuses": {
+        "200": 52
+      }
+    },
+    "/v1/sessions/:session/checkin/begin": {
+      "n": 3,
+      "ok": 3,
+      "successRate": 100,
+      "p50": 1702.1,
+      "p90": 1801.6,
+      "p95": 1801.6,
+      "p99": 1801.6,
+      "max": 1801.6,
+      "statuses": {
+        "200": 3
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8cc31f2339a043ff8bef/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 11986.4,
+      "p90": 11986.4,
+      "p95": 11986.4,
+      "p99": 11986.4,
+      "max": 11986.4,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_3d5a98dab0134dccb8f9/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 14490.2,
+      "p90": 14490.2,
+      "p95": 14490.2,
+      "p99": 14490.2,
+      "max": 14490.2,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_d8215ef5417346c1a5d4/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 16586.6,
+      "p90": 16586.6,
+      "p95": 16586.6,
+      "p99": 16586.6,
+      "max": 16586.6,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_d661fb6ce5ec4d45a5a6/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 7581.5,
+      "p90": 7581.5,
+      "p95": 7581.5,
+      "p99": 7581.5,
+      "max": 7581.5,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8661cb7e58a542ec893e/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 9087.7,
+      "p90": 9087.7,
+      "p95": 9087.7,
+      "p99": 9087.7,
+      "max": 9087.7,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_43268a049f2446b49c40/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 9887.8,
+      "p90": 9887.8,
+      "p95": 9887.8,
+      "p99": 9887.8,
+      "max": 9887.8,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_f5d0ad7740e7418ba58c/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 8800.4,
+      "p90": 8800.4,
+      "p95": 8800.4,
+      "p99": 8800.4,
+      "max": 8800.4,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_ae55517505824461bd4b/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 11888.8,
+      "p90": 11888.8,
+      "p95": 11888.8,
+      "p99": 11888.8,
+      "max": 11888.8,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_a89fc95ebdaf46c9bf37/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 14810.2,
+      "p90": 14810.2,
+      "p95": 14810.2,
+      "p99": 14810.2,
+      "max": 14810.2,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/game/start": {
+      "n": 3,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 1745,
+      "p90": 1827.2,
+      "p95": 1827.2,
+      "p99": 1827.2,
+      "max": 1827.2,
+      "statuses": {
+        "409": 3
+      }
+    },
+    "/v1/sessions/:session/rounds/open": {
+      "n": 6,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 1518.3,
+      "p90": 1610.3,
+      "p95": 1610.3,
+      "p99": 1610.3,
+      "max": 1610.3,
+      "statuses": {
+        "409": 6
+      }
+    },
+    "/v1/sessions/:session/rounds/close": {
+      "n": 6,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 1378.1,
+      "p90": 1508.7,
+      "p95": 1508.7,
+      "p99": 1508.7,
+      "max": 1508.7,
+      "statuses": {
+        "409": 6
+      }
+    },
+    "/v1/sessions/:session/rounds/decision": {
+      "n": 6,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 1393.8,
+      "p90": 1501,
+      "p95": 1501,
+      "p99": 1501,
+      "max": 1501,
+      "statuses": {
+        "409": 6
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_d661fb6ce5ec4d45a5a6/portfolio": {
+      "n": 1,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 849.3,
+      "p90": 849.3,
+      "p95": 849.3,
+      "p99": 849.3,
+      "max": 849.3,
+      "statuses": {
+        "409": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8661cb7e58a542ec893e/portfolio": {
+      "n": 1,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 949.4,
+      "p90": 949.4,
+      "p95": 949.4,
+      "p99": 949.4,
+      "max": 949.4,
+      "statuses": {
+        "409": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_43268a049f2446b49c40/portfolio": {
+      "n": 1,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 948.9,
+      "p90": 948.9,
+      "p95": 948.9,
+      "p99": 948.9,
+      "max": 948.9,
+      "statuses": {
+        "409": 1
+      }
+    },
+    "/v1/sessions/:session/game/finalize": {
+      "n": 1,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 1400.4,
+      "p90": 1400.4,
+      "p95": 1400.4,
+      "p99": 1400.4,
+      "max": 1400.4,
+      "statuses": {
+        "409": 1
+      }
+    },
+    "/v1/sessions/:session/export": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 3522.3,
+      "p90": 3522.3,
+      "p95": 3522.3,
+      "p99": 3522.3,
+      "max": 3522.3,
+      "statuses": {
+        "200": 1
+      }
+    }
+  },
+  "checks": [
+    {
+      "name": "deployed stack reports a healthy engine",
+      "pass": true,
+      "detail": "{\"status\":\"ok\",\"service\":\"cre-investment-committee-game\",\"store\":\"firestore\",\"engine\":{\"status\":\"ok\",\"game\":\"cre-investment-committee\",\"engine_version\":\"0.1.0\",\"economics_version\":\"2026.09.2\",\"economics_digest\":\"1f3d72484171b0516657cf36321799ab91682f5234062cd6e83de847bfce1b40\",\"schema_version\":1,\"serde_schema_version\":3},\"build\":{\"sha\":null}}"
+    },
+    {
+      "name": "deployed engine is the V2 management engine",
+      "pass": true,
+      "detail": "serde_schema_version=3"
+    },
+    {
+      "name": "smoke-605: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "smoke-605: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_c57a48a715e44870a820\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "smoke-605: all 3 students seated",
+      "pass": true,
+      "detail": "3/3 seated"
+    },
+    {
+      "name": "smoke-605: every student got a distinct fund",
+      "pass": true,
+      "detail": "3 distinct funds for 3 students"
+    },
+    {
+      "name": "smoke-310: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "smoke-310: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_8111fc9d934b4de89b3f\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "smoke-310: all 3 students seated",
+      "pass": true,
+      "detail": "3/3 seated"
+    },
+    {
+      "name": "smoke-310: every student got a distinct fund",
+      "pass": true,
+      "detail": "3 distinct funds for 3 students"
+    },
+    {
+      "name": "smoke-220: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "smoke-220: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_9dc28efb78e7402da979\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "smoke-220: all 3 students seated",
+      "pass": true,
+      "detail": "3/3 seated"
+    },
+    {
+      "name": "smoke-220: every student got a distinct fund",
+      "pass": true,
+      "detail": "3 distinct funds for 3 students"
+    },
+    {
+      "name": "smoke-605: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":6}"
+    },
+    {
+      "name": "smoke-605: all funds locked a model",
+      "pass": true,
+      "detail": "3/3 locked"
+    },
+    {
+      "name": "smoke-310: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":6}"
+    },
+    {
+      "name": "smoke-310: all funds locked a model",
+      "pass": true,
+      "detail": "3/3 locked"
+    },
+    {
+      "name": "smoke-220: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":6}"
+    },
+    {
+      "name": "smoke-220: all funds locked a model",
+      "pass": true,
+      "detail": "3/3 locked"
+    },
+    {
+      "name": "smoke-605: game started",
+      "pass": false,
+      "detail": "waiting on 1 fund(s) to lock a model: Fund 1"
+    },
+    {
+      "name": "605: the first scored round opened",
+      "pass": false,
+      "detail": "'open_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "smoke-605: every student's decision was accepted",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "605 round 1: NAV bridge reconciles for all 0 funds",
+      "pass": false,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "605: each sold building is owned exactly once",
+      "pass": true,
+      "detail": "assets=0 sold=0"
+    },
+    {
+      "name": "605: the management round opened",
+      "pass": false,
+      "detail": "'open_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "605 tier: round carries a management block",
+      "pass": false,
+      "detail": "management missing"
+    },
+    {
+      "name": "605: a stance is refused, and the tier is named",
+      "pass": false,
+      "detail": "409 there is no open round to decide on (the session is 'model_checkin')"
+    },
+    {
+      "name": "605: the plain decision still succeeds after a refusal",
+      "pass": false,
+      "detail": "there is no open round to decide on (the session is 'model_checkin')"
+    },
+    {
+      "name": "smoke-605: every student's decision was accepted",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "605: no student managed anything",
+      "pass": true,
+      "detail": "0 funds sent stances"
+    },
+    {
+      "name": "605: the management round resolved",
+      "pass": false,
+      "detail": "'close_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "605 round 2: NAV bridge reconciles for all 0 funds",
+      "pass": false,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "605 round 2: results published for every fund",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "smoke-310: game started",
+      "pass": false,
+      "detail": "waiting on 1 fund(s) to lock a model: Fund 1"
+    },
+    {
+      "name": "310: the first scored round opened",
+      "pass": false,
+      "detail": "'open_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "smoke-310: every student's decision was accepted",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "310 round 1: NAV bridge reconciles for all 0 funds",
+      "pass": false,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "310: each sold building is owned exactly once",
+      "pass": true,
+      "detail": "assets=0 sold=0"
+    },
+    {
+      "name": "310: the management round opened",
+      "pass": false,
+      "detail": "'open_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "310 tier: round carries a management block",
+      "pass": false,
+      "detail": "management missing"
+    },
+    {
+      "name": "310: an invented stance is refused, and the legal list is named",
+      "pass": false,
+      "detail": "409 there is no open round to decide on (the session is 'model_checkin')"
+    },
+    {
+      "name": "310: the plain decision still succeeds after a refusal",
+      "pass": false,
+      "detail": "there is no open round to decide on (the session is 'model_checkin')"
+    },
+    {
+      "name": "smoke-310: every student's decision was accepted",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "310: funds own buildings to manage",
+      "pass": false,
+      "detail": "0/3 own buildings"
+    },
+    {
+      "name": "310: owned buildings received a stance",
+      "pass": false,
+      "detail": "0 funds set stances"
+    },
+    {
+      "name": "310: the management round resolved",
+      "pass": false,
+      "detail": "'close_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "310 round 2: NAV bridge reconciles for all 0 funds",
+      "pass": false,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "310 round 2: results published for every fund",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "smoke-220: game started",
+      "pass": false,
+      "detail": "waiting on 1 fund(s) to lock a model: Fund 1"
+    },
+    {
+      "name": "220: the first scored round opened",
+      "pass": false,
+      "detail": "'open_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "smoke-220: every student's decision was accepted",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "220 round 1: NAV bridge reconciles for all 0 funds",
+      "pass": false,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "220: each sold building is owned exactly once",
+      "pass": true,
+      "detail": "assets=0 sold=0"
+    },
+    {
+      "name": "220: the management round opened",
+      "pass": false,
+      "detail": "'open_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "220 tier: round carries a management block",
+      "pass": false,
+      "detail": "management missing"
+    },
+    {
+      "name": "220: a stance is refused, and the tier is named",
+      "pass": false,
+      "detail": "409 there is no open round to decide on (the session is 'model_checkin')"
+    },
+    {
+      "name": "220: the plain decision still succeeds after a refusal",
+      "pass": false,
+      "detail": "there is no open round to decide on (the session is 'model_checkin')"
+    },
+    {
+      "name": "smoke-220: every student's decision was accepted",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "220: no student managed anything",
+      "pass": true,
+      "detail": "0 funds sent stances"
+    },
+    {
+      "name": "220: the management round resolved",
+      "pass": false,
+      "detail": "'close_round' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "220 round 2: NAV bridge reconciles for all 0 funds",
+      "pass": false,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "220 round 2: results published for every fund",
+      "pass": false,
+      "detail": "0/3"
+    },
+    {
+      "name": "310: the game finalized",
+      "pass": false,
+      "detail": "'finalize' is not legal while the session is in 'model_checkin'. Available here: start_game."
+    },
+    {
+      "name": "export: the professor receives a zip",
+      "pass": true,
+      "detail": "{\"_unparsed\":\"PK\\u0003\\u0004\\u0014\\u0000\\u0000\\b\\u0000\\u0000�Z3]�WA%�\\u0000\\u0000\\u0000�\\u0000\\u0000\\u0000\\u0013\\u0000\\u0000\\u0000session_summary.csvfield,value\\nsession_id,sess_8111fc9d934b4de89b3f\\n"
+    },
+    {
+      "name": "export: contains session_summary.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains fund_final_standings.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_decisions.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_management_stances.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_results.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains model_metrics.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains override_metrics.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: round_management_stances.csv carries the session's stances",
+      "pass": false,
+      "detail": "0 rows"
+    },
+    {
+      "name": "export: stance rows name session, round, fund, building and stance",
+      "pass": false,
+      "detail": "round,fund,property_id,stance"
+    }
+  ],
+  "checksPassed": 33,
+  "checksFailed": 41,
+  "notes": [],
+  "samples": [
+    {
+      "phase": "605/setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 3154.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 1935.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 5169.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 7972.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 10489.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2685.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 1861.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 3286.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 6427.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 8830.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2717.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 2074.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 5762.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 7974.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/join",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 10492.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2191.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1593.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_8cc31f2339a043ff8bef/model/manual",
+      "status": 200,
+      "ms": 11986.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_3d5a98dab0134dccb8f9/model/manual",
+      "status": 200,
+      "ms": 14490.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_d8215ef5417346c1a5d4/model/manual",
+      "status": 200,
+      "ms": 16586.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 1813.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1702.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_d661fb6ce5ec4d45a5a6/model/manual",
+      "status": 200,
+      "ms": 7581.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_8661cb7e58a542ec893e/model/manual",
+      "status": 200,
+      "ms": 9087.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_43268a049f2446b49c40/model/manual",
+      "status": 200,
+      "ms": 9887.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2994.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1801.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_f5d0ad7740e7418ba58c/model/manual",
+      "status": 200,
+      "ms": 8800.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_ae55517505824461bd4b/model/manual",
+      "status": 200,
+      "ms": 11888.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_a89fc95ebdaf46c9bf37/model/manual",
+      "status": 200,
+      "ms": 14810.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/practice",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4165.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/practice",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 409,
+      "ms": 1711.7,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/practice",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2721.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2671.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 409,
+      "ms": 1598.6,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5303,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6193.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6308.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2291.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1193.6,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2251.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2041.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 409,
+      "ms": 1518.9,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2772.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/refusal",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2280.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/refusal",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1215.9,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/refusal",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1501,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4074,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4084.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4558.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2297,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "605/round-2",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1508.7,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "605/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5379.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/practice",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2620.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/practice",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 409,
+      "ms": 1827.2,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/practice",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2446.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2491.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 409,
+      "ms": 1191,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4516.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4708.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4840.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 1857.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1433.6,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2275.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2680.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 409,
+      "ms": 1328.6,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4186.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/refusal",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2884.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/refusal",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1393.8,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/refusal",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1406.2,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4100.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4385.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4629.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/funds/:fund_d661fb6ce5ec4d45a5a6/portfolio",
+      "status": 409,
+      "ms": 849.3,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/funds/:fund_8661cb7e58a542ec893e/portfolio",
+      "status": 409,
+      "ms": 949.4,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/funds/:fund_43268a049f2446b49c40/portfolio",
+      "status": 409,
+      "ms": 948.9,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 1906.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1009.3,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "310/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2595,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/practice",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2700,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/practice",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 409,
+      "ms": 1745,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/practice",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2953.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2570.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 409,
+      "ms": 1518.3,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6394.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6577.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6792.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2086.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1402.7,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2212.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2615.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 409,
+      "ms": 1610.3,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/round-1",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2176.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/refusal",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2129.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/refusal",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1342.2,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/refusal",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1457.9,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6038,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6218.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 6516,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2340,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1378.1,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2427.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2249.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "220/round-2",
+      "route": "/v1/sessions/:session/game/finalize",
+      "status": 409,
+      "ms": 1400.4,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "export",
+      "route": "/v1/sessions/:session/export",
+      "status": 200,
+      "ms": 3522.3,
+      "ok": true,
+      "note": null
+    }
+  ]
+}

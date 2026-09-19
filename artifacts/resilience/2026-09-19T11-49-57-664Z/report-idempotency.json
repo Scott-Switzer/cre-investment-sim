@@ -1,0 +1,1028 @@
+{
+  "scenario": "idempotency",
+  "baseUrl": "https://cre-game-preview.scswitzer.workers.dev",
+  "startedAt": "2026-09-19T11:49:57.666Z",
+  "finishedAt": "2026-09-19T11:53:46.858Z",
+  "wallClockSeconds": 229.2,
+  "requests": {
+    "n": 63,
+    "ok": 47,
+    "successRate": 74.6,
+    "p50": 5457.8,
+    "p90": 15381.8,
+    "p95": 17194.7,
+    "p99": 18287.3,
+    "max": 18287.3,
+    "statuses": {
+      "200": 42,
+      "201": 5,
+      "409": 10,
+      "500": 6
+    }
+  },
+  "byPhase": {
+    "setup": {
+      "n": 6,
+      "ok": 6,
+      "successRate": 100,
+      "p50": 3663.2,
+      "p90": 12939,
+      "p95": 12939,
+      "p99": 12939,
+      "max": 12939,
+      "statuses": {
+        "200": 1,
+        "201": 5
+      }
+    },
+    "idem/checkin": {
+      "n": 10,
+      "ok": 6,
+      "successRate": 60,
+      "p50": 1672.8,
+      "p90": 17383.6,
+      "p95": 18287.3,
+      "p99": 18287.3,
+      "max": 18287.3,
+      "statuses": {
+        "200": 6,
+        "500": 4
+      }
+    },
+    "idem/round": {
+      "n": 21,
+      "ok": 13,
+      "successRate": 61.9,
+      "p50": 5457.8,
+      "p90": 13507.7,
+      "p95": 17194.7,
+      "p99": 18027.4,
+      "max": 18027.4,
+      "statuses": {
+        "200": 13,
+        "409": 6,
+        "500": 2
+      }
+    },
+    "idem/close": {
+      "n": 5,
+      "ok": 3,
+      "successRate": 60,
+      "p50": 3096.8,
+      "p90": 5299.5,
+      "p95": 5299.5,
+      "p99": 5299.5,
+      "max": 5299.5,
+      "statuses": {
+        "200": 3,
+        "409": 2
+      }
+    },
+    "idem/finalize": {
+      "n": 20,
+      "ok": 18,
+      "successRate": 90,
+      "p50": 8747.3,
+      "p90": 14744.8,
+      "p95": 15381.8,
+      "p99": 15382.9,
+      "max": 15382.9,
+      "statuses": {
+        "200": 18,
+        "409": 2
+      }
+    },
+    "export": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 10428,
+      "p90": 10428,
+      "p95": 10428,
+      "p99": 10428,
+      "max": 10428,
+      "statuses": {
+        "200": 1
+      }
+    }
+  },
+  "byRoute": {
+    "/v1/sessions": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 2601.8,
+      "p90": 2601.8,
+      "p95": 2601.8,
+      "p99": 2601.8,
+      "max": 2601.8,
+      "statuses": {
+        "201": 1
+      }
+    },
+    "/v1/sessions/:session/professor": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 2094.4,
+      "p90": 2094.4,
+      "p95": 2094.4,
+      "p99": 2094.4,
+      "max": 2094.4,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/join": {
+      "n": 4,
+      "ok": 4,
+      "successRate": 100,
+      "p50": 6543.3,
+      "p90": 12939,
+      "p95": 12939,
+      "p99": 12939,
+      "max": 12939,
+      "statuses": {
+        "201": 4
+      }
+    },
+    "/v1/sessions/:session/state": {
+      "n": 20,
+      "ok": 20,
+      "successRate": 100,
+      "p50": 5299.5,
+      "p90": 9355,
+      "p95": 9520.5,
+      "p99": 10086.1,
+      "max": 10086.1,
+      "statuses": {
+        "200": 20
+      }
+    },
+    "/v1/sessions/:session/checkin/begin": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 1672.8,
+      "p90": 1672.8,
+      "p95": 1672.8,
+      "p99": 1672.8,
+      "max": 1672.8,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/model/manual": {
+      "n": 3,
+      "ok": 1,
+      "successRate": 33.33,
+      "p50": 525.3,
+      "p90": 12497.8,
+      "p95": 12497.8,
+      "p99": 12497.8,
+      "max": 12497.8,
+      "statuses": {
+        "200": 1,
+        "500": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_e65fe02c59494ecf9d81/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 15979.7,
+      "p90": 15979.7,
+      "p95": 15979.7,
+      "p99": 15979.7,
+      "max": 15979.7,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8346086961e640938954/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 17383.6,
+      "p90": 17383.6,
+      "p95": 17383.6,
+      "p99": 17383.6,
+      "max": 17383.6,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_2156bd5e711d4d368102/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 18287.3,
+      "p90": 18287.3,
+      "p95": 18287.3,
+      "p99": 18287.3,
+      "max": 18287.3,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/rounds/decision": {
+      "n": 14,
+      "ok": 4,
+      "successRate": 28.57,
+      "p50": 3173.5,
+      "p90": 8299.3,
+      "p95": 11576.8,
+      "p99": 11576.8,
+      "max": 11576.8,
+      "statuses": {
+        "200": 4,
+        "409": 6,
+        "500": 4
+      }
+    },
+    "/v1/sessions/:session/game/start": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 13507.7,
+      "p90": 13507.7,
+      "p95": 13507.7,
+      "p99": 13507.7,
+      "max": 13507.7,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 10505.1,
+      "p90": 14744.8,
+      "p95": 14744.8,
+      "p99": 14744.8,
+      "max": 14744.8,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_8346086961e640938954/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 13305.6,
+      "p90": 15382.9,
+      "p95": 15382.9,
+      "p99": 15382.9,
+      "max": 15382.9,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_2156bd5e711d4d368102/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 15381.8,
+      "p90": 17194.7,
+      "p95": 17194.7,
+      "p99": 17194.7,
+      "max": 17194.7,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_e65fe02c59494ecf9d81/portfolio": {
+      "n": 2,
+      "ok": 2,
+      "successRate": 100,
+      "p50": 10354.4,
+      "p90": 18027.4,
+      "p95": 18027.4,
+      "p99": 18027.4,
+      "max": 18027.4,
+      "statuses": {
+        "200": 2
+      }
+    },
+    "/v1/sessions/:session/rounds/close": {
+      "n": 3,
+      "ok": 1,
+      "successRate": 33.33,
+      "p50": 2205.1,
+      "p90": 9967.1,
+      "p95": 9967.1,
+      "p99": 9967.1,
+      "max": 9967.1,
+      "statuses": {
+        "200": 1,
+        "409": 2
+      }
+    },
+    "/v1/sessions/:session/rounds/open": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 8799,
+      "p90": 8799,
+      "p95": 8799,
+      "p99": 8799,
+      "max": 8799,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/game/finalize": {
+      "n": 2,
+      "ok": 0,
+      "successRate": 0,
+      "p50": 3783.8,
+      "p90": 5410.5,
+      "p95": 5410.5,
+      "p99": 5410.5,
+      "max": 5410.5,
+      "statuses": {
+        "409": 2
+      }
+    },
+    "/v1/sessions/:session/export": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 10428,
+      "p90": 10428,
+      "p95": 10428,
+      "p99": 10428,
+      "max": 10428,
+      "statuses": {
+        "200": 1
+      }
+    }
+  },
+  "checks": [
+    {
+      "name": "deployed stack reports a healthy engine",
+      "pass": true,
+      "detail": "{\"status\":\"ok\",\"service\":\"cre-investment-committee-game\",\"store\":\"firestore\",\"engine\":{\"status\":\"ok\",\"game\":\"cre-investment-committee\",\"engine_version\":\"0.1.0\",\"economics_version\":\"2026.09.2\",\"economics_digest\":\"1f3d72484171b0516657cf36321799ab91682f5234062cd6e83de847bfce1b40\",\"schema_version\":1,\"serde_schema_version\":3},\"build\":{\"sha\":null}}"
+    },
+    {
+      "name": "deployed engine is the V2 management engine",
+      "pass": true,
+      "detail": "serde_schema_version=3"
+    },
+    {
+      "name": "idem-310: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "idem-310: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_4dd68fa373da41bc90a9\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "idem-310: all 4 students seated",
+      "pass": true,
+      "detail": "4/4 seated"
+    },
+    {
+      "name": "idem-310: every student got a distinct fund",
+      "pass": true,
+      "detail": "4 distinct funds for 4 students"
+    },
+    {
+      "name": "idem-310: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":7}"
+    },
+    {
+      "name": "idem-310: all funds locked a model",
+      "pass": true,
+      "detail": "4/4 locked"
+    },
+    {
+      "name": "idempotency: a repeated model lock with the same key replays instead of double-locking",
+      "pass": true,
+      "detail": "500 then 500"
+    },
+    {
+      "name": "idempotency: the same key with a different body is refused",
+      "pass": true,
+      "detail": "500 then 500"
+    },
+    {
+      "name": "idem-310: game started",
+      "pass": true,
+      "detail": "{\"round\":-1,\"phase\":\"practice_results\",\"rejected\":[],\"gameComplete\":false,\"submittedFunds\":0,\"results\":{\"round_number\":-1,\"auctions\":[{\"property_id\":\"OC-INDU-01\",\"sold\":false,\"reason\":\"Practice round "
+    },
+    {
+      "name": "idempotency: a double-clicked submit replays one decision",
+      "pass": false,
+      "detail": "500/500"
+    },
+    {
+      "name": "idempotency: two unkeyed submits replace rather than duplicate",
+      "pass": false,
+      "detail": "409/409"
+    },
+    {
+      "name": "idempotency: the round closed",
+      "pass": false,
+      "detail": "'close_round' is not legal while the session is in 'practice_results'. Available here: open_round."
+    },
+    {
+      "name": "idempotency: closing twice is refused",
+      "pass": true,
+      "detail": "409 'close_round' is not legal while the session is in 'practice_results'. Available here: open_round."
+    },
+    {
+      "name": "idempotency round 1: NAV bridge reconciles for all 4 funds",
+      "pass": true,
+      "detail": "worst residual 0.000000"
+    },
+    {
+      "name": "idempotency: no double-counted transactions",
+      "pass": true,
+      "detail": "assets=0 sold=0"
+    },
+    {
+      "name": "idempotency: the game finalized",
+      "pass": false,
+      "detail": "the game is not complete; finalize only after the last round resolves"
+    },
+    {
+      "name": "idempotency: finalizing twice is refused",
+      "pass": true,
+      "detail": "409 the game is not complete; finalize only after the last round resolves"
+    },
+    {
+      "name": "export: the professor receives a zip",
+      "pass": true,
+      "detail": "{\"_unparsed\":\"PK\\u0003\\u0004\\u0014\\u0000\\u0000\\b\\u0000\\u0000�^3]\\u00000�<�\\u0000\\u0000\\u0000�\\u0000\\u0000\\u0000\\u0013\\u0000\\u0000\\u0000session_summary.csvfield,value\\nsession_id,sess_4dd68fa373da41bc9"
+    },
+    {
+      "name": "export: contains session_summary.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains fund_final_standings.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_decisions.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_management_stances.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains round_results.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains model_metrics.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: contains override_metrics.csv",
+      "pass": true,
+      "detail": "fund_final_standings.csv,model_metrics.csv,override_metrics.csv,round_decisions.csv,round_management_stances.csv,round_results.csv,session_summary.csv"
+    },
+    {
+      "name": "export: round_management_stances.csv carries the session's stances",
+      "pass": false,
+      "detail": "0 rows"
+    },
+    {
+      "name": "export: stance rows name the round, the fund, the building and the stance",
+      "pass": true,
+      "detail": "round,fund,property_id,stance"
+    },
+    {
+      "name": "export: every exported stance is a stance the engine publishes",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "name": "export: session_summary.csv identifies this session",
+      "pass": true,
+      "detail": "field,value / session_id,sess_4dd68fa373da41bc90a9"
+    }
+  ],
+  "checksPassed": 25,
+  "checksFailed": 6,
+  "notes": [],
+  "samples": [
+    {
+      "phase": "setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2601.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 2094.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 3663.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 6543.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 10581.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 12939,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 1732,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1672.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/model/manual",
+      "status": 200,
+      "ms": 12497.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_e65fe02c59494ecf9d81/model/manual",
+      "status": 200,
+      "ms": 15979.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_8346086961e640938954/model/manual",
+      "status": 200,
+      "ms": 17383.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_2156bd5e711d4d368102/model/manual",
+      "status": 200,
+      "ms": 18287.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/model/manual",
+      "status": 500,
+      "ms": 525.3,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/model/manual",
+      "status": 500,
+      "ms": 498.7,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 500,
+      "ms": 611.7,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/checkin",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 500,
+      "ms": 593.4,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 7465.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 200,
+      "ms": 13507.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4530.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3142.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 500,
+      "ms": 598.5,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 500,
+      "ms": 626.9,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3003.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 1842.9,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 3433.1,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 8192.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 8387.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9355,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 10086.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/portfolio",
+      "status": 200,
+      "ms": 10505.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/funds/:fund_8346086961e640938954/portfolio",
+      "status": 200,
+      "ms": 13305.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 3668.3,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 5457.8,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/funds/:fund_2156bd5e711d4d368102/portfolio",
+      "status": 200,
+      "ms": 17194.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/funds/:fund_e65fe02c59494ecf9d81/portfolio",
+      "status": 200,
+      "ms": 18027.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 3038.5,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/round",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 409,
+      "ms": 3173.5,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/close",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3096.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/close",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 1486.2,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/close",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5299.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/close",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 409,
+      "ms": 2205.1,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/close",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4203.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3878.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 200,
+      "ms": 8799,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 8747.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9206.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9290.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 9520.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/funds/:fund_e65fe02c59494ecf9d81/portfolio",
+      "status": 200,
+      "ms": 10354.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 4519.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/funds/:fund_923e85c6cd944b2ba4bc/portfolio",
+      "status": 200,
+      "ms": 14744.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/funds/:fund_2156bd5e711d4d368102/portfolio",
+      "status": 200,
+      "ms": 15381.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/funds/:fund_8346086961e640938954/portfolio",
+      "status": 200,
+      "ms": 15382.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 3950.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 8299.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/rounds/decision",
+      "status": 200,
+      "ms": 11576.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 5534.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/rounds/close",
+      "status": 200,
+      "ms": 9967.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4786,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/game/finalize",
+      "status": 409,
+      "ms": 5410.5,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 4176.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "idem/finalize",
+      "route": "/v1/sessions/:session/game/finalize",
+      "status": 409,
+      "ms": 3783.8,
+      "ok": false,
+      "note": null
+    },
+    {
+      "phase": "export",
+      "route": "/v1/sessions/:session/export",
+      "status": 200,
+      "ms": 10428,
+      "ok": true,
+      "note": null
+    }
+  ]
+}
