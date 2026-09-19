@@ -1,0 +1,882 @@
+{
+  "scenario": "latency",
+  "baseUrl": "https://cre-game-preview.scswitzer.workers.dev",
+  "startedAt": "2026-09-19T11:32:24.530Z",
+  "finishedAt": "2026-09-19T11:34:23.704Z",
+  "wallClockSeconds": 119.2,
+  "requests": {
+    "n": 68,
+    "ok": 68,
+    "successRate": 100,
+    "p50": 1953.8,
+    "p90": 2569.8,
+    "p95": 3699.3,
+    "p99": 9964.9,
+    "max": 9964.9,
+    "statuses": {
+      "200": 66,
+      "201": 2
+    }
+  },
+  "byPhase": {
+    "setup": {
+      "n": 11,
+      "ok": 11,
+      "successRate": 100,
+      "p50": 2284.6,
+      "p90": 4736.6,
+      "p95": 9964.9,
+      "p99": 9964.9,
+      "max": 9964.9,
+      "statuses": {
+        "200": 9,
+        "201": 2
+      }
+    },
+    "latency/warmup": {
+      "n": 9,
+      "ok": 9,
+      "successRate": 100,
+      "p50": 616.1,
+      "p90": 3699.3,
+      "p95": 3699.3,
+      "p99": 3699.3,
+      "max": 3699.3,
+      "statuses": {
+        "200": 9
+      }
+    },
+    "latency/container-only": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 606.5,
+      "p90": 626.7,
+      "p95": 626.7,
+      "p99": 626.7,
+      "max": 626.7,
+      "statuses": {
+        "200": 8
+      }
+    },
+    "latency/engine-probe": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 614.9,
+      "p90": 769.1,
+      "p95": 769.1,
+      "p99": 769.1,
+      "max": 769.1,
+      "statuses": {
+        "200": 8
+      }
+    },
+    "latency/engine-bundles": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 588.9,
+      "p90": 633.9,
+      "p95": 633.9,
+      "p99": 633.9,
+      "max": 633.9,
+      "statuses": {
+        "200": 8
+      }
+    },
+    "latency/session-state": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 2128,
+      "p90": 2511.5,
+      "p95": 2511.5,
+      "p99": 2511.5,
+      "max": 2511.5,
+      "statuses": {
+        "200": 8
+      }
+    },
+    "latency/portfolio": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 2074.6,
+      "p90": 3864.5,
+      "p95": 3864.5,
+      "p99": 3864.5,
+      "max": 3864.5,
+      "statuses": {
+        "200": 8
+      }
+    },
+    "latency/state-as-professor": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 2198.5,
+      "p90": 2569.8,
+      "p95": 2569.8,
+      "p99": 2569.8,
+      "max": 2569.8,
+      "statuses": {
+        "200": 8
+      }
+    }
+  },
+  "byRoute": {
+    "/v1/sessions": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 2332.2,
+      "p90": 2332.2,
+      "p95": 2332.2,
+      "p99": 2332.2,
+      "max": 2332.2,
+      "statuses": {
+        "201": 1
+      }
+    },
+    "/v1/sessions/:session/professor": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 1711.7,
+      "p90": 1711.7,
+      "p95": 1711.7,
+      "p99": 1711.7,
+      "max": 1711.7,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/join": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 1942.7,
+      "p90": 1942.7,
+      "p95": 1942.7,
+      "p99": 1942.7,
+      "max": 1942.7,
+      "statuses": {
+        "201": 1
+      }
+    },
+    "/v1/sessions/:session/state": {
+      "n": 23,
+      "ok": 23,
+      "successRate": 100,
+      "p50": 2295.7,
+      "p90": 2511.5,
+      "p95": 2569.8,
+      "p99": 3699.3,
+      "max": 3699.3,
+      "statuses": {
+        "200": 23
+      }
+    },
+    "/v1/sessions/:session/checkin/begin": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 1518.7,
+      "p90": 1518.7,
+      "p95": 1518.7,
+      "p99": 1518.7,
+      "max": 1518.7,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/model/manual": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 3682.2,
+      "p90": 3682.2,
+      "p95": 3682.2,
+      "p99": 3682.2,
+      "max": 3682.2,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/game/start": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 9964.9,
+      "p90": 9964.9,
+      "p95": 9964.9,
+      "p99": 9964.9,
+      "max": 9964.9,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/v1/sessions/:session/rounds/open": {
+      "n": 1,
+      "ok": 1,
+      "successRate": 100,
+      "p50": 4736.6,
+      "p90": 4736.6,
+      "p95": 4736.6,
+      "p99": 4736.6,
+      "max": 4736.6,
+      "statuses": {
+        "200": 1
+      }
+    },
+    "/healthz": {
+      "n": 11,
+      "ok": 11,
+      "successRate": 100,
+      "p50": 616.1,
+      "p90": 650.7,
+      "p95": 769.1,
+      "p99": 769.1,
+      "max": 769.1,
+      "statuses": {
+        "200": 11
+      }
+    },
+    "/v1/whoami": {
+      "n": 11,
+      "ok": 11,
+      "successRate": 100,
+      "p50": 601.6,
+      "p90": 616.3,
+      "p95": 626.7,
+      "p99": 626.7,
+      "max": 626.7,
+      "statuses": {
+        "200": 11
+      }
+    },
+    "/v1/bundles": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 588.9,
+      "p90": 633.9,
+      "p95": 633.9,
+      "p99": 633.9,
+      "max": 633.9,
+      "statuses": {
+        "200": 8
+      }
+    },
+    "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio": {
+      "n": 8,
+      "ok": 8,
+      "successRate": 100,
+      "p50": 2074.6,
+      "p90": 3864.5,
+      "p95": 3864.5,
+      "p99": 3864.5,
+      "max": 3864.5,
+      "statuses": {
+        "200": 8
+      }
+    }
+  },
+  "checks": [
+    {
+      "name": "deployed stack reports a healthy engine",
+      "pass": true,
+      "detail": "{\"status\":\"ok\",\"service\":\"cre-investment-committee-game\",\"store\":\"firestore\",\"engine\":{\"status\":\"ok\",\"game\":\"cre-investment-committee\",\"engine_version\":\"0.1.0\",\"economics_version\":\"2026.09.2\",\"economics_digest\":\"1f3d72484171b0516657cf36321799ab91682f5234062cd6e83de847bfce1b40\",\"schema_version\":1,\"serde_schema_version\":3},\"build\":{\"sha\":null}}"
+    },
+    {
+      "name": "deployed engine is the V2 management engine",
+      "pass": true,
+      "detail": "serde_schema_version=3"
+    },
+    {
+      "name": "latency-310: session created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "latency-310: professor signed in",
+      "pass": true,
+      "detail": "{\"sessionId\":\"sess_a7acd195972a4d62aec1\",\"role\":\"professor\"}"
+    },
+    {
+      "name": "latency-310: all 1 students seated",
+      "pass": true,
+      "detail": "1/1 seated"
+    },
+    {
+      "name": "latency-310: every student got a distinct fund",
+      "pass": true,
+      "detail": "1 distinct funds for 1 students"
+    },
+    {
+      "name": "latency-310: check-in opened",
+      "pass": true,
+      "detail": "{\"phase\":\"model_checkin\",\"revision\":4}"
+    },
+    {
+      "name": "latency-310: all funds locked a model",
+      "pass": true,
+      "detail": "1/1 locked"
+    },
+    {
+      "name": "latency-310: game started",
+      "pass": true,
+      "detail": "{\"round\":-1,\"phase\":\"practice_results\",\"rejected\":[],\"gameComplete\":false,\"submittedFunds\":0,\"results\":{\"round_number\":-1,\"auctions\":[{\"property_id\":\"OC-INDU-01\",\"sold\":false,\"reason\":\"Practice round "
+    }
+  ],
+  "checksPassed": 9,
+  "checksFailed": 0,
+  "notes": [],
+  "samples": [
+    {
+      "phase": "setup",
+      "route": "/v1/sessions",
+      "status": 201,
+      "ms": 2332.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/professor",
+      "status": 200,
+      "ms": 1711.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/join",
+      "status": 201,
+      "ms": 1942.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 1953.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/checkin/begin",
+      "status": 200,
+      "ms": 1518.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/model/manual",
+      "status": 200,
+      "ms": 3682.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2284.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/game/start",
+      "status": 200,
+      "ms": 9964.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2179.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2474.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "setup",
+      "route": "/v1/sessions/:session/rounds/open",
+      "status": 200,
+      "ms": 4736.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 631.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 584.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 3699.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 595.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 597.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2297.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 616.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 597.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/warmup",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2392.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 606.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 597.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 613.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 601.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 612.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 626.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 616.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/container-only",
+      "route": "/v1/whoami",
+      "status": 200,
+      "ms": 575.4,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 573.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 646,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 598.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 650.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 614.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 618.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 611.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-probe",
+      "route": "/healthz",
+      "status": 200,
+      "ms": 769.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 622.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 603.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 583.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 583.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 588.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 569.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 631.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/engine-bundles",
+      "route": "/v1/bundles",
+      "status": 200,
+      "ms": 633.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2511.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2460,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2059.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2380.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2128,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2119,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2071.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/session-state",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2439,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 2661.2,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 2073.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 2074.6,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 3864.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 2486,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 2065.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 1983.3,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/portfolio",
+      "route": "/v1/sessions/:session/funds/:fund_a993af8cd24544bd8474/portfolio",
+      "status": 200,
+      "ms": 2091.1,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2098.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2569.8,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2198.5,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2471,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2181.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2295.7,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2122.9,
+      "ok": true,
+      "note": null
+    },
+    {
+      "phase": "latency/state-as-professor",
+      "route": "/v1/sessions/:session/state",
+      "status": 200,
+      "ms": 2367.4,
+      "ok": true,
+      "note": null
+    }
+  ]
+}

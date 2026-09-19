@@ -1,0 +1,13 @@
+round,fund,property_id,action,bid,ltv
+1,smoke-310 Fund 001,OC-INDU-05,PASS,,
+1,smoke-310 Fund 001,OC-MULT-07,BID,11.39,0.6
+1,smoke-310 Fund 001,OC-OFFI-06,PASS,,
+1,smoke-310 Fund 001,OC-RETA-08,PASS,,
+1,smoke-310 Fund 003,OC-INDU-05,PASS,,
+1,smoke-310 Fund 003,OC-MULT-07,BID,11.39,0.6
+1,smoke-310 Fund 003,OC-OFFI-06,PASS,,
+1,smoke-310 Fund 003,OC-RETA-08,PASS,,
+1,smoke-310 Fund 002,OC-INDU-05,PASS,,
+1,smoke-310 Fund 002,OC-MULT-07,BID,11.39,0.6
+1,smoke-310 Fund 002,OC-OFFI-06,PASS,,
+1,smoke-310 Fund 002,OC-RETA-08,PASS,,
