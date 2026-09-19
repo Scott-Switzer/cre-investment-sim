@@ -5,7 +5,7 @@
  * deterministic bots) and hands the browser its seat — no professor, no uploads.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
 import { api } from "../api";
@@ -16,6 +16,28 @@ export function Landing() {
   const { status, state } = useSession();
   const [demoBusy, setDemoBusy] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);
+  const [buildSha, setBuildSha] = useState<string | null>(null);
+
+  // The commit this deployment was built from. It is public metadata about *this*
+  // build, not about the game, and it is what turns "I deployed after merging" into
+  // something the page itself can be checked against.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/v1/health");
+        if (!res.ok) return;
+        const body = (await res.json()) as { build?: { sha?: string | null } };
+        const sha = body.build?.sha;
+        if (!cancelled && typeof sha === "string" && sha.trim() !== "") setBuildSha(sha.trim());
+      } catch {
+        // A footer detail. Losing it must never make the landing page fail.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // A browser with a live seat goes where the session is, not to marketing.
   if (status === "ready" && state) {
@@ -37,10 +59,12 @@ export function Landing() {
     try {
       const demo = await api.createDemoSession("Demo Player");
       await api.demoAdvance(demo.sessionId);
-      // The cookie now holds the demo seat; the session provider will route.
+      // The cookie now holds the demo seat; the session provider will route. The id is
+      // named explicitly because a browser that has played before holds other seats
+      // too, and the fresh mount must not wander into one of them.
       // Demo sessions are provisioned with locked models and an open practice
       // round; enter the actual playable board immediately.
-      window.location.assign("/game/practice");
+      window.location.assign(`/game/practice?s=${encodeURIComponent(demo.sessionId)}`);
     } catch (err) {
       setDemoError(err instanceof Error ? err.message : "The demo could not be created.");
       setDemoBusy(false);
@@ -95,6 +119,11 @@ export function Landing() {
             </Link>
           </span>
           <span className="hero-prof">Engine adjudicated · sealed-bid auctions · deterministic</span>
+          {buildSha ? (
+            <span className="hero-prof" data-testid="build-sha">
+              build {buildSha.slice(0, 7)}
+            </span>
+          ) : null}
         </div>
       </footer>
     </div>

@@ -13,7 +13,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MemoryRouter } from "react-router-dom";
+
 import type { ManagementStance, RoundManagement, StateView, SubmissionGridRow } from "./api";
+import { Join } from "./screens/Join";
 
 /**
  * The management config a 605 session publishes: the layer exists, the decision does
@@ -156,6 +159,11 @@ function sessionState(overrides: Partial<StateView> = {}): StateView {
 }
 
 const stateRef = { current: sessionState() };
+/** Seats this browser holds, as the server would list them. */
+const heldRef: { current: { sessionId: string; role: "student" | "professor"; memberId: string }[] } = {
+  current: [],
+};
+const chosenRef: { current: string | null } = { current: null };
 
 vi.mock("./session", async () => {
   const actual = await vi.importActual<typeof import("./session")>("./session");
@@ -167,6 +175,11 @@ vi.mock("./session", async () => {
       error: null,
       live: true,
       refresh: async () => {},
+      sessions: heldRef.current,
+      ambiguous: heldRef.current.length > 1,
+      chooseSession: async (sessionId: string) => {
+        chosenRef.current = sessionId;
+      },
     }),
   };
 });
@@ -209,6 +222,8 @@ beforeEach(() => {
   portfolioRef.current = null;
   portfolioCalls.count = 0;
   submitCalls.length = 0;
+  heldRef.current = [];
+  chosenRef.current = null;
 });
 
 describe("phase gating", () => {
@@ -595,5 +610,47 @@ describe("what the professor sees about management", () => {
     renderAtUrl("/professor");
 
     expect(screen.getByTestId("management-Pacific CRE Partners")).toHaveTextContent("not used");
+  });
+});
+
+/**
+ * The join screen is rendered directly: `App memory` starts at `/`, so its phase gate
+ * decides the screen and the join route is never reached through it. That gate is
+ * covered above; this is about the picker, which lives on the join screen.
+ */
+function renderJoin() {
+  return render(
+    <MemoryRouter>
+      <Join />
+    </MemoryRouter>,
+  );
+}
+
+describe("choosing between two held seats", () => {
+  it("asks which class is meant when this browser holds two, and never guesses", async () => {
+    // The classroom failure this closes: join a second class and the client used to
+    // mount whichever seat the browser sent first. Now the held seats are named and
+    // the player chooses — there is no ordering that could stand in for the answer.
+    heldRef.current = [
+      { sessionId: "sess_morning", role: "student", memberId: "m1" },
+      { sessionId: "sess_afternoon", role: "student", memberId: "m2" },
+    ];
+    renderJoin();
+
+    // Named by the session's own title, resolved through the seat's own grant.
+    await waitFor(() => expect(screen.getByTestId("pick-session-sess_morning")).toBeInTheDocument());
+    expect(screen.getByTestId("pick-session-sess_morning")).toHaveTextContent("REAL 605 — Test");
+    expect(screen.getByTestId("pick-session-sess_afternoon")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("pick-session-sess_afternoon"));
+    await waitFor(() => expect(chosenRef.current).toBe("sess_afternoon"));
+  });
+
+  it("shows the class code field, not a picker, when only one seat is held", async () => {
+    heldRef.current = [{ sessionId: "sess_only", role: "student", memberId: "m1" }];
+    renderJoin();
+
+    await waitFor(() => expect(screen.getByTestId("join-continue")).toBeInTheDocument());
+    expect(screen.queryByTestId("pick-session-sess_only")).not.toBeInTheDocument();
   });
 });

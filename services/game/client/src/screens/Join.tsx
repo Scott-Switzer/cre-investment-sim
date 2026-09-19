@@ -7,11 +7,12 @@
  * player — nothing is stored client-side.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { api, ApiError, type JoinPreview } from "../api";
 import { ErrorBox, Panel } from "../components";
 import { PublicTopbar } from "../chrome";
+import { useSession } from "../session";
 
 type Mode = "create" | "join";
 
@@ -26,6 +27,40 @@ export function Join() {
   const [reclaimName, setReclaimName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [seatNames, setSeatNames] = useState<Record<string, string>>({});
+
+  // A browser can hold several seats at once. Rather than guessing which class this is
+  // — which is how a student who joined a second session used to land in the first —
+  // the held seats are named and the player says which one they mean.
+  const { sessions = [], ambiguous = false, chooseSession } = useSession();
+
+  useEffect(() => {
+    if (!ambiguous || sessions.length < 2) return;
+    let cancelled = false;
+    void (async () => {
+      const named = await Promise.all(
+        sessions.map(async (seat) => {
+          try {
+            const view = await api.stateOrThrow(seat.sessionId);
+            return [seat.sessionId, view.session.name] as const;
+          } catch {
+            // A seat we hold but cannot read is still listed, by id. Better an opaque
+            // choice than a hidden one.
+            return [seat.sessionId, null] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setSeatNames(
+        Object.fromEntries(
+          named.filter((entry): entry is readonly [string, string] => entry[1] !== null),
+        ),
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ambiguous, sessions]);
 
   async function lookup(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +113,9 @@ export function Join() {
     setError(null);
     try {
       await api.reclaim(preview.session.id, reclaimName);
-      window.location.assign("/lobby");
+      // Name the session being reclaimed into: a browser that has joined more than one
+      // class would otherwise be free to land in a different one.
+      window.location.assign(`/lobby?s=${encodeURIComponent(preview.session.id)}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the game service.");
       setBusy(false);
@@ -103,6 +140,31 @@ export function Join() {
         </div>
 
         {error ? <div className="mb-16"><ErrorBox>{error}</ErrorBox></div> : null}
+
+        {ambiguous && sessions.length > 1 ? (
+          <div className="mb-16">
+            <Panel label="You have more than one seat">
+              <p className="help" style={{ marginTop: 0 }}>
+                This browser is signed in to {sessions.length} sessions. Choose the one
+                you want; each tab keeps its own.
+              </p>
+              {sessions.map((seat) => (
+                <button
+                  key={seat.sessionId}
+                  type="button"
+                  className="fund-option"
+                  onClick={() => void chooseSession?.(seat.sessionId)}
+                  data-testid={`pick-session-${seat.sessionId}`}
+                >
+                  <span className="f-name">{seatNames[seat.sessionId] ?? seat.sessionId}</span>
+                  <span className="f-count">
+                    {seat.role === "professor" ? "Hosting" : "Playing"}
+                  </span>
+                </button>
+              ))}
+            </Panel>
+          </div>
+        ) : null}
 
         {step === "identity" ? (
           <Panel>
