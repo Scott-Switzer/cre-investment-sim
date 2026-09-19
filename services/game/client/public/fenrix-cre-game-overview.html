@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FENRIX — Commercial Real Estate Fund · Gameplay Overview</title>
+<style>
+  :root{
+    --ink:#14213d; --ink-soft:#44506e; --paper:#ffffff; --wash:#f4f6fb;
+    --accent:#0f5bd8; --accent-soft:#e9f0fc; --gold:#c9a227;
+    --good:#0c7a43; --good-soft:#e7f4ec; --warn:#a35a00; --warn-soft:#fdf3e2;
+    --planned:#5b6478; --line:#d9dfeb;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:Georgia,'Times New Roman',serif;
+    background:var(--wash); color:var(--ink);
+    line-height:1.55; padding:32px 16px 64px;
+  }
+  .page{max-width:860px; margin:0 auto;}
+  header.masthead{
+    background:var(--ink); color:#fff; border-radius:14px;
+    padding:36px 40px 30px; margin-bottom:28px;
+  }
+  .masthead h1{
+    font-size:30px; letter-spacing:.14em; font-weight:700;
+  }
+  .masthead h1 span{color:var(--gold);}
+  .masthead .sub{
+    font-size:15px; color:#c3cbe0; margin-top:6px; letter-spacing:.05em;
+  }
+  .pitch{
+    margin-top:18px; font-size:19px; line-height:1.5; color:#f2f5fc; max-width:640px;
+  }
+  .pitch strong{color:var(--gold); font-weight:700;}
+  .meta{
+    margin-top:18px; font-size:12.5px; color:#9aa6c4; font-family:Verdana,Arial,sans-serif;
+    letter-spacing:.04em;
+  }
+  .meta b{color:#d7dfef; font-weight:600;}
+
+  section.card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding:26px 30px; margin-bottom:22px;
+  }
+  h2{
+    font-size:13px; font-family:Verdana,Arial,sans-serif; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+    margin-bottom:14px;
+  }
+  p.lead{font-size:16.5px; margin-bottom:10px;}
+  p.note{font-size:14px; color:var(--ink-soft);}
+
+  .loop{list-style:none; margin:14px 0 4px; padding:0;}
+  .loop li{
+    display:flex; gap:14px; align-items:flex-start; padding:7px 0;
+    border-bottom:1px dashed var(--line); font-size:15px;
+  }
+  .loop li:last-child{border-bottom:none;}
+  .loop .n{
+    flex:0 0 26px; height:26px; border-radius:50%; background:var(--accent-soft);
+    color:var(--accent); font-family:Verdana,Arial,sans-serif; font-size:12px;
+    font-weight:700; display:flex; align-items:center; justify-content:center;
+    margin-top:1px;
+  }
+  .loop b{font-weight:700;}
+  .loop .hint{color:var(--ink-soft);}
+
+  .model-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:6px;}
+  .model{
+    border:1px solid var(--line); border-radius:10px; padding:16px 16px 14px;
+    background:linear-gradient(180deg,#fbfcfe, #f4f7fc);
+  }
+  .model .badge{
+    display:inline-block; font-family:Verdana,Arial,sans-serif; font-size:10.5px;
+    font-weight:700; letter-spacing:.08em; padding:3px 8px; border-radius:999px;
+    background:var(--accent-soft); color:var(--accent); margin-bottom:8px;
+  }
+  .model h3{font-size:16px; margin-bottom:6px;}
+  .model .predicts{font-size:13.5px; color:var(--ink-soft);}
+  .model .decides{font-size:13.5px; margin-top:8px;}
+  .model .decides b{color:var(--good);}
+
+  table{width:100%; border-collapse:collapse; margin-top:8px; font-size:14px;}
+  th{
+    font-family:Verdana,Arial,sans-serif; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; text-align:left; color:var(--ink-soft);
+    border-bottom:2px solid var(--ink); padding:7px 10px 6px;
+  }
+  td{border-bottom:1px solid var(--line); padding:9px 10px; vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td.course{font-weight:700; white-space:nowrap;}
+  .chip{
+    display:inline-block; font-family:Verdana,Arial,sans-serif; font-size:10.5px;
+    font-weight:700; letter-spacing:.06em; padding:2px 9px; border-radius:999px;
+    margin:1px 3px 1px 0; white-space:nowrap;
+  }
+  .chip.current{background:var(--good-soft); color:var(--good);}
+  .chip.planned{background:#eef0f5; color:var(--planned);}
+  .chip.inprogress{background:var(--accent-soft); color:var(--accent);}
+
+  .flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:10px;}
+  .flow .stage{
+    border:1.5px solid var(--ink); border-radius:8px; padding:8px 12px;
+    font-size:13.5px; font-weight:700; background:var(--paper);
+  }
+  .flow .stage small{
+    display:block; font-weight:400; font-size:11px; color:var(--ink-soft); margin-top:1px;
+  }
+  .flow .arrow{color:var(--accent); font-size:16px; font-weight:700;}
+
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  ul.plain{margin:8px 0 0 18px; font-size:14.5px;}
+  ul.plain li{margin-bottom:6px;}
+  ul.plain li b{font-weight:700;}
+
+  .tagline-note{
+    border-left:3px solid var(--gold); background:#fdfaf0;
+    padding:12px 16px; font-size:14px; color:var(--ink-soft); border-radius:0 8px 8px 0;
+    margin-top:14px;
+  }
+  .openq{margin-top:8px;}
+  .openq li{margin-bottom:8px;}
+
+  footer{
+    text-align:center; color:var(--ink-soft); font-size:12.5px;
+    font-family:Verdana,Arial,sans-serif; margin-top:10px; letter-spacing:.03em;
+  }
+  @media (max-width:700px){
+    .model-grid,.cols{grid-template-columns:1fr;}
+    header.masthead{padding:26px 22px;}
+  }
+  @media print{
+    body{background:#fff; padding:0;}
+    section.card,header.masthead{border-radius:0; page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <h1>FENRIX <span>·</span> COMMERCIAL REAL ESTATE FUND</h1>
+    <div class="sub">CLASSROOM MULTIPLAYER SIMULATION · REAL 605 / 310 / 220 · CHAPMAN UNIVERSITY</div>
+    <p class="pitch">
+      Use predictive models to <strong>underwrite properties</strong>, compete for acquisitions,
+      <strong>manage the portfolio</strong>, and finish with the highest fund value.
+    </p>
+    <div class="meta">
+      <b>~60–75 min</b> gameplay &nbsp;·&nbsp; <b>teams of 2–4</b> funds &nbsp;·&nbsp;
+      <b>4 scored rounds</b> (+ practice) &nbsp;·&nbsp; winner = <b>highest portfolio NAV</b>
+      &nbsp;·&nbsp; status: gameplay overview for team selection &amp; feedback — Sept 18, 2026
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>The one loop, in plain language</h2>
+    <p class="lead">Students receive data <em>before</em> class and build their model at home.
+    Class time is for running the fund — not for training models.</p>
+    <ol class="loop">
+      <li><span class="n">1</span><div><b>Market update</b> — <span class="hint">rates, vacancy and rents move; new properties list for sale</span></div></li>
+      <li><span class="n">2</span><div><b>Underwrite</b> — <span class="hint">each team applies its own model outputs to the listings</span></div></li>
+      <li><span class="n">3</span><div><b>Allocate capital &amp; bid</b> — <span class="hint">sealed-bid auction, within cash and leverage limits</span></div></li>
+      <li><span class="n">4</span><div><b>Acquire</b> — <span class="hint">highest valid bid above the hidden reserve wins and pays its own price</span></div></li>
+      <li><span class="n">5</span><div><b>Operate &amp; respond</b> — <span class="hint">rent arrives, tenants leave, maintenance and operating surprises hit owned buildings</span></div></li>
+      <li><span class="n">6</span><div><b>Portfolio update &amp; feedback</b> — <span class="hint">cash, debt, values and income update; teams see why</span></div></li>
+      <li><span class="n">7</span><div><b>Leaderboard &amp; checkpoint</b> — <span class="hint">NAV standings, state saved, next round opens</span></div></li>
+    </ol>
+    <div class="tagline-note">
+      <b>What the game teaches:</b> a model is only useful because it changes a decision.
+      Every prediction in the game maps to a real choice — what to bid, how much to
+      borrow, which building to fight for, and how to manage what you own.
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>The model ladder</h2>
+    <p class="note">Teams may bring up to three models. Each one exists because it informs a decision — a model that changes no decision is out of the game.</p>
+    <div class="model-grid">
+      <div class="model">
+        <span class="badge">MODEL 1 · ALL COURSES</span>
+        <h3>Acquisition / Value</h3>
+        <div class="predicts">What is this property actually worth today?</div>
+        <div class="decides">Informs <b>your maximum bid</b> for each listing.</div>
+      </div>
+      <div class="model">
+        <span class="badge">MODEL 2 · 310</span>
+        <h3>Vacancy / Occupancy</h3>
+        <div class="predicts">How likely is this building to lose tenants?</div>
+        <div class="decides">Informs <b>acquisition risk appetite</b> and <b>management response</b> after you own it.</div>
+      </div>
+      <div class="model">
+        <span class="badge">MODEL 3 · 310</span>
+        <h3>Rent / Income</h3>
+        <div class="predicts">How will NOI develop over the hold?</div>
+        <div class="decides">Informs <b>expected return</b> and <b>hold / repair strategy</b>.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Course variants — same engine, tuned by configuration</h2>
+    <table>
+      <tr><th>Course</th><th>Models required</th><th>Method ceiling</th><th>Management layer</th></tr>
+      <tr>
+        <td class="course">605</td>
+        <td>Model 1 (valuation)</td>
+        <td>Random-Forest level</td>
+        <td><b>Off.</b> Acquisition economics only, so the first real-world test runs exactly the game the class rehearsed. <i>(ships first)</i></td>
+      </tr>
+      <tr>
+        <td class="course">310</td>
+        <td>Models 1 + 2 + 3</td>
+        <td>XGBoost / logistic-regression level</td>
+        <td><b>Full.</b> Operating year on: interruptions, upkeep, and a three-way stance per owned building</td>
+      </tr>
+      <tr>
+        <td class="course">220</td>
+        <td>Simplified regression</td>
+        <td>Excel / Solver friendly</td>
+        <td><b>Light.</b> Operating year runs, but no stance decision — lower cognitive load</td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Screen flow — what a team actually sees</h2>
+    <div class="flow">
+      <div class="stage">Lobby<small>join your fund</small></div><span class="arrow">→</span>
+      <div class="stage">Briefing &amp; Model Check-in<small>upload + lock predictions</small></div><span class="arrow">→</span>
+      <div class="stage">Market / Auction<small>underwrite · bid</small></div><span class="arrow">→</span>
+      <div class="stage">Portfolio / Management<small>operate your buildings</small></div><span class="arrow">→</span>
+      <div class="stage">Round Results<small>what happened &amp; why</small></div><span class="arrow">→</span>
+      <div class="stage">Leaderboard / Debrief<small>NAV + model quality</small></div>
+    </div>
+    <p class="note" style="margin-top:12px">Cash, borrowing capacity, holdings, income, vacancy and the upcoming decision are always on screen. Every screen states its decision in plain language first, domain term second — "Expected annual property income (NOI)".</p>
+  </section>
+
+  <section class="card">
+    <h2>Build status — honest labels</h2>
+    <div class="cols">
+      <div>
+        <span class="chip current">CURRENT · WORKING TODAY</span>
+        <ul class="plain">
+          <li>Full session lifecycle: lobby → check-in → practice → 4 scored rounds → finale debrief</li>
+          <li>Sealed-bid auctions with hidden reserves, leverage limits and tie-breaks</li>
+          <li>Two leaderboards: NAV standings + analytics quality (model vs manager vs luck)</li>
+          <li>Professor control console: phases, timers, live monitoring, export</li>
+          <li>Shared pre-class dataset packet; models trained on the same process the game runs</li>
+          <li>Staging deployment with Firestore-backed state and idempotent round resolution</li>
+        </ul>
+      </div>
+      <div>
+        <span class="chip inprogress">MERGED TO MAIN · DEPLOYED TO STAGING</span>
+        <p class="sub" style="margin:6px 0 10px">The management layer below is no longer a branch: it is what
+          <b>cre-game-preview.scswitzer.workers.dev</b> is running now, and every 310 session created there plays it.
+          It has not been through a class yet.</p>
+        <ul class="plain">
+          <li><b>Management layer (engine + API):</b> upkeep, operating interruptions and market rent misses on owned buildings, resolved by a seeded pure function and reported per building to the owning fund</li>
+          <li><b>Student stance surface (310):</b> the deal board lists every owned building with its income, marked value and market vacancy, and a three-way approach — run lean / standard / invest &amp; protect — submitted with the round's bids</li>
+          <li><b>Round feedback per building:</b> after the year resolves, the owning fund sees the approach used, the interruption, upkeep paid, rent effect and net cash — the same channels the NAV bridge reconciles</li>
+          <li><b>Professor view:</b> the round grid shows which funds submitted and how many stances each set, with the mix per approach; the session export adds a per-round stance sheet</li>
+          <li><b>Course modes</b> 605 / 310 / 220 as configuration — one engine, no forks; 605 ships with the operating year off so its economics are unchanged, and 220 runs it silently at the standard approach</li>
+          <li><b>Snapshot tiering + v2 restore:</b> a session records its own tier, and a pre-V2 save still restores and finishes</li>
+        </ul>
+        <div style="margin-top:14px">
+          <span class="chip inprogress">PLANNED · THIS CYCLE</span>
+          <ul class="plain">
+            <li><b>Vacancy &amp; rent models</b> as playable, decision-linked model types (310)</li>
+            <li><b>Per-round checkpoints</b> with restore, for classroom recovery</li>
+          </ul>
+        </div>
+        <div style="margin-top:14px">
+          <span class="chip planned">OPTIONAL / LATER</span>
+          <ul class="plain">
+            <li>Additional US markets with different return drivers</li>
+            <li>Agent-style tenant counterparties (renew, vacate, negotiate)</li>
+            <li>Live external data refresh (Vanguard / scraping discussions ongoing)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Data approach</h2>
+    <p class="lead">A real-anchored, synthetic teaching dataset for Orange County commercial property — realistic economics, deliberately not reverse-searchable on Zillow.</p>
+    <ul class="plain">
+      <li><b>Calibrated, not literal:</b> property cases preserve relative pricing, submarket differences, rent/value and occupancy relationships and property-type economics.</li>
+      <li><b>One source of truth:</b> the student packet and the game engine run on the same outcome process — no lookalike dataset.</li>
+      <li><b>Leakage red-team:</b> no hidden outcome ever appears in student-visible features; train/test separation is enforced and reviewed.</li>
+      <li><b>Replaceable by design:</b> versioned dataset bundles with pinned seeds, so a future residential or second-market variant is a configuration change, not a rebuild.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Open questions — tell us what you think</h2>
+    <ul class="plain openq">
+      <li><b>Management depth:</b> how much operating detail helps learning vs. slowing the round? (Rent calls, repair vs. defer, tenant retention — which decisions belong in round time?)</li>
+      <li><b>Shock cadence:</b> roughly one meaningful operating surprise per round, across about five rounds — too many, too few? (today's build runs four scored rounds plus a practice round)</li>        <li><b>605 scope:</b> we have taken 605 as valuation-only, no management, so the first real-world run is the rehearsed game — is that right, or should 605 show a light stance surface from the start?</li>
+        <li><b>310 dataset:</b> keep the 310 round on commercial property, or add a residential variant so the same engine can be taught with a simpler asset class?</li>
+      <li><b>Team pick:</b> which slice do you want — game UX, data &amp; models, engine &amp; infrastructure, or classroom ops?</li>
+    </ul>
+  </section>
+
+  <footer>
+    FENRIX CRE GAME · GAMEPLAY OVERVIEW · SEPTEMBER 18, 2026 ·
+    self-contained HTML — share freely in Slack
+  </footer>
+
+</div>
+</body>
+</html>
