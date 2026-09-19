@@ -3,7 +3,7 @@
     "decisions": [],
     "state": {
       "$state_ref": "_states/07-create-initial-state-state.json.gz",
-      "sha256": "f48cfc90fb0a4273eacf8e42ee065f465d68793fb31ec0399189ea601d537385"
+      "sha256": "2e2003d50702abd401641c5aff30f19fd700924055474fc3be22376b1dddca38"
     }
   },
   "expected_status": 200,

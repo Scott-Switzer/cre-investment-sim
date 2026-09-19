@@ -60,7 +60,7 @@
     ],
     "state": {
       "$state_ref": "_states/17-open-round4-state.json.gz",
-      "sha256": "3a122d07452903dda601f893e95f8b4eb3ea9535eebc831da4bc42ba92f6842d"
+      "sha256": "1011a6a719af3062d61d396e5c026559b35fc7167b003fc94562a5616763cb72"
     }
   },
   "expected_status": 200,

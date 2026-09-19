@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.game.adjudicator import ModelPrediction
+from src.game.adjudicator import MANAGEMENT_INVEST_RESERVE_ADDER, ModelPrediction
 
 # ── the three concepts ────────────────────────────────────────────────────
 
@@ -87,6 +87,16 @@ class Decision(BaseModel):
     model_target_ltv: Optional[float] = None
 
 
+class ManagementStance(BaseModel):
+    """One fund's operating stance for one owned building, for one round (V2)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    team_id: str
+    property_id: str
+    stance: Literal["RUN LEAN", "STANDARD", "INVEST & PROTECT"]
+
+
 def submissions_to_predictions(
     submissions: List[PropertySubmission],
 ) -> Dict[str, ModelPrediction]:
@@ -147,6 +157,14 @@ class CreateGameStateRequest(BaseModel):
     bundle_id: str
     teams: List[TeamSpec] = Field(min_length=1)
     scenario: str = "Base Case"
+    # V2 course tier. Absent means "whatever the bundle declares", which is the
+    # normal path: a dataset and its tier are pinned together. Present, it lets an
+    # operator run the published dataset at a different tier (a 310 lab on the 605
+    # pool, say). It is safe to offer because the choice is *recorded* -- it is
+    # written into the session state and echoed back in the public config, so a
+    # session can always be asked which game it is playing.
+    course_mode: Optional[str] = None
+    management_enabled: Optional[bool] = None
 
 
 class CreateGameStateResponse(BaseModel):
@@ -172,9 +190,20 @@ class ResolveRoundRequest(BaseModel):
 
     state: Dict[str, Any]
     decisions: List[Decision] = Field(default_factory=list)
+    # V2: management stances ride the resolve call. They are decisions about the
+    # round being closed, so they are submitted in the same window; refusing an
+    # unknown stance here would crash a round, so the engine validates and the
+    # invalid ones come back in `rejected_stances`.
+    management_stances: List[ManagementStance] = Field(default_factory=list)
 
 
 class RejectedDecision(BaseModel):
+    team_id: str
+    property_id: str
+    reason: str
+
+
+class RejectedStance(BaseModel):
     team_id: str
     property_id: str
     reason: str
@@ -185,6 +214,9 @@ class ResolveRoundResponse(BaseModel):
     public_results: Dict[str, Any]
     analytics_updates: List[Dict[str, Any]]
     rejected_decisions: List[RejectedDecision]
+    # V2: stances refused by the engine (unknown building, disabled management,
+    # or an invalid stance for the course mode).
+    rejected_stances: List[RejectedStance] = Field(default_factory=list)
     game_complete: bool
 
 

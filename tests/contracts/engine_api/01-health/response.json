@@ -1,9 +1,9 @@
 {
-  "economics_digest": "82b42656e8ab680288ba85cf2d8679147cb53bee979b646c5ec6962c3e82ec5c",
-  "economics_version": "2026.09.1",
+  "economics_digest": "1f3d72484171b0516657cf36321799ab91682f5234062cd6e83de847bfce1b40",
+  "economics_version": "2026.09.2",
   "engine_version": "0.1.0",
   "game": "cre-investment-committee",
   "schema_version": 1,
-  "serde_schema_version": 2,
+  "serde_schema_version": 3,
   "status": "ok"
 }

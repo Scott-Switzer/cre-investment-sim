@@ -225,8 +225,9 @@
       "team_id": "student"
     }
   ],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/12-resolve-round1-state.json.gz",
-    "sha256": "895b529718c1188f51a0da0139410ae19bf10ed313559db0ff67a48e5b1ef009"
+    "sha256": "4d2f77801b320e9ac1cd3a4f0c9ff48f79c8b3a94951b6e985d7e534a179c506"
   }
 }

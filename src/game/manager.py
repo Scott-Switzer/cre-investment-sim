@@ -19,7 +19,20 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
-from src.game.adjudicator import Adjudicator, RoundState, BidStatus, TeamState, Bid, PropertyMarket, MarketState, RoundResult, ModelPrediction, PropertyOutcome
+from src.game.adjudicator import (
+    Adjudicator,
+    RoundState,
+    BidStatus,
+    TeamState,
+    Bid,
+    PropertyMarket,
+    MarketState,
+    RoundResult,
+    ModelPrediction,
+    PropertyOutcome,
+    STANCES,
+    STANCE_DEFAULT,
+)
 from src.data.properties import generate_properties, synthetic_year_built
 
 
@@ -59,15 +72,109 @@ def _opt_str(value):
     return str(value)
 
 
+@dataclass(frozen=True)
+class CourseProfile:
+    """What one instructional tier turns on. Data, not a code path.
+
+    Course tiering exists so one engine serves REAL 605, 310 and 220 without three
+    applications. A tier is therefore a *declaration*: how many models the packet
+    requires, whether the operating year is simulated at all, and which management
+    stances a fund may set. Gameplay logic reads these fields and nothing else, so
+    adding a tier is adding a row here plus a bundle that names it
+    (docs/V2_PRODUCT_SPEC.md §3).
+    """
+
+    course_mode: str
+    label: str
+    # The model ladder the packet asks for, weakest first. Guidance text derives
+    # from this; 605 is deliberately the valuation-only tier.
+    required_models: tuple
+    # When False the operating year is never simulated: round resolution is
+    # byte-identical to pre-V2 economics. 605 ships this way.
+    management_enabled: bool
+    # The stances this tier accepts. A single-stance tier shows no stance surface.
+    stances: tuple
+
+    @property
+    def has_stance_choice(self) -> bool:
+        return len(self.stances) > 1
+
+
+# The three tiers. 605 first because it is the published classroom tier and the
+# engine default: the simplest game, one model, no management layer.
+COURSE_PROFILES: Dict[str, CourseProfile] = {
+    "605": CourseProfile(
+        course_mode="605",
+        label="REAL 605 — valuation only (classroom stress test)",
+        required_models=("valuation",),
+        management_enabled=False,
+        stances=(STANCE_DEFAULT,),
+    ),
+    "310": CourseProfile(
+        course_mode="310",
+        label="REAL 310 — full model ladder with the management layer",
+        required_models=("valuation", "vacancy", "income"),
+        management_enabled=True,
+        stances=STANCES,
+    ),
+    "220": CourseProfile(
+        course_mode="220",
+        label="REAL 220 — simplified regression tier, operating year at STANDARD",
+        required_models=("valuation",),
+        management_enabled=True,
+        stances=(STANCE_DEFAULT,),
+    ),
+}
+
+DEFAULT_COURSE_MODE = "605"
+
+
+def course_profile(course_mode: str) -> CourseProfile:
+    """Resolve a tier by name. An unknown tier is an error, never a default."""
+    try:
+        return COURSE_PROFILES[course_mode]
+    except KeyError:
+        known = ", ".join(sorted(COURSE_PROFILES))
+        raise ValueError(
+            f"unknown course_mode '{course_mode}'; known tiers: {known}"
+        ) from None
+
+
 @dataclass
 class GameConfig:
-    """Game configuration."""
+    """Game configuration.
+
+    V2 adds the course-mode seam (docs/V2_PRODUCT_SPEC.md §3): one engine, the
+    instructional tier declared as data. `course_mode` selects a
+    :class:`CourseProfile`; it introduces no code forks beyond what that profile
+    declares, and the 605 tier reproduces the pre-V2 economics exactly.
+    """
     seed: int = 20240331
     starting_equity: float = 100.0  # in millions
     total_rounds: int = 4
     properties_per_round: int = 4
     practice_round: bool = True
     scenario: str = "Base Case"
+    # The published classroom tier. Sessions that want the V2 management layer
+    # name 310; the tier, not this file, decides what the layer does.
+    course_mode: str = DEFAULT_COURSE_MODE
+    # Escape hatch for engineering sessions (balance harnesses, a lab build that
+    # wants the management layer on a 605 pool). `None` means "whatever the
+    # course profile declares", which is the only sane default: two independent
+    # switches for one behaviour is exactly how a classroom ends up running a
+    # configuration nobody chose. Stance legality still follows the profile.
+    management_enabled: Optional[bool] = None
+
+    @property
+    def profile(self) -> CourseProfile:
+        return course_profile(self.course_mode)
+
+    @property
+    def management_active(self) -> bool:
+        """Does round resolution simulate the operating year?"""
+        if self.management_enabled is None:
+            return self.profile.management_enabled
+        return bool(self.management_enabled)
 
 
 @dataclass
@@ -184,7 +291,9 @@ class GameManager:
     
     def __init__(self, config: GameConfig):
         self.config = config
-        self.adjudicator = Adjudicator(seed=config.seed)
+        self.adjudicator = Adjudicator(
+            seed=config.seed, management_enabled=config.management_active
+        )
         
         # Game state
         self.teams: Dict[str, TeamState] = {}
@@ -327,6 +436,36 @@ class GameManager:
             for pid in property_ids
         }
     
+    def set_management_stances(self, team_id: str, stances: Dict[str, str]) -> None:
+        """Record this fund's management stance for each owned building (V2).
+
+        Legal only while the round is open — stances are decisions, decided in
+        the same window as bids and consumed at resolution. A stance for a
+        building the fund does not own is refused rather than stored, so the
+        decision surface cannot drift away from the actual book.
+        """
+        if self.round_state != RoundState.OPEN:
+            raise RuntimeError("Round is not open for submissions")
+        team = self.teams.get(team_id)
+        if team is None:
+            raise ValueError(f"Team {team_id} not in game")
+        # Legal stances come from the course tier, not from the caller. A tier
+        # that does not simulate the operating year accepts none of them -- storing
+        # one would record a decision that can never be honoured -- and a tier with
+        # no stance choice accepts only its default.
+        if not self.config.management_active:
+            raise ValueError(
+                f"course tier {self.config.course_mode} does not simulate the "
+                "operating year, so no management stance is accepted"
+            )
+        allowed = set(self.config.profile.stances)
+        for prop_id, stance in stances.items():
+            if prop_id not in team.properties:
+                raise ValueError(f"Property {prop_id} is not in this fund's portfolio")
+            if stance not in allowed:
+                raise ValueError(f"Unknown management stance '{stance}'")
+        team.management_decisions = dict(stances)
+
     def submit_bid(self, bid: Bid) -> bool:
         """Submit a bid for the current round."""
         if self.round_state != RoundState.OPEN:

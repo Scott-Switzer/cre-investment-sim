@@ -2,11 +2,13 @@
   "bundle_id": "real605-fall26-v1",
   "display_name": "REAL 605 — Fall 2026",
   "engine_version": "0.1.0",
-  "economics_version": "2026.09.1",
-  "economics_digest": "82b42656e8ab680288ba85cf2d8679147cb53bee979b646c5ec6962c3e82ec5c",
+  "economics_version": "2026.09.2",
+  "economics_digest": "1f3d72484171b0516657cf36321799ab91682f5234062cd6e83de847bfce1b40",
   "packet_version": "real605-fall26-v1",
   "seed": 20240331,
   "candidate_pool_hash": "24240d70b01ba2c2d5dc148112ba61c4eb9373c1923a5b496f757f4d906f638f",
   "schema_version": 1,
-  "description": "The published REAL 605 dataset: 120 candidate properties and the 2,400-row historical training set, generated at seed 20240331. Every student model submitted for a session on this bundle must have been built against this candidate pool. The seed is system metadata and is deliberately not selectable by an instructor -- choosing a different one would keep the property ids and change what they mean, silently invalidating every pre-built model."
+  "course_mode": "605",
+  "management_enabled": false,
+  "description": "The published REAL 605 dataset: 120 candidate properties and the 2,400-row historical training set, generated at seed 20240331. Every student model submitted for a session on this bundle must have been built against this candidate pool. The seed is system metadata and is deliberately not selectable by an instructor -- choosing a different one would keep the property ids and change what they mean, silently invalidating every pre-built model. This is the 605 course tier: one valuation model, and the V2 operating-year layer off, so round resolution matches the economics this bundle was frozen against. A 310 session names course_mode 310 in its own bundle to turn the management layer on."
 }

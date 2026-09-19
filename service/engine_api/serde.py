@@ -28,11 +28,13 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from src.game.adjudicator import (
+    STANCE_DEFAULT,
     Adjudicator,
     AuctionResult,
     Bid,
     MarketState,
     ModelPrediction,
+    OperatingYearResult,
     OverrideRecord,
     PropertyHolding,
     PropertyMarket,
@@ -41,7 +43,7 @@ from src.game.adjudicator import (
     RoundState,
     TeamState,
 )
-from src.game.manager import GameConfig, GameManager
+from src.game.manager import DEFAULT_COURSE_MODE, GameConfig, GameManager
 
 # Bumped to 2 when `team_order` and `property_order` were added. The bump is
 # deliberate, not cosmetic: a version guard only earns its keep if adding a field
@@ -60,7 +62,20 @@ from src.game.manager import GameConfig, GameManager
 #
 # Recording both orders explicitly removes the dependency on an ordering the
 # encoding is entitled to discard, rather than relying on it holding by luck.
-SERDE_SCHEMA_VERSION = 2
+# v3: management stances and operating history (V2).
+#
+# Version 2 snapshots are still READ. Every field v2 lacks has a default that
+# describes what a v2 session was actually running: the 605 course tier, no
+# recorded stances, no operating history. A game saved before the V2 deploy
+# therefore restores and resolves exactly as it would have, which matters because
+# a deploy can land mid-class. Anything older than v2 is refused rather than
+# guessed at, and a snapshot from a *newer* schema is refused too -- neither can
+# be reconstructed from defaults, so reading one would be inventing state.
+#
+# The version guard keeps its point: adding a field still forces a decision here
+# about what an older snapshot means.
+SERDE_SCHEMA_VERSION = 3
+READABLE_SCHEMA_VERSIONS: tuple = (2, SERDE_SCHEMA_VERSION)
 
 
 class SerdeError(RuntimeError):
@@ -74,6 +89,16 @@ def _f(value: Any) -> Optional[float]:
     if value is None:
         return None
     return float(value)
+
+
+def _opt_bool(value: Any) -> Optional[bool]:
+    """A tri-state flag: True, False, or "not set, let the course tier decide".
+
+    Distinct from ``bool(value)``, which would collapse "not set" into False and
+    silently turn the 310 tier's management layer off on the way through a
+    snapshot.
+    """
+    return None if value is None else bool(value)
 
 
 def _enum_value(value: Any) -> Any:
@@ -90,6 +115,12 @@ def game_config_to_dict(cfg: GameConfig) -> Dict[str, Any]:
         "properties_per_round": int(cfg.properties_per_round),
         "practice_round": bool(cfg.practice_round),
         "scenario": str(cfg.scenario),
+        # V2 course-mode seam. Serialized so a snapshot restores into the same
+        # tier it was created in. Readers fall back to the published 605 tier for
+        # v2 snapshots written before these keys existed -- a v2 session was
+        # running pre-V2 economics, and 605 is the tier that reproduces them.
+        "course_mode": str(getattr(cfg, "course_mode", DEFAULT_COURSE_MODE)),
+        "management_enabled": _opt_bool(getattr(cfg, "management_enabled", None)),
     }
 
 
@@ -101,6 +132,8 @@ def game_config_from_dict(d: Dict[str, Any]) -> GameConfig:
         properties_per_round=int(d["properties_per_round"]),
         practice_round=bool(d["practice_round"]),
         scenario=str(d["scenario"]),
+        course_mode=str(d.get("course_mode", DEFAULT_COURSE_MODE)),
+        management_enabled=_opt_bool(d.get("management_enabled")),
     )
 
 
@@ -152,6 +185,64 @@ def property_holding_to_dict(h: PropertyHolding) -> Dict[str, Any]:
         "property_type": h.property_type,
         "submarket": h.submarket,
     }
+
+
+def operating_year_results_to_dict(
+    results: Dict[str, List[OperatingYearResult]],
+) -> List[Dict[str, Any]]:
+    """Operating history as an ordered list, oldest round first.
+
+    Stored on the team as a dict keyed by the round number *as a string* (canonical
+    JSON sorts object keys, and string keys survive the boundary unchanged); the
+    list form here is the transport shape, sorted so the fund's feedback reads
+    chronologically regardless of key order.
+    """
+    return [
+        {
+            "round": int(round_number),
+            "results": [
+                {
+                    "property_id": r.property_id,
+                    "stance": r.stance,
+                    "shock_hit": bool(r.shock_hit),
+                    "shock_probability": _f(r.shock_probability),
+                    "shock_noi_impact": _f(r.shock_noi_impact),
+                    "maintenance_hit": bool(r.maintenance_hit),
+                    "maintenance_charge": _f(r.maintenance_charge),
+                    "rent_miss": _f(r.rent_miss),
+                    "total_noi_impact": _f(r.total_noi_impact),
+                    "total_cash_impact": _f(r.total_cash_impact),
+                }
+                for r in results_list
+            ],
+        }
+        for round_number, results_list in sorted(
+            results.items(), key=lambda kv: int(kv[0])
+        )
+    ]
+
+
+def operating_year_results_from_dict(
+    rows: List[Dict[str, Any]],
+) -> Dict[str, List[OperatingYearResult]]:
+    out: Dict[str, List[OperatingYearResult]] = {}
+    for row in rows or []:
+        out[str(row["round"])] = [
+            OperatingYearResult(
+                property_id=str(r["property_id"]),
+                stance=str(r.get("stance", STANCE_DEFAULT)),
+                shock_hit=bool(r.get("shock_hit", False)),
+                shock_probability=float(r.get("shock_probability", 0.0)),
+                shock_noi_impact=float(r.get("shock_noi_impact", 0.0)),
+                maintenance_hit=bool(r.get("maintenance_hit", False)),
+                maintenance_charge=float(r.get("maintenance_charge", 0.0)),
+                rent_miss=float(r.get("rent_miss", 0.0)),
+                total_noi_impact=float(r.get("total_noi_impact", 0.0)),
+                total_cash_impact=float(r.get("total_cash_impact", 0.0)),
+            )
+            for r in row.get("results", [])
+        ]
+    return out
 
 
 def property_holding_from_dict(d: Dict[str, Any]) -> PropertyHolding:
@@ -211,6 +302,13 @@ def team_state_to_dict(t: TeamState) -> Dict[str, Any]:
             pid: model_prediction_to_dict(p) for pid, p in t.model_predictions.items()
         },
         "override_history": [override_record_to_dict(o) for o in t.override_history],
+        # V2 management state. Defaults keep a v2 snapshot restorable: no
+        # decisions means every holding resolves STANDARD, which is the
+        # pre-V2 economics.
+        "management_decisions": {
+            pid: str(stance) for pid, stance in t.management_decisions.items()
+        },
+        "operating_history": operating_year_results_to_dict(t.operating_history),
         "cumulative_income": _f(t.cumulative_income),
         "cumulative_interest": _f(t.cumulative_interest),
         "cumulative_purchase_price": _f(t.cumulative_purchase_price),
@@ -238,6 +336,13 @@ def team_state_from_dict(d: Dict[str, Any]) -> TeamState:
         override_history=[
             override_record_from_dict(o) for o in d.get("override_history", [])
         ],
+        management_decisions={
+            pid: str(stance)
+            for pid, stance in d.get("management_decisions", {}).items()
+        },
+        operating_history=operating_year_results_from_dict(
+            d.get("operating_history", [])
+        ),
         cumulative_income=float(d.get("cumulative_income", 0.0)),
         cumulative_interest=float(d.get("cumulative_interest", 0.0)),
         cumulative_purchase_price=float(d.get("cumulative_purchase_price", 0.0)),
@@ -489,14 +594,19 @@ def snapshot_game(gm: GameManager) -> Dict[str, Any]:
 def restore_game(snapshot: Dict[str, Any]) -> GameManager:
     """Rebuild a live ``GameManager`` identical to the one that was snapshotted."""
     version = snapshot.get("serde_schema_version")
-    if version != SERDE_SCHEMA_VERSION:
+    if version not in READABLE_SCHEMA_VERSIONS:
         raise SerdeError(
             f"snapshot schema {version} cannot be read by this service "
-            f"(expects {SERDE_SCHEMA_VERSION})"
+            f"(reads {READABLE_SCHEMA_VERSIONS})"
         )
 
     gm = GameManager(game_config_from_dict(snapshot["config"]))
-    gm.adjudicator = Adjudicator(seed=int(snapshot["adjudicator_seed"]))
+    # Rebuilt with the config's own tier: restoring a 605 session must not
+    # quietly switch the management layer on halfway through a class.
+    gm.adjudicator = Adjudicator(
+        seed=int(snapshot["adjudicator_seed"]),
+        management_enabled=gm.config.management_active,
+    )
     gm.adjudicator.rng.bit_generator.state = snapshot["adjudicator_rng_state"]
 
     # Rebuilt in the recorded join order, not in the order the JSON happened to

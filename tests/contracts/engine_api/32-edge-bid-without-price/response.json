@@ -178,8 +178,9 @@
       "team_id": "alpha"
     }
   ],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/31-edge-unknown-team-state.json.gz",
-    "sha256": "d07db8d204f4b0e3bf28087bacb9e78dcfd4467cc2f6dd3818d56b1994346c3d"
+    "sha256": "01a8c5f61ff07a96c3696092912fd3e549b50d3fe8fbd69307c78f6e2907f629"
   }
 }

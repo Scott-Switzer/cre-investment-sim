@@ -172,8 +172,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/09-resolve-practice-no-bids-state.json.gz",
-    "sha256": "297447edd4209229b7c6bd5e828fef4646ff836beaae7c337503161ce6cb2b4a"
+    "sha256": "b513864e756ad269a8b4546c5b86cb06a2836aaeb85651b2b776515ee3bae7f6"
   }
 }

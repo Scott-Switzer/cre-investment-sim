@@ -122,6 +122,46 @@
         "Multifamily": 0.01,
         "Office": 0.018,
         "Retail": 0.015
+      },
+      "management": {
+        "all_stances": [
+          "RUN LEAN",
+          "STANDARD",
+          "INVEST & PROTECT"
+        ],
+        "course_label": "REAL 605 \u2014 valuation only (classroom stress test)",
+        "course_mode": "605",
+        "default_stance": "STANDARD",
+        "enabled": false,
+        "has_stance_choice": false,
+        "invest_reserve_adder": 0.01,
+        "required_models": [
+          "valuation"
+        ],
+        "shock_probability": {
+          "Industrial": 0.08,
+          "Multifamily": 0.12,
+          "Office": 0.2,
+          "Retail": 0.18
+        },
+        "stance_maintenance_rate": {
+          "INVEST & PROTECT": 0.006,
+          "RUN LEAN": 0.02,
+          "STANDARD": 0.012
+        },
+        "stance_shock_multiplier": {
+          "INVEST & PROTECT": 0.45,
+          "RUN LEAN": 1.75,
+          "STANDARD": 1.0
+        },
+        "stance_shock_noi_impact": {
+          "INVEST & PROTECT": 0.03,
+          "RUN LEAN": 0.12,
+          "STANDARD": 0.08
+        },
+        "stances": [
+          "STANDARD"
+        ]
       }
     },
     "funds": [
@@ -172,6 +212,6 @@
   },
   "state": {
     "$state_ref": "_states/25-edge-open-round1-state.json.gz",
-    "sha256": "ba89738839748656763ca20e66660b1903db12b2090a5b426ce41d8b119c219d"
+    "sha256": "a8d379d9e65230d04847a65f61d99a605755fdf47d5fecb5b22624f715018111"
   }
 }

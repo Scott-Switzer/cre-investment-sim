@@ -178,8 +178,9 @@
       "team_id": "alpha"
     }
   ],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/30-edge-duplicate-decision-state.json.gz",
-    "sha256": "30d2130867e2634caee59c5afa3b5163e4124f24a58cb51e51900456fab12bc5"
+    "sha256": "461ae8285d02bc9aeca4968bcd8b168d46ebcacd95e4e1007db7a25000702347"
   }
 }
