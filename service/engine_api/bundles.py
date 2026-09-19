@@ -25,7 +25,13 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from src.game.adjudicator import ACQUISITION_COST_RATE, BASE_CAP_RATE
-from src.game.manager import GameConfig, GameManager
+from src.game.manager import (
+    COURSE_PROFILES,
+    DEFAULT_COURSE_MODE,
+    GameConfig,
+    GameManager,
+    course_profile,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_DIR = REPO_ROOT / "config" / "bundles"
@@ -71,7 +77,21 @@ class GameBundle:
     seed: int
     candidate_pool_hash: str
     schema_version: int
+    # V2 course tiering. A bundle is where a tier becomes a session: the dataset
+    # and the instructional tier are pinned together, so "which game are we
+    # playing" is one recorded choice rather than a runtime flag somebody can
+    # flip mid-class. Optional in the file; absent means the published tier with
+    # the operating year off, which is what every pre-V2 bundle was.
+    course_mode: str = DEFAULT_COURSE_MODE
+    management_enabled: Optional[bool] = None
     description: str = ""
+
+    @property
+    def effective_management_enabled(self) -> bool:
+        """The operating year runs unless the bundle or its tier says otherwise."""
+        if self.management_enabled is None:
+            return course_profile(self.course_mode).management_enabled
+        return bool(self.management_enabled)
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -84,6 +104,8 @@ class GameBundle:
             "seed": self.seed,
             "candidate_pool_hash": self.candidate_pool_hash,
             "schema_version": self.schema_version,
+            "course_mode": self.course_mode,
+            "management_enabled": self.management_enabled,
             "description": self.description,
         }
 
@@ -126,6 +148,26 @@ def _economics_payload() -> Dict[str, object]:
         "acquisition_cost_rate": adj.ACQUISITION_COST_RATE,
         "capital_reserve_rate": adj.CAPITAL_RESERVE_RATE,
         "scenario_deltas": adj.SCENARIO_DELTAS,
+        # V2 management layer. Inert while a session's tier leaves it off, which
+        # is why these are recorded separately in the bundle's course tier; they
+        # are still part of the digest, because a tier that turns the layer on
+        # would otherwise let a retuned coefficient reach a classroom without any
+        # bundle noticing (docs/V2_PRODUCT_SPEC.md §3).
+        "management": {
+            "invest_reserve_adder": adj.MANAGEMENT_INVEST_RESERVE_ADDER,
+            "vacancy_pressure_scale": adj.MANAGEMENT_VACANCY_PRESSURE_SCALE,
+            "shock_probability": adj.MANAGEMENT_SHOCK_PROBABILITY,
+            "stance_shock_multiplier": adj.MANAGEMENT_STANCE_SHOCK_MULTIPLIER,
+            "stance_shock_noi_impact": adj.MANAGEMENT_STANCE_SHOCK_NOI_IMPACT,
+            "stance_maintenance_rate": adj.MANAGEMENT_STANCE_MAINTENANCE_RATE,
+            "stance_rent_miss_max": adj.MANAGEMENT_STANCE_RENT_MISS_MAX,
+            "stances": list(adj.STANCES),
+            "default_stance": adj.STANCE_DEFAULT,
+        },
+        # The tiers themselves are instructional configuration, not economics, so
+        # only the tier NAMES are recorded: which tiers exist must not change the
+        # digest, but withdrawing one a bundle names should.
+        "course_modes": sorted(COURSE_PROFILES),
     }
 
 
@@ -212,6 +254,12 @@ def _bundle_from_dict(data: Dict[str, object]) -> GameBundle:
         seed=int(data["seed"]),
         candidate_pool_hash=str(data["candidate_pool_hash"]),
         schema_version=int(data["schema_version"]),
+        course_mode=str(data.get("course_mode", DEFAULT_COURSE_MODE)),
+        management_enabled=(
+            None
+            if data.get("management_enabled") is None
+            else bool(data["management_enabled"])
+        ),
         description=str(data.get("description", "")),
     )
 
@@ -274,6 +322,11 @@ def game_config_for_bundle(bundle: GameBundle, **overrides) -> GameConfig:
         properties_per_round=4,
         practice_round=True,
         scenario="Base Case",
+        # The bundle's tier travels with the config, so a restored snapshot, a
+        # fresh session and the contract fixtures all agree about which game is
+        # being played.
+        course_mode=bundle.course_mode,
+        management_enabled=bundle.management_enabled,
     )
     kwargs.update(overrides)
     return GameConfig(**kwargs)
