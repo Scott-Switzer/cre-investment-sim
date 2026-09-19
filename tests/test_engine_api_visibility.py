@@ -46,7 +46,7 @@ def _started_game():
             TeamSpec(team_id="rival", team_name="Rival Fund"),
         ],
     )
-    state, _public, _analytics, _rejected, _done = resolve_round(state, [])
+    state, _public, _analytics, _rejected, _rejected_stances, _done = resolve_round(state, [])
     state, round_one, _complete = open_round(state)
     return serde.restore_game(state), round_one
 
@@ -126,13 +126,13 @@ def test_outcomes_are_published_after_resolution():
         "real605-fall26-v1",
         [TeamSpec(team_id="only", team_name="Only Fund")],
     )
-    state, _public, _analytics, _rejected, _done = resolve_round(state, [])
+    state, _public, _analytics, _rejected, _rejected_stances, _done = resolve_round(state, [])
     state, round_payload, _complete = open_round(state)
     prop = round_payload["deals"][0]
 
     resolved = serde.restore_game(state)
     reserve = resolved.current_properties[prop["property_id"]].reserve_price
-    state, results, _, _, _ = resolve_round(state, [Decision(
+    state, results, _, _, _rejected_stances, _ = resolve_round(state, [Decision(
         team_id="only", property_id=prop["property_id"], action="BID",
         bid=round(reserve * 1.05, 4), ltv=0.5,
     )])
@@ -159,7 +159,7 @@ def _played_round_with_two_bidders():
         "real605-fall26-v1",
         [TeamSpec(team_id="one", team_name="One"), TeamSpec(team_id="two", team_name="Two")],
     )
-    state, _public, _analytics, _rejected, _done = resolve_round(state, [])
+    state, _public, _analytics, _rejected, _rejected_stances, _done = resolve_round(state, [])
     state, round_payload, _complete = open_round(state)
     game = serde.restore_game(state)
     prop = round_payload["deals"][0]["property_id"]
@@ -170,7 +170,7 @@ def _played_round_with_two_bidders():
         Decision(team_id="two", property_id=prop, action="BID",
                  bid=round(reserve * 1.02, 4), ltv=0.5),
     ]
-    state, results, analytics, _, _ = resolve_round(state, decisions)
+    state, results, analytics, _, _rs, _ = resolve_round(state, decisions)
     return {"results": results, "analytics": analytics}
 
 
@@ -226,7 +226,7 @@ def _state_after_a_round() -> dict:
             TeamSpec(team_id="rival", team_name="Rival Fund"),
         ],
     )
-    state, _public, _analytics, _rejected, _done = resolve_round(state, [])
+    state, _public, _analytics, _rejected, _rejected_stances, _done = resolve_round(state, [])
     state, round_payload, _complete = open_round(state)
     game = serde.restore_game(state)
     prop = round_payload["deals"][0]["property_id"]
@@ -234,7 +234,7 @@ def _state_after_a_round() -> dict:
         team_id="student", property_id=prop, action="BID",
         bid=round(game.current_properties[prop].reserve_price * 1.05, 4), ltv=0.55,
     )
-    state, _, _, _, _ = resolve_round(state, [decision])
+    state, _, _, _, _rs, _ = resolve_round(state, [decision])
     return state
 
 

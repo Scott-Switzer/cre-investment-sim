@@ -2,9 +2,9 @@
   "bundles": [
     {
       "bundle_id": "real605-fall26-v1",
-      "description": "The published REAL 605 dataset: 120 candidate properties and the 2,400-row historical training set, generated at seed 20240331. Every student model submitted for a session on this bundle must have been built against this candidate pool. The seed is system metadata and is deliberately not selectable by an instructor -- choosing a different one would keep the property ids and change what they mean, silently invalidating every pre-built model.",
+      "description": "The published REAL 605 dataset: 120 candidate properties and the 2,400-row historical training set, generated at seed 20240331. Every student model submitted for a session on this bundle must have been built against this candidate pool. The seed is system metadata and is deliberately not selectable by an instructor -- choosing a different one would keep the property ids and change what they mean, silently invalidating every pre-built model. This is the 605 course tier: one valuation model, and the V2 operating-year layer off, so round resolution matches the economics this bundle was frozen against. A 310 session names course_mode 310 in its own bundle to turn the management layer on.",
       "display_name": "REAL 605 \u2014 Fall 2026",
-      "economics_version": "2026.09.1",
+      "economics_version": "2026.09.2",
       "packet_version": "real605-fall26-v1"
     }
   ]

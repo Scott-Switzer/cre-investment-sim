@@ -23,6 +23,7 @@ import type {
   EngineBundle,
   EngineDecision,
   EngineHealth,
+  EngineManagementStance,
   EngineTeamSpec,
   FinalizeGameResponse,
   OpenRoundResponse,
@@ -30,6 +31,17 @@ import type {
   PoolResponse,
   ResolveRoundResponse,
 } from "../engineClient.js";
+
+/**
+ * The course tiers the fake can pretend to be, with the same published config the real
+ * engine emits. 605 has no management decision at all; 310 has the full stance set;
+ * 220 resolves the operating year but offers no choice.
+ */
+export const FAKE_COURSE_TIERS: Record<string, { enabled: boolean; stances: string[] }> = {
+  "605": { enabled: false, stances: ["STANDARD"] },
+  "310": { enabled: true, stances: ["RUN LEAN", "STANDARD", "INVEST & PROTECT"] },
+  "220": { enabled: true, stances: ["STANDARD"] },
+};
 
 const BUNDLE_ID = "test-bundle-v1";
 
@@ -82,10 +94,12 @@ interface FakeState {
   fundIds: string[];
   cash: Record<string, number>;
   firstRoundWinners: string[] | null;
+  courseMode: string;
 }
 
 function publicRound(state: FakeState, round: number) {
   const deals = dealsForRound(round);
+  const tier = FAKE_COURSE_TIERS[state.courseMode] ?? FAKE_COURSE_TIERS["605"]!;
   return {
     round_number: round,
     stage: round < 0 ? "practice" : `round_${round + 1}`,
@@ -105,7 +119,19 @@ function publicRound(state: FakeState, round: number) {
       assets: 0,
       cumulative_return: 0,
     })),
-    economics: { acquisition_cost_rate: 0.02, capital_reserve_rate: { Office: 0.012 } },
+    economics: {
+      acquisition_cost_rate: 0.02,
+      capital_reserve_rate: { Office: 0.012 },
+      // The same block the real engine publishes, so a UI rule read from config is
+      // exercised against the fake rather than assumed.
+      management: {
+        enabled: tier.enabled,
+        course_mode: state.courseMode,
+        has_stance_choice: tier.enabled && tier.stances.length > 1,
+        stances: tier.stances,
+        default_stance: "STANDARD",
+      },
+    },
   };
 }
 
@@ -113,6 +139,10 @@ export class FakeEngine implements Engine {
   calls: { method: string; args: unknown }[] = [];
   /** Set to make the next call fail, for exercising the engine-failure path. */
   failNext: string | null = null;
+  /** The tier new games are created at. Tests set this to exercise 605 / 310 / 220. */
+  courseMode = "605";
+  /** Set to make the fake refuse a stance, for exercising the refusal path. */
+  rejectStancesFor: (stance: EngineManagementStance) => string | null = () => null;
   readonly bundle: EngineBundle = {
     bundle_id: BUNDLE_ID,
     display_name: "Test Dataset",
@@ -191,14 +221,16 @@ export class FakeEngine implements Engine {
     bundleId: string,
     teams: EngineTeamSpec[],
     scenario = "Base Case",
+    courseMode: string | null = null,
   ): Promise<CreateGameResponse> {
-    this.record("createGameState", { bundleId, teams, scenario });
+    this.record("createGameState", { bundleId, teams, scenario, courseMode });
     const state: FakeState = {
       round: -1,
       resolvedRounds: 0,
       fundIds: teams.map((t) => t.team_id).sort(),
       cash: Object.fromEntries(teams.map((t) => [t.team_id, 100])),
       firstRoundWinners: null,
+      courseMode: courseMode ?? this.courseMode,
     };
     return { bundle: this.bundle, state, public: publicRound(state, -1) };
   }
@@ -217,8 +249,9 @@ export class FakeEngine implements Engine {
   async resolveRound(
     state: unknown,
     decisions: EngineDecision[],
+    managementStances: EngineManagementStance[] = [],
   ): Promise<ResolveRoundResponse> {
-    this.record("resolveRound", { state, decisions });
+    this.record("resolveRound", { state, decisions, managementStances });
     const current = state as FakeState;
     const round = current.round;
     const deals = dealsForRound(round);
@@ -302,8 +335,45 @@ export class FakeEngine implements Engine {
       },
       analytics_updates: [],
       rejected_decisions: this.rejectionsFor(decisions, deals, current),
+      rejected_stances: this.stanceRejections(managementStances, current),
       game_complete: round >= 3,
     };
+  }
+
+  /**
+   * Mimics the engine's stance refusals: a stance the tier does not accept, and (via
+   * `rejectStancesFor`) any refusal a test wants to inject, such as a building the fund
+   * does not own. Note that the *fake* has no portfolio, so it cannot check ownership
+   * itself — which is exactly why ownership stays the real engine's call and is not
+   * re-checked in the game service.
+   */
+  private stanceRejections(
+    stances: EngineManagementStance[],
+    state: FakeState,
+  ): { team_id: string; property_id: string; reason: string }[] {
+    const tier = FAKE_COURSE_TIERS[state.courseMode] ?? FAKE_COURSE_TIERS["605"]!;
+    const out: { team_id: string; property_id: string; reason: string }[] = [];
+    for (const stance of stances) {
+      const injected = this.rejectStancesFor(stance);
+      if (injected !== null) {
+        out.push({
+          team_id: stance.team_id,
+          property_id: stance.property_id,
+          reason: injected,
+        });
+        continue;
+      }
+      if (!tier.enabled || !tier.stances.includes(stance.stance)) {
+        out.push({
+          team_id: stance.team_id,
+          property_id: stance.property_id,
+          reason:
+            `course tier ${state.courseMode} does not accept the stance ` +
+            `'${stance.stance}'`,
+        });
+      }
+    }
+    return out;
   }
 
   /**

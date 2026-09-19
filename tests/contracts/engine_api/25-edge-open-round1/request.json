@@ -2,7 +2,7 @@
   "body": {
     "state": {
       "$state_ref": "_states/24-edge-resolve-practice-state.json.gz",
-      "sha256": "412c897f780dbafd2618434e0ec29f3e3ecb8ffc4f02df1536c1dbc9cf912ad9"
+      "sha256": "02b22b7a287eb7f70297d34abf5b99ac5d0530d27ae3f1582293fc68908585c5"
     }
   },
   "expected_status": 200,

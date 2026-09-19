@@ -18,14 +18,22 @@
  */
 
 import { Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { SessionTopbar } from "../chrome";
-import { Badge, Kv, Panel } from "../components";
+import { Badge, ErrorBox, Kv, Panel } from "../components";
 import { money, moneySigned, pct, signedPercent } from "../format";
 import { imageForProperty } from "../propertyImages";
 import { useSession } from "../session";
-import type { Auction, Deal, ForecastRow, RoundResults, StateView } from "../api";
+import { api } from "../api";
+import type {
+  Auction,
+  Deal,
+  ForecastRow,
+  RoundManagement,
+  RoundResults,
+  StateView,
+} from "../api";
 
 interface DecisionRecord {
   action: "PASS" | "BID";
@@ -175,6 +183,8 @@ export function Results() {
             isPractice={isPractice}
           />
 
+          {!isPractice && round ? <ManagementResults round={round} results={results} state={state} /> : null}
+
           {pnl ? (
             <Panel label={isPractice ? "Practice leaves your books unchanged" : "Your fund after this year"}>
               <div className="grid-2">
@@ -206,6 +216,144 @@ export function Results() {
         </div>
       </main>
     </div>
+  );
+}
+
+// ── the operating year, for the fund that owns the buildings ─────────────
+
+interface OperatingResult {
+  property_id: string;
+  stance: string;
+  shock_hit: boolean;
+  shock_probability: number | null;
+  maintenance_charge: number | null;
+  rent_miss: number | null;
+  total_noi_impact: number | null;
+  total_cash_impact: number | null;
+}
+
+/**
+ * What management did this round.
+ *
+ * Reads the fund's OWN book from the engine's team view — the same view the portfolio
+ * drawer uses — and shows only what the engine reports about the year that just
+ * resolved: the posture, whether a tenant interruption landed, the upkeep paid, and
+ * the net effect on cash. Anything the engine does not report is not shown, and no
+ * other fund's operating year is visible from here.
+ *
+ * Rendered only when the session's course tier actually simulates an operating year,
+ * so a 605 debrief does not sprout a management section explaining nothing.
+ */
+function ManagementResults({
+  round,
+  results,
+  state,
+}: {
+  round: NonNullable<StateView["round"]>;
+  results: RoundResults;
+  state: StateView;
+}) {
+  const management: RoundManagement = round.management;
+  const fundId = state.you.fundId;
+  const sessionId = state.session.id;
+  const [rows, setRows] = useState<OperatingResult[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const enabled = management.enabled;
+
+  useEffect(() => {
+    if (!enabled || !fundId) return;
+    let alive = true;
+    api
+      .portfolio(sessionId, fundId)
+      .then((res) => {
+        if (!alive) return;
+        const history = Array.isArray(res.portfolio.operating_history)
+          ? (res.portfolio.operating_history as { round: number; results: OperatingResult[] }[])
+          : [];
+        const entry =
+          history.find((h) => h.round === results.round_number) ?? history[history.length - 1];
+        setRows(entry?.results ?? []);
+      })
+      .catch((err: unknown) => {
+        if (alive) setError(err instanceof Error ? err.message : "Operating results unavailable.");
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, fundId, sessionId, results.round_number]);
+
+  const myRejections = round.rejectedStances.filter((r) => r.fundId === fundId);
+
+  if (!enabled) return null;
+  if (error) {
+    return (
+      <Panel label="Your buildings this round">
+        <ErrorBox>{error}</ErrorBox>
+      </Panel>
+    );
+  }
+  if (rows !== null && rows.length === 0 && myRejections.length === 0) return null;
+
+  return (
+    <Panel label="Your buildings this round">
+      <div data-testid="management-results">
+        {myRejections.length > 0 ? (
+          <div className="mb-12" data-testid="rejected-stances">
+            <Badge tone="warn">management change not applied</Badge>
+            <ul className="plain" style={{ marginTop: 8 }}>
+              {myRejections.map((r) => (
+                <li key={`${r.fundId}:${r.propertyId}`}>
+                  <strong>{r.propertyId}</strong>: {r.reason}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {rows === null ? (
+          <p className="help" style={{ margin: 0 }}>Loading your operating year…</p>
+        ) : rows.length === 0 ? null : (
+          <table className="table" data-testid="management-results-table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>Approach</th>
+                <th>Tenant interruption</th>
+                <th className="num">Upkeep paid</th>
+                <th className="num">Rent effect</th>
+                <th className="num">Net on cash</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.property_id} data-testid={`operating-${r.property_id}`}>
+                  <td>{r.property_id}</td>
+                  <td>{r.stance}</td>
+                  <td>
+                    {r.shock_hit ? (
+                      <Badge tone="warn">lost income</Badge>
+                    ) : (
+                      <span title={r.shock_probability === null ? undefined : `this year's chance was ${pct(r.shock_probability, 0)}`}>
+                        none — the year ran clean
+                      </span>
+                    )}
+                  </td>
+                  <td className="num mono">{moneySigned(-Math.abs(r.maintenance_charge ?? 0), 2)}</td>
+                  <td className="num mono">{moneySigned(-Math.abs(r.rent_miss ?? 0), 2)}</td>
+                  <td className="num mono">{moneySigned(-Math.abs(r.total_cash_impact ?? 0), 2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <p className="help mt-12">
+          Protection is a real cost every year; an interruption costs the income you never
+          collected. Both land in the channels above, so the bridge on this page still
+          reconciles.
+        </p>
+      </div>
+    </Panel>
   );
 }
 

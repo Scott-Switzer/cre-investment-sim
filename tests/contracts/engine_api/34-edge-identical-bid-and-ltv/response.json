@@ -172,8 +172,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/34-edge-identical-bid-and-ltv-state.json.gz",
-    "sha256": "6e304b553977cff71948e278b45eab8480cee4c5a2056e5cbc6ef1dda2436762"
+    "sha256": "69f0ddbecc17c73dbe6fd072f00f1a52b39c75a3165246fe6563a335d1fc3150"
   }
 }

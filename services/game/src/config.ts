@@ -30,6 +30,12 @@ export interface ServiceConfig {
   readonly sessionSecret: string;
   readonly sessionTtlSeconds: number;
   readonly allowedOrigins: readonly string[];
+  /**
+   * Commit this process was built from, or null when nobody said. Baked in at deploy
+   * time and reported by the health routes so "is the deployed build the merged one?"
+   * is a question a response can answer instead of a story about who deployed when.
+   */
+  readonly buildSha: string | null;
 }
 
 const MIN_SECRET_LENGTH = 32;
@@ -43,6 +49,19 @@ function requireSecret(name: string, value: string | undefined, why: string): st
     );
   }
   return value;
+}
+
+/**
+ * The first of these that is set. A deploy that forgets to pass the commit reports
+ * null — an honest "unknown" beats a stale SHA that would make the build look
+ * verifiable when it is not.
+ */
+function firstNonEmpty(...values: (string | undefined)[]): string | null {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) return trimmed;
+  }
+  return null;
 }
 
 function csv(value: string | undefined): string[] {
@@ -70,5 +89,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServiceConfig 
     sessionSecret: env.SESSION_SECRET ?? "",
     sessionTtlSeconds: Number(env.SESSION_TTL_SECONDS ?? 60 * 60 * 12),
     allowedOrigins: csv(env.ALLOWED_ORIGINS),
+    buildSha: firstNonEmpty(env.GIT_SHA, env.GITHUB_SHA, env.BUILD_SHA),
   };
 }

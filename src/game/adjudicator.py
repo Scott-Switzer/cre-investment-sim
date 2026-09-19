@@ -102,6 +102,77 @@ CAPITAL_RESERVE_RATE: Dict[str, float] = {
     "Retail": 0.015,
 }
 
+# ── asset management (V2, September 18 direction) ────────────────────────
+#
+# A fund sets one MANAGEMENT STANCE per owned building each round, in the same
+# decision window as its bids. The stance is a real operating posture, not a
+# bonus:
+#
+#   RUN LEAN             defer maintenance and hold costs down. Cheaper in a
+#                        calm year; a vacancy shock hits harder when it comes.
+#   STANDARD             the neutral posture. Identical to the pre-V2
+#                        economics, so existing sessions, packets and balance
+#                        evidence carry over unchanged.
+#   INVEST & PROTECT     protect the income: higher recurring capital spend,
+#                        but a tenant shock is far less likely and costs less
+#                        when it does land.
+#
+# Costs flow through the EXISTING reserve and NOI channels -- there is no
+# parallel ledger and no double counting (docs/V2_PRODUCT_SPEC.md §2.3).
+STANCES: Tuple[str, ...] = ("RUN LEAN", "STANDARD", "INVEST & PROTECT")
+STANCE_DEFAULT = "STANDARD"
+
+# Recurring protection cost of the INVEST stance, as an ADDITIONAL capital
+# reserve rate. Applied through charge_capital_reserves on the holding's value,
+# so a levered fund pays it on the whole asset -- protection is not free.
+MANAGEMENT_INVEST_RESERVE_ADDER = 0.010
+
+# A RUN LEAN fund defers upkeep, so it avoids the recurring protection cost but
+# not the reserve itself. There is no lean reserve discount: the lean trade is
+# paid for in shock risk, not in cash. Documented here so its absence is a
+# decision, not an oversight.
+
+# Vacancy-shock probability by property type under the STANDARD stance, before
+# market pressure. Office rolls the most space and carries the most tenant risk;
+# NNN industrial the least. Multifamily's short leases churn constantly but
+# re-lease quickly. Office's base vacancy (13.3%) already exceeds the tight
+# threshold, so its pressure multiplier is always >= 1.2 and its base rate is
+# set so a calm year lands near a 1-in-4 chance.
+MANAGEMENT_SHOCK_PROBABILITY: Dict[str, float] = {
+    "Industrial": 0.08,
+    "Office": 0.20,
+    "Multifamily": 0.12,
+    "Retail": 0.18,
+}
+# Probability multipliers by stance.
+MANAGEMENT_STANCE_SHOCK_MULTIPLIER: Dict[str, float] = {
+    "RUN LEAN": 1.75,
+    "STANDARD": 1.00,
+    "INVEST & PROTECT": 0.45,
+}
+# NOI haircut when a vacancy shock lands, by stance. RUN LEAN loses more
+# because deferred upkeep shows up as a deeper re-leasing hit.
+MANAGEMENT_STANCE_SHOCK_NOI_IMPACT: Dict[str, float] = {
+    "RUN LEAN": 0.12,
+    "STANDARD": 0.08,
+    "INVEST & PROTECT": 0.03,
+}
+# A maintenance shock charges this fraction of the holding's value, by stance.
+MANAGEMENT_STANCE_MAINTENANCE_RATE: Dict[str, float] = {
+    "RUN LEAN": 0.020,
+    "STANDARD": 0.012,
+    "INVEST & PROTECT": 0.006,
+}
+# Cap on the market-rent-miss haircut, by stance (share of the year's NOI).
+MANAGEMENT_STANCE_RENT_MISS_MAX: Dict[str, float] = {
+    "RUN LEAN": 0.10,
+    "STANDARD": 0.06,
+    "INVEST & PROTECT": 0.02,
+}
+# Market pressure scales the shock draw: one share point of type-level vacancy
+# above the tight-vacancy threshold multiplies the shock probability by this.
+MANAGEMENT_VACANCY_PRESSURE_SCALE = 0.04
+
 # Scenario deltas (rate environment, employment growth).
 SCENARIO_DELTAS: Dict[str, Dict[str, float]] = {
     "Base Case": {"rate_delta": 0.0, "growth_delta": 0.0},
@@ -173,12 +244,122 @@ def realized_year_outcome(
     }
 
 
+def resolve_operating_year(
+    property_id: str,
+    property_type: str,
+    property_value: float,
+    noi: float,
+    market_vacancy: float,
+    stance: str,
+    seed: int,
+    round_number: int,
+) -> Dict[str, object]:
+    """Resolve one managed operating year for an owned building. Pure and reproducible.
+
+    The management counterpart to :func:`realized_year_outcome`: same seeding
+    discipline (``_stable_seed`` over ``seed:property_id:round_number``), same
+    rule that the only place an outcome is decided is one inspectable function.
+
+    What it decides
+    ---------------        A vacancy shock may land (Bernoulli), upkeep always lands in expectation
+    (Bernoulli over a rate), and a market rent miss may clip the year's income.
+    All three are drawn from ONE generator in ONE fixed order, so a replay
+    reproduces the year exactly.
+
+    What it does NOT decide
+    -----------------------
+    NOI growth, cap rates and value. Those stay with ``realized_year_outcome``,
+    so the asset stays on the market path and the round feedback a team sees is
+    exactly what the engine applied. The shortfall returned here is a cash-flow
+    event (this year's uncollected income), which ``apply_management_year``
+    nets against the income the fund collects. There is no second scoring path
+    and no double counting (docs/V2_PRODUCT_SPEC.md §2.3).
+    """
+    if stance not in STANCES:
+        stance = STANCE_DEFAULT
+
+    rng = np.random.default_rng(_stable_seed(seed, f"{property_id}:ops", round_number))
+
+    # Market pressure: vacancy above the tight threshold makes tenant shocks
+    # more likely for everyone, regardless of stance.
+    pressure = max(0.0, market_vacancy - TIGHT_VACANCY_THRESHOLD)
+    pressure_multiplier = 1.0 + MANAGEMENT_VACANCY_PRESSURE_SCALE * pressure * 100.0
+
+    base_probability = MANAGEMENT_SHOCK_PROBABILITY.get(property_type, 0.15)
+    shock_probability = min(
+        0.9,
+        base_probability
+        * MANAGEMENT_STANCE_SHOCK_MULTIPLIER[stance]
+        * pressure_multiplier,
+    )
+    shock_hit = bool(rng.random() < shock_probability)
+
+    # Maintenance: a Bernoulli draw over a per-type rate, stance-adjusted. The
+    # expected charge equals the rate, so RUN LEAN pays more often precisely
+    # because it defers upkeep.
+    maintenance_rate = MANAGEMENT_STANCE_MAINTENANCE_RATE[stance]
+    maintenance_hit = bool(rng.random() < 0.5)
+    maintenance_charge = property_value * maintenance_rate if maintenance_hit else 0.0
+
+    # Market rent miss: worst-case haircut on the year's NOI, drawn up to the
+    # stance cap. Rarely binding under INVEST.
+    rent_miss_max = MANAGEMENT_STANCE_RENT_MISS_MAX[stance]
+    rent_miss_hit = bool(rng.random() < 0.35)
+    rent_miss_rate = float(rng.uniform(0.0, rent_miss_max)) if rent_miss_hit else 0.0
+
+    shock_noi_impact = (
+        noi * MANAGEMENT_STANCE_SHOCK_NOI_IMPACT[stance] if shock_hit else 0.0
+    )
+    rent_miss_impact = noi * rent_miss_rate
+
+    return {
+        "property_id": property_id,
+        "stance": stance,
+        "shock_hit": shock_hit,
+        "shock_probability": round(shock_probability, 6),
+        "shock_noi_impact": round(shock_noi_impact, 6),
+        "maintenance_hit": maintenance_hit,
+        "maintenance_charge": round(maintenance_charge, 6),
+        "rent_miss": round(rent_miss_impact, 6),
+        "total_noi_impact": round(shock_noi_impact + rent_miss_impact, 6),
+        "total_cash_impact": round(
+            shock_noi_impact + rent_miss_impact + maintenance_charge, 6
+        ),
+    }
+
+
 class RoundState(Enum):
     """Round state machine."""
     NOT_STARTED = "not_started"
     OPEN = "open"
     LOCKED = "locked"
     RESOLVED = "resolved"
+
+
+@dataclass
+class OperatingYearResult:
+    """One managed operating year for one owned holding.
+
+    Produced by :func:`resolve_operating_year`, stored on the team so the round
+    feedback can show what the year did to each building, and reproducible from
+    stored state because the inputs (seed, ids, stance, market vacancy) are all
+    persisted. The asset's NOI and value are NOT part of this record: management
+    moves cash, the market moves value (see ``apply_management_year``).
+    """
+    property_id: str
+    stance: str
+    shock_hit: bool
+    shock_probability: float
+    shock_noi_impact: float
+    maintenance_hit: bool
+    # Upkeep actually paid this year: the type's maintenance charge plus, under
+    # INVEST & PROTECT, the protection premium on the holding's value.
+    maintenance_charge: float
+    rent_miss: float
+    # Income the fund failed to collect this year (shock + rent miss), and the
+    # holding's total cash cost (that shortfall plus the upkeep paid).
+    total_noi_impact: float
+    total_cash_impact: float
 
 
 class BidStatus(Enum):
@@ -207,6 +388,16 @@ class TeamState:
     model_predictions: Dict[str, ModelPrediction] = field(default_factory=dict)
     # Human override tracking
     override_history: List[OverrideRecord] = field(default_factory=list)
+    # Management stances for the CURRENT round, by property id (V2). One stance
+    # per owned building per round; defaults to STANDARD when absent, which is
+    # byte-identical to the pre-V2 economics.
+    management_decisions: Dict[str, str] = field(default_factory=dict)
+    # The resolved operating year per holding, by round (V2). Keyed by the round
+    # number as a string, because canonical JSON sorts object keys to strings and
+    # this dict must survive a snapshot round trip identically. Kept on the team
+    # so feedback and the debrief can narrate what the year did to each building
+    # without recomputing it.
+    operating_history: Dict[str, List[OperatingYearResult]] = field(default_factory=dict)
 
     # Cumulative cash-flow channels. These make the NAV decomposition exact:
     #     NAV - starting_equity == sum(current_value - purchase_price)
@@ -378,9 +569,12 @@ class Adjudicator:
     No opaque models or LLMs determine outcomes.
     """
 
-    def __init__(self, seed: int = 20240331):
+    def __init__(self, seed: int = 20240331, management_enabled: bool = True):
         self.seed = seed
         self.rng = np.random.default_rng(seed)
+        # V2 course tiering: a course mode that declares no management layer
+        # (605 and 220 by default) resolves rounds byte-identically to pre-V2.
+        self.management_enabled = management_enabled
 
     def validate_bid(
         self,
@@ -652,7 +846,7 @@ class Adjudicator:
         produces the reported round feedback, so a holding's new value and the
         "current realized value" shown to the student are always identical.
         """
-        for prop_id, holding in team.properties.items():
+        for prop_id, holding in sorted(team.properties.items()):
             ptype = holding.property_type
             outcome = realized_year_outcome(
                 property_id=prop_id,
@@ -668,13 +862,21 @@ class Adjudicator:
 
         return team
 
-    def collect_property_income(self, team: TeamState) -> TeamState:
+    def collect_property_income(
+        self, team: TeamState, noi_shortfall: float = 0.0
+    ) -> TeamState:
         """Credit a year of net operating income from every holding to cash.
 
         Rules
         -----
         income       = sum of each holding's current_noi
+                       - noi_shortfall (V2: this year's operating interruption)
         team.cash   += income
+
+        The V2 operating shortfall is netted here rather than carried as a
+        separate ledger so the fund's cash identity stays exactly five channels
+        (income, interest, reserves, deal costs, equity) and the debrief's NAV
+        bridge keeps reconciling without a new term.
 
         Every holding is credited, including one bought this round, so the rule is
         straightforward to state and to audit: *each year, each property you own
@@ -687,7 +889,15 @@ class Adjudicator:
         modelled, a team that wins an asset below fair value earns its yield and
         can carry debt; a team that overpays does not.
         """
-        income = sum(holding.current_noi for holding in team.properties.values())
+        # Holdings are summed in property-id order, never in dict order. A state
+        # restored from JSON has its keys re-sorted, so an order-dependent sum
+        # drifts by an ULP between a replay and the run that produced it. Round
+        # resolution has to be reproducible from stored state, so every holding
+        # sum in this file iterates sorted.
+        income = sum(
+            holding.current_noi
+            for _, holding in sorted(team.properties.items())
+        )
         team.cash += income
         team.cumulative_income += income
         return team
@@ -713,7 +923,7 @@ class Adjudicator:
         """
         interest = sum(
             holding.debt_amount * holding.debt_rate
-            for holding in team.properties.values()
+            for _, holding in sorted(team.properties.items())
         )
         team.cash -= interest
         team.cumulative_interest += interest
@@ -731,14 +941,107 @@ class Adjudicator:
         real, recurring cost of owning a building. They scale with the asset, so
         leverage multiplies them -- which is why maximum leverage stops being a
         free lunch once the reserve is charged.
+
+        V2 note: a fund's annual *management* spend (upkeep under the year's
+        stance, including the INVEST & PROTECT protection premium) is charged by
+        :meth:`apply_management_year`, which is the one place stances are
+        consumed, and lands in this same ``cumulative_reserves`` channel. It is
+        deliberately not charged here: this method resolves a round's base
+        carrying cost, and reading stances twice would let one decision be paid
+        for twice.
         """
         reserve = sum(
             holding.current_value * CAPITAL_RESERVE_RATE.get(holding.property_type, 0.012)
-            for holding in team.properties.values()
+            for _, holding in sorted(team.properties.items())
         )
         team.cash -= reserve
         team.cumulative_reserves += reserve
         return team
+
+    def apply_management_year(
+        self,
+        team: TeamState,
+        market_state: MarketState,
+        round_number: int,
+    ) -> float:
+        """Resolve and apply one managed operating year to a fund's holdings (V2).
+
+        Returns the year's total operating income shortfall (vacancy shock plus
+        market rent miss), which the caller nets against the income credited by
+        :meth:`collect_property_income`.
+
+        Design (docs/V2_PRODUCT_SPEC.md §2.3) -- management is a *cash flow*
+        story, not a re-underwriting of the asset:
+
+        * An operating interruption costs this year's income, so it is netted
+          out of the income the fund collects. It does not rewrite the holding's
+          NOI basis, and it does not move the asset's value: the building is
+          still worth what the market says it is worth, and the fund simply did
+          not collect a full year's rent.
+        * Upkeep (including the INVEST & PROTECT protection premium) is a
+          recurring capital cost, so it is charged to cash and booked to
+          ``cumulative_reserves`` alongside the base reserve.
+
+        Why this shape: ``update_property_values`` and the reported round
+        feedback both read the *market* year for a property, so a holding's NOI
+        and value must stay on the market path (tests/test_game_submission.py::
+        TestRoundFeedbackConsistency asserts exactly that). Expressing
+        management as cash keeps "what a team is told happened is what the
+        engine applied" true, keeps the five-channel cash and NAV identities
+        exact, and keeps a replay of a seed identical.
+
+        Stances come from ``team.management_decisions`` and are consumed here:
+        the dict is cleared after resolution so last round's stance can never
+        silently apply to a building the fund has not re-decided.
+        """
+        if not team.properties:
+            team.management_decisions = {}
+            return 0.0
+
+        results: List[OperatingYearResult] = []
+        total_shortfall = 0.0
+        for prop_id, holding in sorted(team.properties.items()):
+            stance = team.management_decisions.get(prop_id, STANCE_DEFAULT)
+            resolved = resolve_operating_year(
+                property_id=prop_id,
+                property_type=holding.property_type,
+                property_value=holding.current_value,
+                noi=holding.current_noi,
+                market_vacancy=market_state.vacancy.get(holding.property_type, 0.0),
+                stance=stance,
+                seed=self.seed,
+                round_number=round_number,
+            )
+            shortfall = float(resolved["total_noi_impact"])
+            upkeep = float(resolved["maintenance_charge"])
+            if stance == "INVEST & PROTECT":
+                upkeep += holding.current_value * MANAGEMENT_INVEST_RESERVE_ADDER
+
+            # Income the fund failed to collect this year, and the upkeep it
+            # spent: both are real cash, both land in their existing channels.
+            total_shortfall += shortfall
+            if upkeep > 0.0:
+                team.cash -= upkeep
+                team.cumulative_reserves += upkeep
+
+            results.append(
+                OperatingYearResult(
+                    property_id=prop_id,
+                    stance=stance,
+                    shock_hit=bool(resolved["shock_hit"]),
+                    shock_probability=float(resolved["shock_probability"]),
+                    shock_noi_impact=float(resolved["shock_noi_impact"]),
+                    maintenance_hit=bool(resolved["maintenance_hit"]),
+                    maintenance_charge=round(upkeep, 6),
+                    rent_miss=float(resolved["rent_miss"]),
+                    total_noi_impact=round(shortfall, 6),
+                    total_cash_impact=round(shortfall + upkeep, 6),
+                )
+            )
+
+        team.operating_history[str(round_number)] = results
+        team.management_decisions = {}
+        return total_shortfall
 
     def calculate_nav(self, team: TeamState) -> float:
         """
@@ -746,7 +1049,9 @@ class Adjudicator:
         
         NAV = Cash + Property Values - Debt
         """
-        property_values = sum(h.current_value for h in team.properties.values())
+        property_values = sum(
+            holding.current_value for _, holding in sorted(team.properties.items())
+        )
         nav = team.cash + property_values - team.debt
         return round(nav, 6)
 
@@ -896,11 +1201,22 @@ class Adjudicator:
                             opening_noi=opening_noi.get(prop_id),
                         )
                 # Order matters and is deliberate:
-                #   1. collect this year's NOI at the NOI the asset carried
-                #   2. then revalue (which advances each holding's NOI to next year)
-                #   3. then fund reserves on the revalued asset
-                #   4. then pay interest on the debt that financed it
-                updated_team = self.collect_property_income(updated_team)
+                #   1. resolve this year's management outcomes: the operating
+                #      shortfall (netted out of income in step 2) and the upkeep
+                #      the fund spent (charged to cash and reserves here) (V2)
+                #   2. collect this year's NOI, less that shortfall
+                #   3. then revalue, which advances each holding's NOI to next
+                #      year on the same market path the round feedback reports
+                #   4. then fund the base capital reserve on the revalued asset
+                #   5. then pay interest on the debt that financed it
+                operating_shortfall = 0.0
+                if self.management_enabled:
+                    operating_shortfall = self.apply_management_year(
+                        updated_team, market_state, round_number
+                    )
+                updated_team = self.collect_property_income(
+                    updated_team, noi_shortfall=operating_shortfall
+                )
                 updated_team = self.update_property_values(updated_team, market_state, round_number)
                 updated_team = self.charge_capital_reserves(updated_team)
                 updated_team = self.accrue_debt_interest(updated_team)
@@ -987,4 +1303,29 @@ class Adjudicator:
             "property_outcomes": visible_outcomes,
             "market_state": market_obs,
             "override_history": team_state.override_history,
+            # V2: this fund's resolved operating years, newest last, so round
+            # feedback can show what the year did to each building. It is the
+            # fund's own record — no other fund's appears here.
+            "operating_history": [
+                {
+                    "round": round_number,
+                    "results": [
+                        {
+                            "property_id": r.property_id,
+                            "stance": r.stance,
+                            "shock_hit": r.shock_hit,
+                            "shock_probability": r.shock_probability,
+                            "shock_noi_impact": r.shock_noi_impact,
+                            "maintenance_charge": r.maintenance_charge,
+                            "rent_miss": r.rent_miss,
+                            "total_noi_impact": r.total_noi_impact,
+                            "total_cash_impact": r.total_cash_impact,
+                        }
+                        for r in results
+                    ],
+                }
+                for round_number, results in sorted(
+                    team_state.operating_history.items()
+                )
+            ],
         }

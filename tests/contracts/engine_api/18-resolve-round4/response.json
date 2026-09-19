@@ -214,8 +214,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/18-resolve-round4-state.json.gz",
-    "sha256": "baeae425fef40280f76cd9b30a91200d7b9e17653d0431bbca3ee90fba8c4546"
+    "sha256": "daf12f2b70e8d6f96061d8f597f62fea7a2965f30d1c4f93d9d732e19f71d239"
   }
 }

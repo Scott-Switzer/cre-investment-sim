@@ -140,6 +140,27 @@ export async function buildExport(ctx: AppContext, session: SessionState): Promi
   }
   const roundDecisions = csv(roundDecisionRows);
 
+  // 3b. management stances — what each fund chose to do with the buildings it owned.
+  // Empty for a tier that has no management decision, and written as an empty file
+  // (header only) rather than omitted, so the export's shape does not change with the
+  // course tier.
+  const roundStanceRows: (string | number | null)[][] = [
+    ["round", "fund", "property_id", "stance"],
+  ];
+  for (const round of rounds) {
+    for (const decision of decisionsByRound.get(round.round) ?? []) {
+      for (const stance of decision.stances ?? []) {
+        roundStanceRows.push([
+          round.round === PRACTICE_ROUND ? "practice" : round.round,
+          funds.find((f) => f.id === decision.fundId)?.name ?? decision.fundId,
+          stance.propertyId,
+          stance.stance,
+        ]);
+      }
+    }
+  }
+  const roundStances = csv(roundStanceRows);
+
   // 4. round results — property outcomes, only from revealed results.
   const resultRows: (string | number | null)[][] = [
     [
@@ -235,6 +256,7 @@ export async function buildExport(ctx: AppContext, session: SessionState): Promi
     { name: "session_summary.csv", content: sessionSummary },
     { name: "fund_final_standings.csv", content: fundFinal },
     { name: "round_decisions.csv", content: roundDecisions },
+    { name: "round_management_stances.csv", content: roundStances },
     { name: "round_results.csv", content: roundResults },
     { name: "model_metrics.csv", content: modelMetrics },
     { name: "override_metrics.csv", content: overrideMetrics },

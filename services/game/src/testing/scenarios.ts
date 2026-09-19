@@ -80,6 +80,8 @@ export async function createClass(
     fundNames?: string[];
     totalRounds?: number;
     maxTeamSize?: number;
+    /** "605" (default), "310" or "220". Omitted means the bundle's own tier. */
+    courseMode?: string;
   } = {},
 ): Promise<SessionFixture> {
   const professor = harness.browser("professor");
@@ -89,6 +91,7 @@ export async function createClass(
     professorName: "Professor Frenzel",
     fundNames: options.fundNames ?? ["Value Fund"],
     totalRounds: options.totalRounds ?? 4,
+    ...(options.courseMode === undefined ? {} : { courseMode: options.courseMode }),
     ...(options.maxTeamSize === undefined ? {} : { maxTeamSize: options.maxTeamSize }),
   });
   if (res.status !== 201) {
@@ -159,6 +162,7 @@ export async function playablePractice(
     members?: string[][];
     totalRounds?: number;
     csv?: string;
+    courseMode?: string;
   } = {},
 ): Promise<SessionFixture & { students: StudentFixture[]; fundIds: string[] }> {
   const fundNames = options.fundNames ?? ["Value Fund"];
@@ -166,6 +170,7 @@ export async function playablePractice(
   const fixture = await createClass(harness, {
     fundNames,
     ...(options.totalRounds === undefined ? {} : { totalRounds: options.totalRounds }),
+    ...(options.courseMode === undefined ? {} : { courseMode: options.courseMode }),
   });
 
   const students: StudentFixture[] = [];

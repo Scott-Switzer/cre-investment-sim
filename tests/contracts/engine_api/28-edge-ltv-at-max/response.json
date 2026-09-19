@@ -172,8 +172,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/28-edge-ltv-at-max-state.json.gz",
-    "sha256": "e89f06e752b6dc0fa4ac56e8143a90828a4a27803f166e6c27eca2c314d22f77"
+    "sha256": "f498922d00a3deabedcadd791b7bcbd115e2c4ec817ec953e7185f9454efb38d"
   }
 }

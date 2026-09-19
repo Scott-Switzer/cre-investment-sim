@@ -35,7 +35,7 @@ import { beginCheckIn, closeRound, demoAdvance, finalizeGame, openRound, pauseTi
 import { assertSafeView } from "./views.js";
 import { buildExport, zipStore } from "./export.js";
 import { decodeState } from "./engineClient.js";
-import type { DecisionItem } from "./domain.js";
+import type { DecisionItem, StanceItem } from "./domain.js";
 import type { ServiceConfig } from "./config.js";
 
 interface Deps {
@@ -112,6 +112,38 @@ function grantFor(
 ): Grant | null {
   const cookie = readCookies(req).get(`${config.cookieName}_${sessionId}`);
   return verifyGrant(cookie, config.cookieSecret);
+}
+
+interface HeldSeat {
+  sessionId: string;
+  role: "student" | "professor";
+  memberId: string;
+}
+
+/**
+ * Every seat this browser actually holds, in cookie order.
+ *
+ * A browser that has joined two classes (a student in a morning and an afternoon
+ * section, or a professor running two sections) holds two independent cookies. Neither
+ * of them is more true than the other, which is why nothing here picks one.
+ */
+function heldSeats(req: FastifyRequest, config: ServiceConfig): HeldSeat[] {
+  const seats: HeldSeat[] = [];
+  for (const [name, token] of readCookies(req)) {
+    if (!name.startsWith(`${config.cookieName}_`)) continue;
+    const sessionId = name.slice(config.cookieName.length + 1);
+    const grant = verifyGrant(token, config.cookieSecret);
+    if (grant && grant.sessionId === sessionId) {
+      seats.push({ sessionId, role: grant.role, memberId: grant.memberId });
+    }
+  }
+  return seats;
+}
+
+function queryString(query: unknown, key: string): string | null {
+  if (query === null || typeof query !== "object") return null;
+  const value = (query as Record<string, unknown>)[key];
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
 /** `If-Match` is the standard way to say "act on this exact version". */
@@ -204,21 +236,38 @@ export function buildServer(deps: Deps): FastifyInstance {
   // ── health and datasets ─────────────────────────────────────────────────
 
   /**
-   * Which session, if any, this browser's cookies name. The client mounts by asking
-   * this instead of parsing the URL: the cookie is per session and only the server
-   * can read it, so a shared or stale link can never borrow another seat's screen.
-   * Returns what the signature already asserts — ids and role, never game state.
+   * Which session this browser's cookies name.
+   *
+   * The client mounts by asking this instead of parsing the URL. Because the cookie is
+   * per session and only the server can read it, a shared or stale link can never
+   * borrow another seat's screen. Returns what the signature already asserts — ids and
+   * role, never game state.
+   *
+   * `?session=<id>` states which session the caller means, and it is answered exactly:
+   * that seat, or a named refusal. It is never swapped for a different session the
+   * browser also happens to hold, because "opened the wrong class" is a failure the
+   * player cannot see and cannot report. Without the parameter the answer is only
+   * unambiguous when exactly one seat is held; with two or more the seats are listed
+   * and the caller must choose.
    */
   app.get("/v1/whoami", async (req) => {
-    for (const [name, token] of readCookies(req)) {
-      if (!name.startsWith(`${config.cookieName}_`)) continue;
-      const sessionId = name.slice(config.cookieName.length + 1);
-      const grant = verifyGrant(token, config.cookieSecret);
-      if (grant && grant.sessionId === sessionId) {
-        return { sessionId, role: grant.role, memberId: grant.memberId };
-      }
+    const held = heldSeats(req, config);
+    const wanted = queryString(req.query, "session");
+
+    if (wanted !== null) {
+      const match = held.find((seat) => seat.sessionId === wanted);
+      if (match) return { ...match, sessions: held, ambiguous: false };
+      return {
+        sessionId: null,
+        requestedSession: wanted,
+        reason: "no_grant_for_requested_session",
+        sessions: held,
+        ambiguous: held.length > 1,
+      };
     }
-    return { sessionId: null };
+
+    if (held.length === 1) return { ...held[0], sessions: held, ambiguous: false };
+    return { sessionId: null, sessions: held, ambiguous: held.length > 1 };
   });
 
   app.get("/v1/health", async () => {
@@ -230,6 +279,7 @@ export function buildServer(deps: Deps): FastifyInstance {
       service: "cre-investment-committee-game",
       store: context.store.kind,
       engine,
+      build: { sha: config.buildSha },
     };
   });
 
@@ -245,6 +295,7 @@ export function buildServer(deps: Deps): FastifyInstance {
       engine: ok
         ? { version: (engine as { engine_version?: string }).engine_version ?? null }
         : "unreachable",
+      build: { sha: config.buildSha },
     };
   });
 
@@ -261,6 +312,7 @@ export function buildServer(deps: Deps): FastifyInstance {
     const body = (req.body ?? {}) as {
       name?: string;
       bundleId?: string;
+      courseMode?: string;
       professorPasscode?: string;
       professorName?: string;
       fundNames?: string[];
@@ -273,6 +325,7 @@ export function buildServer(deps: Deps): FastifyInstance {
     const result = await createSession(context, {
       name: body.name ?? "",
       bundleId: body.bundleId,
+      courseMode: body.courseMode,
       professorPasscode: body.professorPasscode ?? "",
       professorName: body.professorName,
       fundNames: body.fundNames,
@@ -629,11 +682,15 @@ export function buildServer(deps: Deps): FastifyInstance {
     const body = (req.body ?? {}) as {
       fundId?: string;
       items?: DecisionItem[];
+      stances?: StanceItem[];
       expectedRevision?: number;
     };
     const fundId = body.fundId ?? grant.fundId;
     if (!fundId) throw badRequest("fundId is required");
     if (!Array.isArray(body.items)) throw badRequest("items must be an array");
+    if (body.stances !== undefined && !Array.isArray(body.stances)) {
+      throw badRequest("stances must be an array when present");
+    }
 
     const result = await idempotent(req, params.sessionId, grant.memberId, "rounds/decision", async () => {
       const decision = await submitDecision(context, {
@@ -641,6 +698,7 @@ export function buildServer(deps: Deps): FastifyInstance {
         fundId,
         grant,
         items: body.items!,
+        stances: body.stances,
         expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
       });
       return { status: 200, body: { decision } };

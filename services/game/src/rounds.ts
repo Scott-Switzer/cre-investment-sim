@@ -30,9 +30,24 @@ import {
   requireMember,
   roundAcceptsSubmissions,
 } from "./context.js";
-import { assertAction, isGameComplete, phaseAfterResolve, PRACTICE_ROUND, type DecisionItem, type RoundRecord, type SessionState } from "./domain.js";
-import { assertSafeView, roundView } from "./views.js";
-import { decodeState, encodeState, type EngineDecision } from "./engineClient.js";
+import {
+  assertAction,
+  isGameComplete,
+  phaseAfterResolve,
+  PRACTICE_ROUND,
+  stancesOf,
+  type DecisionItem,
+  type RoundRecord,
+  type SessionState,
+  type StanceItem,
+} from "./domain.js";
+import { assertSafeView, managementOf, roundView } from "./views.js";
+import {
+  decodeState,
+  encodeState,
+  type EngineDecision,
+  type EngineManagementStance,
+} from "./engineClient.js";
 import { nowIso } from "./ids.js";
 import type { Grant } from "./auth.js";
 
@@ -122,6 +137,7 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
     }
     return {
       bundleId: session.bundleId,
+      courseMode: session.courseMode ?? null,
       fundCount: funds.length,
       practiceEnabled: session.practiceEnabled !== false,
       unlocked: funds.filter((f) => f.modelStatus !== "locked").map((f) => f.name),
@@ -174,6 +190,7 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
     claim.bundleId,
     teams,
     args.scenario ?? "Base Case",
+    claim.courseMode,
   );
 
   // 3. commit against the guard.
@@ -194,6 +211,9 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
     session.engineCreatedAt = openedAt;
     session.currentRound = round;
     session.phase = round === PRACTICE_ROUND ? "practice" : "round";
+    // Record the tier the engine says it created, rather than the string that was
+    // asked for: if they ever differ, the engine's answer is the game being played.
+    session.courseMode = managementOf(created.public).courseMode ?? session.courseMode;
 
     const record: RoundRecord = {
       sessionId: args.sessionId,
@@ -205,6 +225,7 @@ export async function startGame(ctx: AppContext, args: StartGameInput) {
       results: null,
       analytics: null,
       rejected: [],
+      rejectedStances: [],
     };
     tx.putRound(record);
     tx.touch();
@@ -297,6 +318,7 @@ export async function openRound(
       results: null,
       analytics: null,
       rejected: [],
+      rejectedStances: [],
     });
     tx.touch();
     return { round, phase: session.phase };
@@ -310,7 +332,51 @@ export interface SubmitDecisionInput {
   fundId: string;
   grant: Grant;
   items: DecisionItem[];
+  /**
+   * This fund's management stances for the round, if the tier accepts them. Optional:
+   * a 605 or 220 fund sends none, and a 310 fund that sends none simply plays on the
+   * tier's default — the engine's own rule, and not an error here.
+   */
+  stances?: StanceItem[];
   expectedRevision?: number | null;
+}
+
+/**
+ * Check a fund's stances against the rules the engine published for this round.
+ *
+ * Only two things are checked here, both of them *shape*: that the tier accepts a
+ * stance choice at all, and that each stance is one the engine named. Whether the
+ * building is actually owned, and what the stance then does, stays the engine's
+ * call — a helper that guessed at ownership would be a second opinion about the
+ * rules, and the engine already reports a refusal per property.
+ */
+function checkStances(broadcast: unknown, stances: StanceItem[]): void {
+  if (stances.length === 0) return;
+  const management = managementOf(broadcast);
+  if (!management.enabled || !management.hasStanceChoice) {
+    throw new AppError(
+      "bad_request",
+      management.courseMode
+        ? `this session is playing the ${management.courseMode} course tier, which has no management decision`
+        : "this session has no management decision",
+      { courseMode: management.courseMode, stances: management.stances },
+    );
+  }
+  const seen = new Set<string>();
+  for (const item of stances) {
+    if (!management.stances.includes(item.stance)) {
+      throw new AppError(
+        "bad_request",
+        `'${item.stance}' is not a management stance this session accepts. ` +
+          `Available: ${management.stances.join(", ")}.`,
+        { stances: management.stances },
+      );
+    }
+    if (seen.has(item.propertyId)) {
+      throw new AppError("bad_request", `a stance for '${item.propertyId}' was sent twice`);
+    }
+    seen.add(item.propertyId);
+  }
 }
 
 export async function submitDecision(ctx: AppContext, args: SubmitDecisionInput) {
@@ -400,6 +466,9 @@ export async function submitDecision(ctx: AppContext, args: SubmitDecisionInput)
       );
     }
 
+    const stances = args.stances ?? [];
+    checkStances(record.broadcast, stances);
+
     const decision = {
       sessionId: args.sessionId,
       round: record.round,
@@ -413,6 +482,9 @@ export async function submitDecision(ctx: AppContext, args: SubmitDecisionInput)
           bid: item.action === "BID" ? item.bid : null,
           ltv: item.action === "BID" ? item.ltv : null,
         }))
+        .sort((a, b) => (a.propertyId < b.propertyId ? -1 : 1)),
+      stances: stances
+        .map((s) => ({ propertyId: s.propertyId, stance: s.stance }))
         .sort((a, b) => (a.propertyId < b.propertyId ? -1 : 1)),
     };
     // Replacement, not accumulation: a fund may revise until the market closes, and
@@ -450,6 +522,7 @@ export async function closeRound(
       a.fundId < b.fundId ? -1 : 1,
     );
     const engineDecisions: EngineDecision[] = [];
+    const engineStances: EngineManagementStance[] = [];
     for (const decision of decisions) {
       for (const item of decision.items) {
         engineDecisions.push({
@@ -460,18 +533,32 @@ export async function closeRound(
           ltv: item.ltv,
         });
       }
+      for (const stance of stancesOf(decision)) {
+        engineStances.push({
+          team_id: decision.fundId,
+          property_id: stance.propertyId,
+          stance: stance.stance,
+        });
+      }
     }
     return {
       round: record.round,
       state: requireEngineState(session),
       engineDecisions,
+      engineStances,
       submittedFunds: decisions.length,
       closedAt: record.closedAt,
     };
   });
 
-  // 2. the engine resolves, outside any transaction.
-  const resolved = await ctx.engine.resolveRound(decodeState(claim.state), claim.engineDecisions);
+  // 2. the engine resolves, outside any transaction. Management stances ride the same
+  // call as the bids: they are decisions about the round being closed, so they are
+  // consumed by the same resolution that consumes the bids.
+  const resolved = await ctx.engine.resolveRound(
+    decodeState(claim.state),
+    claim.engineDecisions,
+    claim.engineStances,
+  );
 
   // 3. commit against the guard: this is the line that makes double-resolution
   // impossible. Whoever gets there second finds `resolvedAt` set and is refused —
@@ -501,6 +588,13 @@ export async function closeRound(
     record.results = resolved.public_results;
     record.analytics = resolved.analytics_updates;
     record.rejected = resolved.rejected_decisions.map((r) => ({
+      fundId: r.team_id,
+      propertyId: r.property_id,
+      reason: r.reason,
+    }));
+    // An engine that predates the management layer sends no stance field at all; an
+    // empty list is the correct reading of that, not a missing answer.
+    record.rejectedStances = (resolved.rejected_stances ?? []).map((r) => ({
       fundId: r.team_id,
       propertyId: r.property_id,
       reason: r.reason,

@@ -30,7 +30,52 @@ import type {
   RoundRecord,
   SessionState,
 } from "./domain.js";
-import { isGameComplete, PRACTICE_ROUND, roundLabel } from "./domain.js";
+import { isGameComplete, PRACTICE_ROUND, roundLabel, stancesOf } from "./domain.js";
+
+/**
+ * The management rules a round is being played under, read from the engine's own
+ * published config in the stored round broadcast.
+ *
+ * Read, not re-derived. The engine decides which stances a course tier accepts and
+ * publishes them on every round payload; publishing a *different* answer from a
+ * constant here is how a UI ends up offering a decision the engine will refuse. An
+ * engine that predates the layer publishes nothing, and the honest reading of that is
+ * "no stance surface", which is what the defaults below produce.
+ */
+export interface RoundManagement {
+  /** Does this session simulate the operating year at all? */
+  enabled: boolean;
+  /** May a fund choose a stance, or is the tier's default simply applied? */
+  hasStanceChoice: boolean;
+  courseMode: string | null;
+  /** The stances the engine accepts, verbatim. */
+  stances: string[];
+  defaultStance: string;
+}
+
+export const NO_MANAGEMENT: RoundManagement = {
+  enabled: false,
+  hasStanceChoice: false,
+  courseMode: null,
+  stances: [],
+  defaultStance: "STANDARD",
+};
+
+export function managementOf(broadcast: unknown): RoundManagement {
+  const economics = (broadcast as { economics?: unknown } | null)?.economics as
+    | Record<string, unknown>
+    | undefined;
+  const mgmt = economics?.management as Record<string, unknown> | undefined;
+  if (!mgmt) return NO_MANAGEMENT;
+  const stances = Array.isArray(mgmt.stances) ? mgmt.stances.map((s) => String(s)) : [];
+  return {
+    enabled: mgmt.enabled === true,
+    hasStanceChoice: mgmt.has_stance_choice === true && stances.length > 1,
+    courseMode: typeof mgmt.course_mode === "string" ? mgmt.course_mode : null,
+    stances,
+    defaultStance: typeof mgmt.default_stance === "string" ? mgmt.default_stance : "STANDARD",
+  };
+}
 
 /** The engine snapshot and anything shaped like it must never appear in a view. */
 export function assertSafeView(view: unknown, where: string): void {
@@ -116,6 +161,8 @@ export interface SessionView {
   candidatePoolHash: string;
   nextStep: string;
   demo: boolean;
+  /** The instructional tier recorded at creation, or null if the engine did not say. */
+  courseMode: string | null;
   /** Round timer deadline, epoch ms. Null when no timer is running. */
   roundDeadlineAt: number | null;
   timerPausedAt: number | null;
@@ -143,6 +190,7 @@ export function sessionView(session: SessionState): SessionView {
     candidatePoolHash: session.candidatePoolHash,
     nextStep: nextStepFor(session),
     demo: session.demo,
+    courseMode: session.courseMode ?? null,
     roundDeadlineAt: session.roundDeadlineAt,
     timerPausedAt: session.timerPausedAt,
     roundDurationSeconds: session.roundDurationSeconds,
@@ -236,6 +284,11 @@ export function decisionView(decision: DecisionState) {
     items: [...decision.items]
       .sort((a, b) => (a.propertyId < b.propertyId ? -1 : 1))
       .map((item) => ({ ...item })),
+    // The fund's own stances, so a refresh shows what it locked in rather than
+    // resetting every control to the tier default.
+    stances: [...stancesOf(decision)]
+      .sort((a, b) => (a.propertyId < b.propertyId ? -1 : 1))
+      .map((s) => ({ ...s })),
   };
 }
 
@@ -259,6 +312,10 @@ export interface RoundView {
   /** The engine's analytics leaderboard at this round's resolution, or null. */
   analytics: unknown | null;
   rejected: { fundId: string; propertyId: string; reason: string }[];
+  /** Stances the engine refused at resolution, reported back to the sending fund. */
+  rejectedStances: { fundId: string; propertyId: string; reason: string }[];
+  /** The management rules this round is played under, from the engine's config. */
+  management: RoundManagement;
 }
 
 export function roundView(args: {
@@ -290,6 +347,8 @@ export function roundView(args: {
     results: args.includeResults ? record.results : null,
     analytics: args.includeResults && record.resolvedAt !== null ? record.analytics : null,
     rejected: record.rejected.map((r) => ({ ...r })),
+    rejectedStances: (record.rejectedStances ?? []).map((r) => ({ ...r })),
+    management: managementOf(record.broadcast),
   };
 }
 
@@ -319,6 +378,13 @@ export function submissionGrid(args: {
   return args.funds
     .map((fund) => {
       const decision = args.decisions.get(fund.id) ?? null;
+      // Management submissions, counted per stance. This is the professor's answer
+      // to "did management decisions arrive, and what did each fund choose" — a
+      // count of postures, never an amount, so the grid stays projectable.
+      const stanceTally: Record<string, number> = {};
+      for (const stance of stancesOf(decision)) {
+        stanceTally[stance.stance] = (stanceTally[stance.stance] ?? 0) + 1;
+      }
       const modelRows = args.rows.get(fund.id) ?? [];
       const policyFor = new Map(modelRows.map((row) => [row.propertyId, row.policy]));
       let bidsAboveOwnCeiling = 0;
@@ -341,6 +407,8 @@ export function submissionGrid(args: {
         passes: (decision?.items.length ?? 0) - bids,
         bidsAboveOwnCeiling,
         ltvAboveOwnTarget,
+        stancesSet: stancesOf(decision).length,
+        stanceTally,
       };
     })
     .sort((a, b) => (a.fundName < b.fundName ? -1 : 1));

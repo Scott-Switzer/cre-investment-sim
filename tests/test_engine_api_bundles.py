@@ -136,14 +136,62 @@ def test_unknown_bundle_is_an_error_with_no_default(bundle: GameBundle):
 
 
 def test_bundle_json_carries_no_surprise_keys():
-    """The bundle file is small and reviewable; this keeps it that way."""
+    """The bundle file is small and reviewable; this keeps it that way.
+
+    V2 added the course tier (`course_mode`, `management_enabled`): a bundle now
+    pins which instructional game its dataset is played as, so a session cannot
+    be switched between 605 and 310 by a runtime flag nobody recorded.
+    """
     path = bundles.BUNDLE_DIR / "real605-fall26-v1.json"
     payload = json.loads(path.read_text())
     assert set(payload) == {
         "bundle_id", "display_name", "engine_version", "economics_version",
         "economics_digest", "packet_version", "seed", "candidate_pool_hash",
-        "schema_version", "description",
+        "schema_version", "course_mode", "management_enabled", "description",
     }
+
+
+def test_the_published_bundle_plays_the_605_tier_with_management_off(bundle):
+    """The classroom bundle must reproduce the economics it was frozen against.
+
+    REAL 605 is the first real-world stress test of the game, so its tier is the
+    simplest one: the V2 operating-year layer stays off and every round resolves
+    exactly as the pre-V2 engine did.
+    """
+    assert bundle.course_mode == "605"
+    assert bundle.management_enabled is False
+    assert bundle.effective_management_enabled is False
+    config = bundles.game_config_for_bundle(bundle)
+    assert config.management_active is False
+    assert config.profile.required_models == ("valuation",)
+    assert config.profile.has_stance_choice is False
+
+
+def test_a_310_bundle_turns_the_management_layer_on(bundle):
+    """The tier decides, unless the bundle turns the layer off explicitly.
+
+    The published bundle records `management_enabled: false` for the 605 tier, so
+    the tier is asked only when a bundle is silent about it -- an explicit flag is
+    an operator decision and outranks the tier default.
+    """
+    assert dataclasses.replace(bundle, course_mode="310").effective_management_enabled is False
+    assert dataclasses.replace(
+        bundle, course_mode="310", management_enabled=True
+    ).effective_management_enabled is True
+    three_ten = dataclasses.replace(bundle, course_mode="310", management_enabled=None)
+    assert three_ten.effective_management_enabled is True
+    config = bundles.game_config_for_bundle(three_ten)
+    assert config.management_active is True
+    assert config.profile.required_models == ("valuation", "vacancy", "income")
+    assert config.profile.has_stance_choice is True
+
+
+def test_an_unknown_course_mode_is_an_error_not_a_default():
+    with pytest.raises(ValueError, match="unknown course_mode"):
+        bundles.game_config_for_bundle(
+            dataclasses.replace(bundles.load_bundle("real605-fall26-v1"),
+                                course_mode="605x")
+        ).profile
 
 
 def test_the_seed_lives_in_system_metadata_and_is_not_advertised(client: TestClient):

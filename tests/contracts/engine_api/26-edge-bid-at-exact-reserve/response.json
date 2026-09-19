@@ -172,8 +172,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/26-edge-bid-at-exact-reserve-state.json.gz",
-    "sha256": "4d12d3387ccc518b2270b6b26f2d64b29dac774c4298300e87ff11821c26af8e"
+    "sha256": "74b3b20c5907e8fddaef6c7856bf314d3d6787f14918a3e6ebe48afd6ffc79fd"
   }
 }

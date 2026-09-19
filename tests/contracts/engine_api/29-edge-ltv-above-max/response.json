@@ -178,8 +178,9 @@
       "team_id": "alpha"
     }
   ],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/29-edge-ltv-above-max-state.json.gz",
-    "sha256": "8d98e4eb73447ba087d38bc2c5015f70cd9b219d8c2d2ff113917e34a729e47a"
+    "sha256": "b67aadd3e81a321a460528489bcc6e352236d123e29b996a664260eba93ef19d"
   }
 }

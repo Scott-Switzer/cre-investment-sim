@@ -17,6 +17,13 @@ from typing import Any, Dict, List, Optional
 from src.game.adjudicator import (
     ACQUISITION_COST_RATE,
     CAPITAL_RESERVE_RATE,
+    MANAGEMENT_INVEST_RESERVE_ADDER,
+    MANAGEMENT_SHOCK_PROBABILITY,
+    MANAGEMENT_STANCE_MAINTENANCE_RATE,
+    MANAGEMENT_STANCE_SHOCK_MULTIPLIER,
+    MANAGEMENT_STANCE_SHOCK_NOI_IMPACT,
+    STANCES,
+    STANCE_DEFAULT,
     MarketState,
     PropertyMarket,
     RoundResult,
@@ -166,6 +173,35 @@ def public_round(gm: GameManager) -> Dict[str, Any]:
             "acquisition_cost_rate": _num(ACQUISITION_COST_RATE),
             "capital_reserve_rate": {
                 k: _num(v) for k, v in CAPITAL_RESERVE_RATE.items()
+            },
+            # V2: the management layer's own coefficients, so a fund can price
+            # its stances before deciding — the same "no hidden rule" principle
+            # that publishes the acquisition and reserve rates.
+            "management": {
+                "enabled": bool(gm.config.management_active),
+                "course_mode": str(gm.config.course_mode),
+                "course_label": gm.config.profile.label,
+                "required_models": list(gm.config.profile.required_models),
+                # The stances this tier accepts. A one-entry list means the tier
+                # shows no stance choice at all, so a student UI can decide from
+                # config whether to render the control.
+                "stances": list(gm.config.profile.stances),
+                "all_stances": list(STANCES),
+                "has_stance_choice": gm.config.profile.has_stance_choice,
+                "default_stance": STANCE_DEFAULT,
+                "invest_reserve_adder": _num(MANAGEMENT_INVEST_RESERVE_ADDER),
+                "shock_probability": {
+                    k: _num(v) for k, v in MANAGEMENT_SHOCK_PROBABILITY.items()
+                },
+                "stance_shock_multiplier": {
+                    k: _num(v) for k, v in MANAGEMENT_STANCE_SHOCK_MULTIPLIER.items()
+                },
+                "stance_shock_noi_impact": {
+                    k: _num(v) for k, v in MANAGEMENT_STANCE_SHOCK_NOI_IMPACT.items()
+                },
+                "stance_maintenance_rate": {
+                    k: _num(v) for k, v in MANAGEMENT_STANCE_MAINTENANCE_RATE.items()
+                },
             },
         },
     }
@@ -417,6 +453,31 @@ def team_private_view(gm: GameManager, team_id: str) -> Dict[str, Any]:
             for o in team.override_history
         ],
         "channels": _channels_to_dict(fund_channels(gm, team_id)),
+        # V2: the fund's own resolved operating years, oldest first. Professor
+        # and fund share this view; no other fund's stances or shocks appear.
+        "operating_history": [
+            {
+                "round": int(round_number),
+                "results": [
+                    {
+                        "property_id": r.property_id,
+                        "stance": r.stance,
+                        "shock_hit": r.shock_hit,
+                        "shock_probability": _num(r.shock_probability),
+                        "shock_noi_impact": _num(r.shock_noi_impact),
+                        "maintenance_hit": r.maintenance_hit,
+                        "maintenance_charge": _num(r.maintenance_charge),
+                        "rent_miss": _num(r.rent_miss),
+                        "total_noi_impact": _num(r.total_noi_impact),
+                        "total_cash_impact": _num(r.total_cash_impact),
+                    }
+                    for r in results
+                ],
+            }
+            for round_number, results in sorted(
+                gm.teams[team_id].operating_history.items(), key=lambda kv: int(kv[0])
+            )
+        ],
     }
     visibility.assert_no_leaks(
         payload, f"team_private_view({team_id})", forbidden=FORBIDDEN_IN_TEAM_VIEW

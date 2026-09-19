@@ -143,7 +143,11 @@ def create_app() -> FastAPI:
     @app.post("/v1/create-game-state", response_model=CreateGameStateResponse)
     def create_game_state(request: CreateGameStateRequest) -> Dict[str, Any]:
         bundle, state, public_round = engine.create_game_state(
-            request.bundle_id, request.teams, request.scenario
+            request.bundle_id,
+            request.teams,
+            request.scenario,
+            request.course_mode,
+            request.management_enabled,
         )
         return {
             "bundle": bundle.to_dict(),
@@ -158,14 +162,15 @@ def create_app() -> FastAPI:
 
     @app.post("/v1/resolve-round", response_model=ResolveRoundResponse)
     def resolve_round(request: ResolveRoundRequest) -> Dict[str, Any]:
-        state, results, analytics, rejected, complete = engine.resolve_round(
-            request.state, request.decisions
+        state, results, analytics, rejected, rejected_stances, complete = engine.resolve_round(
+            request.state, request.decisions, request.management_stances
         )
         return {
             "state": state,
             "public_results": results,
             "analytics_updates": analytics,
             "rejected_decisions": rejected,
+            "rejected_stances": rejected_stances,
             "game_complete": complete,
         }
 

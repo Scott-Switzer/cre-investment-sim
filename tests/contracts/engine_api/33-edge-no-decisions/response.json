@@ -172,8 +172,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/33-edge-no-decisions-state.json.gz",
-    "sha256": "83a0b72f1815f6bbe938195dc09059c87514841f7a2d81a0d1ebee6d4b9cfe7d"
+    "sha256": "5a2592e50ffd02fff9829cd6f835727536bf9ab734ecd8cab18415d8650f76a7"
   }
 }

@@ -98,6 +98,17 @@ export interface EngineDecision {
   model_target_ltv?: number | null;
 }
 
+/**
+ * One fund's management posture for one owned building, for the round being closed.
+ * The engine names the building and the stance; this service only forwards what a fund
+ * chose, grouped by fund, and reports back which ones the engine refused.
+ */
+export interface EngineManagementStance {
+  team_id: string;
+  property_id: string;
+  stance: string;
+}
+
 export interface EngineTeamSpec {
   team_id: string;
   team_name: string;
@@ -131,6 +142,8 @@ export interface ResolveRoundResponse {
   public_results: Record<string, unknown>;
   analytics_updates: Record<string, unknown>[];
   rejected_decisions: { team_id: string; property_id: string; reason: string }[];
+  /** Refused management stances. Absent on an engine that predates the layer. */
+  rejected_stances?: { team_id: string; property_id: string; reason: string }[];
   game_complete: boolean;
 }
 
@@ -172,9 +185,14 @@ export interface Engine {
     bundleId: string,
     teams: EngineTeamSpec[],
     scenario?: string,
+    courseMode?: string | null,
   ): Promise<CreateGameResponse>;
   openRound(state: unknown): Promise<OpenRoundResponse>;
-  resolveRound(state: unknown, decisions: EngineDecision[]): Promise<ResolveRoundResponse>;
+  resolveRound(
+    state: unknown,
+    decisions: EngineDecision[],
+    managementStances?: EngineManagementStance[],
+  ): Promise<ResolveRoundResponse>;
   finalizeGame(state: unknown): Promise<FinalizeGameResponse>;
   teamView(state: unknown, teamId: string): Promise<Record<string, unknown>>;
 }
@@ -281,11 +299,15 @@ export class EngineClient implements Engine {
     bundleId: string,
     teams: EngineTeamSpec[],
     scenario = "Base Case",
+    courseMode: string | null = null,
   ): Promise<CreateGameResponse> {
     return this.request<CreateGameResponse>("POST", "/v1/create-game-state", {
       bundle_id: bundleId,
       teams,
       scenario,
+      // Only sent when a tier was named: absent means "whatever the bundle
+      // declares", which is the normal path and keeps the request shape stable.
+      ...(courseMode === null ? {} : { course_mode: courseMode }),
     });
   }
 
@@ -293,10 +315,17 @@ export class EngineClient implements Engine {
     return this.request<OpenRoundResponse>("POST", "/v1/open-round", { state });
   }
 
-  resolveRound(state: unknown, decisions: EngineDecision[]): Promise<ResolveRoundResponse> {
+  resolveRound(
+    state: unknown,
+    decisions: EngineDecision[],
+    managementStances: EngineManagementStance[] = [],
+  ): Promise<ResolveRoundResponse> {
     return this.request<ResolveRoundResponse>("POST", "/v1/resolve-round", {
       state,
       decisions,
+      // Stances ride the resolve call because that is where the engine consumes
+      // them: they are decisions about the round being closed.
+      management_stances: managementStances,
     });
   }
 

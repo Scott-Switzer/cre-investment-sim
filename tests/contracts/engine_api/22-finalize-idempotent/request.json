@@ -2,7 +2,7 @@
   "body": {
     "state": {
       "$state_ref": "_states/19-open-after-final-state.json.gz",
-      "sha256": "a240fc22fe92564e4b684667fb6054c35d776d718a7d788dd6857c9ae8caa301"
+      "sha256": "a06f4cf181e639a35d02e76344de374f540e5d9b2ada6f78a2f7d3e35e25e9db"
     }
   },
   "expected_status": 200,

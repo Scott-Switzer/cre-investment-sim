@@ -113,6 +113,13 @@ export interface SessionState {
   joinCode: string;
   bundleId: string;
   bundleDisplayName: string;
+  /**
+   * The instructional tier the engine reported when the game was created (605 / 310 /
+   * 220), or null for a session created before tiering existed. Recorded rather than
+   * re-derived so the console can state which game is being played before the first
+   * round payload exists. The engine remains the authority on what the tier *does*.
+   */
+  courseMode: string | null;
   /** The bundle's pool fingerprint, pinned at creation so uploads can be checked. */
   candidatePoolHash: string;
   poolCount: number;
@@ -202,6 +209,8 @@ export interface RoundRecord {
   /** The engine's analytics leaderboard at this round's resolution. Null until resolved. */
   analytics: unknown | null;
   rejected: RejectedDecision[];
+  /** Stances the engine refused at resolution, reported to the fund that sent them. */
+  rejectedStances: RejectedStance[];
 }
 
 export interface DecisionItem {
@@ -211,6 +220,25 @@ export interface DecisionItem {
   ltv: number | null;
 }
 
+/**
+ * The management postures the engine defines. These are the engine's own names, not
+ * this service's: a second vocabulary here would be a second authority on what a fund
+ * chose, and the two would disagree the first time either moved.
+ *
+ *   RUN LEAN          defer upkeep, keep costs down, carry more operating risk
+ *   STANDARD          neutral; the pre-V2 economics
+ *   INVEST & PROTECT  pay for protection: less likely to be interrupted, at a cost
+ *
+ * Which of these a session may use is the engine's published course-tier config, not
+ * a constant: 605 accepts none, 310 all three, 220 only STANDARD.
+ */
+export type ManagementStance = "RUN LEAN" | "STANDARD" | "INVEST & PROTECT";
+
+export interface StanceItem {
+  propertyId: string;
+  stance: ManagementStance;
+}
+
 export interface DecisionState {
   sessionId: string;
   round: number;
@@ -218,6 +246,22 @@ export interface DecisionState {
   submittedBy: string;
   submittedAt: string;
   items: DecisionItem[];
+  /**
+   * This fund's management stance for each building it owns. Absent (or empty) for a
+   * tier that does not simulate an operating year, which is why it is optional on
+   * read: a decision stored before the management layer existed still loads.
+   */
+  stances: StanceItem[];
+}
+
+export function stancesOf(decision: DecisionState | null | undefined): StanceItem[] {
+  return decision?.stances ?? [];
+}
+
+export interface RejectedStance {
+  fundId: string;
+  propertyId: string;
+  reason: string;
 }
 
 /** One per fund. Immutable once written; the lock lives on the fund document. */

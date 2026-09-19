@@ -172,8 +172,9 @@
     ]
   },
   "rejected_decisions": [],
+  "rejected_stances": [],
   "state": {
     "$state_ref": "_states/27-edge-bid-just-below-reserve-state.json.gz",
-    "sha256": "6433b0038ec9f210847353eca20a7d4b3f0cf499fd885ffeb885af5c7c6af96d"
+    "sha256": "c17fea5c974e6e491417bf0fb7cd45597c3263f2bec3072a7d3e07d62d8bd3cb"
   }
 }

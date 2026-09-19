@@ -14,12 +14,13 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.game.adjudicator import Bid
-from src.game.manager import GameManager, game_stage
+from src.game.manager import GameManager, course_profile, game_stage
 
 from . import bundles, public, serde
 from .bundles import GameBundle
 from .contracts import (
     Decision,
+    ManagementStance,
     PropertySubmission,
     TeamSpec,
     submissions_to_predictions,
@@ -93,6 +94,8 @@ def create_game_state(
     bundle_id: str,
     teams: List[TeamSpec],
     scenario: str = "Base Case",
+    course_mode: Optional[str] = None,
+    management_enabled: Optional[bool] = None,
 ) -> Tuple[GameBundle, Dict[str, Any], Dict[str, Any]]:
     """Open a session's initial state: the pool, the teams, and round one open.
 
@@ -100,6 +103,12 @@ def create_game_state(
     caller could use to choose one, which is the point: a different seed would keep
     the property ids and change what they mean, silently invalidating every
     student's pre-class model.
+
+    The course tier *may* be named here, unlike the seed. Tiering is instructional
+    configuration rather than dataset identity -- it changes what students decide,
+    not what the data means -- and the choice is recorded in the session state and
+    echoed in the public config, so a session can always be asked which game it is
+    playing. An unknown tier is refused rather than silently defaulted.
     """
     bundle = bundles.load_bundle(bundle_id)
     ok, message = bundles.verify_bundle_integrity(bundle)
@@ -108,7 +117,31 @@ def create_game_state(
             f"bundle '{bundle_id}' failed its integrity check: {message}"
         )
 
-    config = bundles.game_config_for_bundle(bundle, scenario=scenario)
+    if course_mode is not None:
+        try:
+            course_profile(course_mode)
+        except ValueError as exc:
+            raise EngineOpError(str(exc)) from None
+        # Naming a tier means "play this tier": the tier's own default decides
+        # whether the operating year runs, unless the caller also states the flag
+        # explicitly. Carrying the bundle's flag across a tier change would let a
+        # 605 bundle's `management_enabled: false` silently neuter a 310 session.
+        resolved_mode = course_mode
+        resolved_management = management_enabled
+    else:
+        resolved_mode = bundle.course_mode
+        resolved_management = (
+            bundle.management_enabled
+            if management_enabled is None
+            else bool(management_enabled)
+        )
+
+    config = bundles.game_config_for_bundle(
+        bundle,
+        scenario=scenario,
+        course_mode=resolved_mode,
+        management_enabled=resolved_management,
+    )
     gm = GameManager(config)
 
     seen: set[str] = set()
@@ -171,13 +204,21 @@ def open_round(state: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any], b
 # ── resolve ───────────────────────────────────────────────────────────────
 
 def resolve_round(
-    state: Dict[str, Any], decisions: List[Decision]
-) -> Tuple[Dict[str, Any], Dict[str, Any], List[Dict[str, Any]], List[Dict[str, str]], bool]:
+    state: Dict[str, Any],
+    decisions: List[Decision],
+    management_stances: Optional[List["ManagementStance"]] = None,
+) -> Tuple[Dict[str, Any], Dict[str, Any], List[Dict[str, Any]], List[Dict[str, str]], List[Dict[str, str]], bool]:
     """Submit this round's decisions, lock, and resolve the market.
 
     A decision the rules refuse is *reported*, not crashed on: an over-levered bid
     is a student error worth showing them, not a server fault. The engine's own
     validation decides, so there is never a second opinion about what is legal.
+
+    V2: management stances ride the same call. They are recorded on the fund
+    before the round locks, so the operating year resolves against what the fund
+    actually chose. A stance the engine refuses (unknown building, management
+    disabled by course mode) is reported in `rejected_stances` and the fund's
+    defaults apply.
     """
     gm = serde.restore_game(state)
     if gm.round_state.value != "open":
@@ -220,15 +261,33 @@ def resolve_round(
                 "reason": str(exc),
             })
 
+    # V2: record management stances per fund, then resolve. Grouped by fund and
+    # applied through the engine's own validation so there is never a second
+    # opinion about what a fund may set.
+    rejected_stances: List[Dict[str, str]] = []
+    by_team: Dict[str, Dict[str, str]] = {}
+    for stance in management_stances or []:
+        by_team.setdefault(stance.team_id, {})[stance.property_id] = stance.stance
+    for team_id, stances in by_team.items():
+        try:
+            gm.set_management_stances(team_id, stances)
+        except (ValueError, RuntimeError) as exc:
+            for prop_id in stances:
+                rejected_stances.append({
+                    "team_id": team_id,
+                    "property_id": prop_id,
+                    "reason": str(exc),
+                })
+
     gm.lock_round()
     result = gm.resolve_round()
     gm.log("round resolved", round=result.round_number,
-           rejected=len(rejected))
+           rejected=len(rejected), stances=len(by_team))
 
     snapshot = serde.snapshot_game(gm)
     results = public.public_results(gm, result)
     analytics = public.public_analytics(gm)
-    return snapshot, results, analytics, rejected, gm.game_complete
+    return snapshot, results, analytics, rejected, rejected_stances, gm.game_complete
 
 
 def _record_override(gm: GameManager, decision: Decision) -> None:
