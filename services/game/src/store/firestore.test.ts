@@ -374,6 +374,34 @@ describeEmulator("FirestoreStore", () => {
     expect(await store.getIdempotency(two, "mem_1:route:abc")).toBeNull();
   });
 
+  it("stores an idempotency key whose route contains a slash", async () => {
+    // Regression, found against the deployed stack: the service scopes a key as
+    // `${actorId}:${route}:${key}`, and real routes are slash-separated
+    // ("rounds/decision", "model/manual", "game/finalize"). The test above passed
+    // only because its route was the literal word "route". Firestore reads that
+    // slash as a path separator and rejects the resulting odd-segment path, so
+    // every keyed request returned a 500 in production while the in-memory store —
+    // a plain Map, which has no paths — kept returning one.
+    const id = nextId();
+    await store.createSession(sessionDoc(id), null);
+    const key = "mem_1:rounds/decision:double-click";
+    await store.putIdempotency(id, {
+      key,
+      actorId: "mem_1",
+      route: "rounds/decision",
+      requestHash: "hash",
+      status: 200,
+      body: { decision: { submittedAt: "2026-01-01T00:00:00.000Z" } },
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+    const read = await store.getIdempotency(id, key);
+    expect(read, "a slash-scoped key must round-trip").not.toBeNull();
+    expect(read!.key).toBe(key);
+    expect(read!.body).toEqual({ decision: { submittedAt: "2026-01-01T00:00:00.000Z" } });
+    // A different key that encodes the same way must not collide with it.
+    expect(await store.getIdempotency(id, "mem_1:rounds decision:double-click")).toBeNull();
+  });
+
   it("updates presence without moving the revision", async () => {
     // Presence changes on every page load. If it moved the revision, every poll from
     // every browser would tell all the others to refetch.

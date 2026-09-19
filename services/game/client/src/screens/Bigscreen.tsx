@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 
-import { api } from "../api";
+import { api, normalizeFinaleStandings } from "../api";
 import type { RoundResults, StateView } from "../api";
 import { money, pct } from "../format";
 
@@ -226,7 +226,7 @@ function RevealMode({ state }: { state: StateView }) {
 function FinaleMode({ state }: { state: StateView }) {
   const finale = state.finale;
   if (!finale) return <div className="bs-center"><div className="bs-title">Finalizing…</div></div>;
-  const standings = [...finale.standings].sort((a, b) => a.rank - b.rank);
+  const standings = normalizeFinaleStandings(finale.standings).sort((a, b) => a.rank - b.rank);
   const winner = standings[0];
   return (
     <div className="bs-center">

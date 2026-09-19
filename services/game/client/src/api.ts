@@ -283,16 +283,54 @@ export interface StateView {
   finale: Finale | null;
 }
 
+/**
+ * One row of the engine's final standings.
+ *
+ * The service publishes the engine's `finalize` verbatim, and the engine names
+ * teams: the row carries `team_id`/`team_name`, and no `portfolio_ltv`. Rows that
+ * predate that forwarding used `fund_*`. Both spellings are accepted here, and
+ * `normalizeFinaleStandings` collapses them to one shape — a screen that reads
+ * `fund_name` straight off the payload renders a nameless row against a real
+ * engine, which is exactly what the deployed build did.
+ */
 export interface FinaleStandingRow {
   rank: number;
-  fund_id: string;
-  fund_name: string;
+  team_id?: string;
+  team_name?: string;
+  fund_id?: string;
+  fund_name?: string;
   nav: number;
   cash: number;
   debt: number;
   assets: number;
   cumulative_return: number;
+  /** Not published by the engine yet: absent means "not reported", not zero. */
+  portfolio_ltv?: number | null;
+}
+
+/** A finale row whose fund identity and LTV have been resolved. */
+export interface FinaleStanding extends FinaleStandingRow {
+  fund_id: string;
+  fund_name: string;
   portfolio_ltv: number | null;
+}
+
+/**
+ * Resolve each finale row's fund identity, preferring the engine's team names.
+ *
+ * Called by every surface that lists final standings. Without it a nameless row
+ * also breaks the "your fund" highlight, because the comparison is by id.
+ */
+export function normalizeFinaleStandings(rows: FinaleStandingRow[]): FinaleStanding[] {
+  return rows.map((row) => {
+    const fundId = String(row.team_id ?? row.fund_id ?? "");
+    return {
+      ...row,
+      fund_id: fundId,
+      fund_name: String(row.team_name ?? row.fund_name ?? fundId),
+      portfolio_ltv: row.portfolio_ltv ?? null,
+    };
+  });
 }
 
 export interface Finale {
