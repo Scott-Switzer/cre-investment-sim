@@ -14,7 +14,8 @@ import { SessionTopbar } from "../chrome";
 import { Kv, Panel } from "../components";
 import { money, pct } from "../format";
 import { useSession } from "../session";
-import type { Finale } from "../api";
+import { normalizeFinaleStandings } from "../api";
+import type { Finale, FinaleStanding } from "../api";
 
 export function Finale() {
   const { state } = useSession();
@@ -27,7 +28,7 @@ export function Finale() {
   const finale: Finale | null = state.finale;
   if (!finale) return null;
 
-  const standings = [...finale.standings].sort((a, b) => a.rank - b.rank);
+  const standings = normalizeFinaleStandings(finale.standings).sort((a, b) => a.rank - b.rank);
   const winner = standings[0] ?? null;
   const analytics = finale.analytics as Record<string, unknown>[];
   const debrief = finale.debrief as Record<string, unknown>;
@@ -102,7 +103,7 @@ export function Finale() {
   );
 }
 
-function GameWinner({ winner, isMine }: { winner: Finale["standings"][number]; isMine: boolean }) {
+function GameWinner({ winner, isMine }: { winner: FinaleStanding; isMine: boolean }) {
   return (
     <div className="locked-banner" data-testid="game-winner">
       <div>
