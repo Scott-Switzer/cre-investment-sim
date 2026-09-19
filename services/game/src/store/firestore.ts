@@ -56,6 +56,22 @@ import type {
 const SESSIONS = "sessions";
 const JOIN_CODES = "join_codes";
 
+/**
+ * The document id an idempotency key is stored under.
+ *
+ * The key is opaque to this store, and the service scopes it by the route it
+ * guards — `mem_…:rounds/decision:done`. Firestore reads the slash in that route
+ * as a path separator and then refuses the resulting odd-segment path outright
+ * ("must point to a document, but was …"), so every request carrying an
+ * `Idempotency-Key` failed against a real database while the in-memory store, a
+ * plain Map, kept passing. Encoding the key here keeps document ids legal without
+ * asking every caller to know Firestore's rules; the raw key is still the record's
+ * own `key` field.
+ */
+function idempotencyDocId(key: string): string {
+  return encodeURIComponent(key);
+}
+
 /** Round -1 (practice) is a legal document id, so it is stored as its own name. */
 export function roundKey(round: number): string {
   return round < 0 ? "practice" : String(round);
@@ -410,7 +426,7 @@ export class FirestoreStore implements Store {
       .collection(SESSIONS)
       .doc(sessionId)
       .collection("idempotency")
-      .doc(key)
+      .doc(idempotencyDocId(key))
       .get();
     return snap.exists ? (snap.data() as IdempotencyRecord) : null;
   }
@@ -420,7 +436,7 @@ export class FirestoreStore implements Store {
       .collection(SESSIONS)
       .doc(sessionId)
       .collection("idempotency")
-      .doc(record.key)
+      .doc(idempotencyDocId(record.key))
       .set(sanitize(record) as object);
   }
 
