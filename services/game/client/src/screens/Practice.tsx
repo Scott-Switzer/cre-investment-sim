@@ -16,7 +16,17 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
-import { api, ApiError, type DecisionItem, type Deal, type ForecastRow, type RoundView } from "../api";
+import {
+  api,
+  ApiError,
+  type DecisionItem,
+  type Deal,
+  type ForecastRow,
+  type ManagementStance,
+  type RoundManagement,
+  type RoundView,
+  type StanceItem,
+} from "../api";
 import { Badge, Drawer, ErrorBox, Kv, Modal, Section } from "../components";
 import {
   capitalImpact,
@@ -35,6 +45,164 @@ import { imageForProperty } from "../propertyImages";
 import { useSession } from "../session";
 
 type Draft = { action: "PASS" | "BID"; bid: string; ltv: string };
+
+/**
+ * Plain-language copy for the engine's postures.
+ *
+ * The names and the rules are the engine's; only the wording is the interface's. It
+ * says what the choice costs and what it protects, because a student who has never
+ * managed a building cannot be expected to infer "RUN LEAN" correctly — and an
+ * inference made wrongly in round one costs them the game for the wrong reason.
+ */
+const STANCE_COPY: Record<string, { label: string; tradeoff: string }> = {
+  "RUN LEAN": {
+    label: "Run lean",
+    tradeoff: "Spend least on upkeep. A tenant interruption hurts more when it comes.",
+  },
+  STANDARD: {
+    label: "Standard",
+    tradeoff: "Balanced upkeep and exposure — the neutral posture.",
+  },
+  "INVEST & PROTECT": {
+    label: "Invest & protect",
+    tradeoff: "Pay more each year on the building, so interruptions are rarer and cheaper.",
+  },
+};
+
+function stanceCopy(stance: string): { label: string; tradeoff: string } {
+  return STANCE_COPY[stance] ?? { label: stance, tradeoff: "Management posture." };
+}
+
+interface Holdings {
+  loading: boolean;
+  error: string | null;
+  rows: {
+    propertyId: string;
+    propertyType: string;
+    submarket: string;
+    currentNoi: number | null;
+    currentValue: number | null;
+    debt: number | null;
+  }[];
+}
+
+function holdingsFrom(portfolio: Record<string, unknown>): Holdings["rows"] {
+  const raw = Array.isArray(portfolio.holdings) ? portfolio.holdings : [];
+  return (raw as Record<string, unknown>[]).map((h) => ({
+    propertyId: String(h.property_id ?? ""),
+    propertyType: String(h.property_type ?? "—"),
+    submarket: String(h.submarket ?? ""),
+    currentNoi: asNumber(h.current_noi),
+    currentValue: asNumber(h.current_value),
+    debt: asNumber(h.debt_amount),
+  }));
+}
+
+/**
+ * The management decision for every building the fund owns.
+ *
+ * Rendered only when the session's course tier has a stance choice (the engine
+ * publishes that on every round), so a 605 or 220 fund never sees a control it cannot
+ * use, and never a control that would be silently ignored. The choice rides the same
+ * submission as the bids — it is a decision about the round being closed.
+ */
+function ManagementSection({
+  management,
+  holdings,
+  choices,
+  onChoose,
+  disabled,
+  vacancyByType,
+}: {
+  management: RoundManagement;
+  holdings: Holdings;
+  choices: Record<string, ManagementStance>;
+  onChoose: (propertyId: string, stance: ManagementStance) => void;
+  disabled: boolean;
+  vacancyByType: Record<string, number | null>;
+}) {
+  if (!management.enabled || !management.hasStanceChoice) return null;
+  const setCount = Object.keys(choices).length;
+
+  return (
+    <Section label={`Manage your buildings (${management.courseMode ?? "310"} course)`}>
+      <div data-testid="management-panel">
+        <p className="help" style={{ marginTop: 0 }}>
+          Owned buildings run for a year each round. Choose how much protection to buy — it is
+          submitted with your bids, and it changes what the year costs you.
+        </p>
+        {holdings.error ? <ErrorBox>{holdings.error}</ErrorBox> : null}
+        {holdings.loading ? <p className="help">Loading your portfolio…</p> : null}
+        {!holdings.loading && !holdings.error && holdings.rows.length === 0 ? (
+          <p className="help" data-testid="management-empty">
+            You own no buildings yet. A building you acquire appears here the round after it
+            settles, and that is when management begins.
+          </p>
+        ) : null}
+        {holdings.rows.length > 0 ? (
+          <table className="table" data-testid="management-table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th className="num">Income (NOI)</th>
+                <th className="num">Marked value</th>
+                <th className="num">Market vacancy</th>
+                <th>This year&apos;s approach</th>
+              </tr>
+            </thead>
+            <tbody>
+              {holdings.rows.map((holding) => {
+                const chosen = choices[holding.propertyId] ?? "STANDARD";
+                const copy = stanceCopy(chosen);
+                const vacancy = vacancyByType[holding.propertyType] ?? null;
+                return (
+                  <tr key={holding.propertyId} data-testid={`management-row-${holding.propertyId}`}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{holding.propertyId}</div>
+                      <div className="deal-sub">
+                        {holding.propertyType}
+                        {holding.submarket ? ` · ${holding.submarket}` : ""}
+                      </div>
+                    </td>
+                    <td className="num mono">{money(holding.currentNoi)}</td>
+                    <td className="num mono">{money(holding.currentValue)}</td>
+                    <td className="num mono">{pct(vacancy, 1)}</td>
+                    <td>
+                      <div className="seg" role="group" aria-label={`Management approach for ${holding.propertyId}`}>
+                        {management.stances.map((stance) => (
+                          <button
+                            key={stance}
+                            type="button"
+                            className={chosen === stance ? "active" : ""}
+                            onClick={() => onChoose(holding.propertyId, stance as ManagementStance)}
+                            disabled={disabled}
+                            title={stanceCopy(stance).tradeoff}
+                            data-testid={`stance-${holding.propertyId}-${stance}`}
+                          >
+                            {stanceCopy(stance).label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="deal-sub" data-testid={`stance-tradeoff-${holding.propertyId}`}>
+                        {copy.tradeoff}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : null}
+        {holdings.rows.length > 0 ? (
+          <p className="help mt-8" data-testid="management-summary">
+            {setCount} of {holdings.rows.length} buildings have an approach set for this round. Unset
+            buildings play the {management.defaultStance} posture.
+          </p>
+        ) : null}
+      </div>
+    </Section>
+  );
+}
 
 /** The scored-round header: fund NAV, cash, assets, and portfolio LTV — all engine data. */
 function RoundHeader({ fund }: { fund: RoundView["public"]["funds"][number] | undefined }) {
@@ -321,17 +489,67 @@ export function Practice() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [stances, setStances] = useState<Record<string, ManagementStance>>({});
+  const [holdings, setHoldings] = useState<Holdings>({ loading: false, error: null, rows: [] });
 
   const round = state?.round ?? null;
   const roundKey = round ? `${round.round}:${round.openedAt}` : "";
   const seededKey = `${roundKey}`;
+  const fundId = state?.you.fundId ?? null;
+  const management = round?.management ?? null;
+  const managementLive = Boolean(management?.enabled && management?.hasStanceChoice);
+  const isScoredRound = round !== null && !round.isPractice;
 
   // Seed (and re-seed) local drafts whenever the round itself changes. A submitted
   // decision wins over the policy defaults so a refresh shows what was locked in.
   useEffect(() => {
     setDrafts(draftsFromRound(round));
+    // A refresh must show the stances that were actually submitted, not reset them to
+    // the tier default — otherwise a fund that chose "invest" sees "standard" on
+    // reload and cannot tell whether its choice survived.
+    const submitted = new Map((round?.myDecision?.stances ?? []).map((s) => [s.propertyId, s.stance]));
+    const seeded: Record<string, ManagementStance> = {};
+    for (const [propertyId, stance] of submitted) seeded[propertyId] = stance;
+    setStances(seeded);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seededKey]);
+
+  // The buildings this fund owns. Only fetched when the tier actually has a management
+  // decision to make: on 605 there is nothing to manage, so there is no call.
+  useEffect(() => {
+    if (!managementLive || !isScoredRound || !fundId || !state?.session.id) {
+      setHoldings({ loading: false, error: null, rows: [] });
+      return;
+    }
+    let alive = true;
+    setHoldings((h) => ({ ...h, loading: true, error: null }));
+    api
+      .portfolio(state.session.id, fundId)
+      .then((res) => {
+        if (!alive) return;
+        const rows = holdingsFrom(res.portfolio);
+        setHoldings({ loading: false, error: null, rows });
+        // Every building this fund owns must carry an explicit posture; a building
+        // with no control on screen would silently play the tier default instead.
+        setStances((prev) => {
+          const next = { ...prev };
+          for (const row of rows) next[row.propertyId] ??= "STANDARD";
+          return next;
+        });
+      })
+      .catch((err: unknown) => {
+        if (!alive) return;
+        setHoldings({
+          loading: false,
+          error: err instanceof ApiError ? err.message : "Portfolio unavailable.",
+          rows: [],
+        });
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [managementLive, isScoredRound, fundId, seededKey]);
 
   if (!state) return null;
   const { session, you } = state;
@@ -381,9 +599,18 @@ export function Practice() {
     setBusy(true);
     setError(null);
     try {
+      // Only the buildings actually on the management table are sent, so a stale
+      // entry for a building that has since been sold cannot ride along.
+      const stanceItems: StanceItem[] = managementLive
+        ? holdings.rows.map((row) => ({
+            propertyId: row.propertyId,
+            stance: stances[row.propertyId] ?? "STANDARD",
+          }))
+        : [];
       await api.submitDecision(
         session.id,
         items.map((i) => i.item),
+        stanceItems,
       );
       await refresh();
       navigate("/game/waiting");
@@ -449,6 +676,19 @@ export function Practice() {
           </div>
         </div>
 
+        {managementLive && round ? (
+          <ManagementSection
+            management={round.management}
+            holdings={holdings}
+            choices={stances}
+            onChoose={(propertyId, stance) =>
+              setStances((prev) => ({ ...prev, [propertyId]: stance }))
+            }
+            disabled={submitted || !round.isOpenForSubmissions}
+            vacancyByType={round.public.market?.vacancy ?? {}}
+          />
+        ) : null}
+
         <div
           className="board"
           data-testid="deal-board"
@@ -474,7 +714,12 @@ export function Practice() {
         <div className="action-bar-inner">
           <div className="action-meta">
             <span className="a-title">{reviewedCount} / {deals.length} deals reviewed</span>
-            <span className="a-sub">Cash if all bids win: {money(cashIfAllWin)}</span>
+            <span className="a-sub">
+              Cash if all bids win: {money(cashIfAllWin)}
+              {managementLive && holdings.rows.length > 0
+                ? ` · ${holdings.rows.length} building${holdings.rows.length === 1 ? "" : "s"} to manage`
+                : ""}
+            </span>
           </div>
           <div className="action-bar-spacer" />
           {submitted ? (
@@ -510,6 +755,16 @@ export function Practice() {
         <ReviewModal
           deals={deals}
           items={items}
+          management={managementLive ? round?.management ?? null : null}
+          stances={
+            managementLive
+              ? holdings.rows.map((row) => ({
+                  propertyId: row.propertyId,
+                  stance: stances[row.propertyId] ?? "STANDARD",
+                }))
+              : []
+          }
+          practice={round?.isPractice ?? false}
           onClose={() => setReviewing(false)}
           onSubmit={submit}
           busy={busy}
@@ -943,12 +1198,20 @@ function UnderwritingDrawer({
 function ReviewModal({
   deals,
   items,
+  management,
+  stances,
+  practice,
   onClose,
   onSubmit,
   busy,
 }: {
   deals: Deal[];
   items: ReviewItem[];
+  /** Null when this session's tier has no management decision. */
+  management: RoundManagement | null;
+  stances: StanceItem[];
+  /** Drives the confirm label: a scored round is not "practice". */
+  practice: boolean;
   onClose: () => void;
   onSubmit: () => void;
   busy: boolean;
@@ -956,7 +1219,7 @@ function ReviewModal({
   const nameOf = (id: string) => deals.find((d) => d.property_id === id)?.property_name ?? id;
   return (
     <Modal
-      title="Review practice decisions"
+      title="Review your decisions"
       onClose={onClose}
       footer={
         <>
@@ -964,7 +1227,7 @@ function ReviewModal({
             Back
           </button>
           <button className="btn btn-primary" onClick={onSubmit} disabled={busy} data-testid="lock-decisions">
-            {busy ? "Locking…" : "Lock practice decisions"}
+            {busy ? "Locking…" : practice ? "Lock practice decisions" : "Lock decisions"}
           </button>
         </>
       }
@@ -993,8 +1256,31 @@ function ReviewModal({
           ))}
         </tbody>
       </table>
+      {management && stances.length > 0 ? (
+        <div className="mt-16" data-testid="review-management">
+          <span className="panel-label">Your buildings this round</span>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>Approach</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stances.map((s) => (
+                <tr key={s.propertyId} data-testid={`review-stance-${s.propertyId}`}>
+                  <td>{s.propertyId}</td>
+                  <td>{stanceCopy(s.stance).label}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
       <p className="help mt-12">
-        Locking submits your fund's sealed decisions. They cannot be edited after locking.
+        Locking submits your fund's sealed decisions
+        {management && stances.length > 0 ? " and this round's management approaches" : ""}. They
+        cannot be edited after locking.
       </p>
     </Modal>
   );

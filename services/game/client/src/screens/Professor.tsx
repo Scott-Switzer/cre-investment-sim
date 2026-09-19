@@ -56,6 +56,9 @@ function ProfessorConsole() {
 
   const modelsLocked = funds.filter((f) => f.modelStatus === "locked").length;
   const practiceSubmitted = round?.submittedFunds ?? 0;
+  // Whether this session has a management decision at all, from the engine's own
+  // published course config on the current round (never from the URL or a guess).
+  const managementLive = Boolean(round?.management.enabled && round.management.hasStanceChoice);
   const joinCode = (state as unknown as { session: { joinCode?: string } }).session.joinCode ?? "";
 
   async function run(action: ProfessorAction) {
@@ -95,6 +98,12 @@ function ProfessorConsole() {
       <main className="shell-main wide">
         <div className="page-head spread">
           <div>
+            {session.courseMode ? (
+              <span className="badge badge-navy" data-testid="course-mode">
+                Course {session.courseMode}
+                {managementLive ? " · management on" : ""}
+              </span>
+            ) : null}
             <span className="panel-label">{session.name}</span>
             <h2>CRE Investment Committee — Professor console</h2>
             <p className="sub">{session.bundleDisplayName} · {session.poolCount} candidates · {session.totalRounds} scored rounds</p>
@@ -145,16 +154,24 @@ function ProfessorConsole() {
                 <th className="num">Members</th>
                 <th>Model</th>
                 <th>Practice</th>
+                <th>Management</th>
                 <th className="num">Policy overrides</th>
               </tr>
             </thead>
             <tbody>
-              {rowsFor(grid, funds).map((row) => (
+              {rowsFor(grid, funds, managementLive).map((row) => (
                 <tr key={row.fundId} data-testid={`grid-row-${row.fundName}`}>
                   <td style={{ fontWeight: 600 }}>{row.fundName}</td>
                   <td className="num">{row.members}</td>
                   <td><ModelCell status={row.modelStatus} /></td>
                   <td><SubmitCell submitted={row.submitted} /></td>
+                  <td data-testid={`management-${row.fundName}`}>
+                    {row.managementSummary === "not used" ? (
+                      <span title="This course version has no management decision">not used</span>
+                    ) : (
+                      row.managementSummary
+                    )}
+                  </td>
                   <td className="num">
                     {row.submitted ? (
                       <span title="Submissions that deviated from the fund's own locked policy — counted whether or not the bid won">
@@ -323,6 +340,10 @@ function ProfessorSignIn() {
     practiceEnabled: true,
     totalRounds: 4,
     roundTimerSeconds: 0,
+    // 605 is the class version this game has been rehearsed on: valuation only, no
+    // management decision. 310 adds the operating year. Named here rather than
+    // inferred so the console always states which game the room is playing.
+    courseMode: "605",
   });
 
   async function create(e: React.FormEvent) {
@@ -339,6 +360,7 @@ function ProfessorSignIn() {
         totalRounds: form.totalRounds,
         practiceEnabled: form.practiceEnabled,
         roundTimerSeconds: form.roundTimerSeconds,
+        courseMode: form.courseMode,
       });
       window.location.assign("/professor");
       void result;
@@ -478,6 +500,29 @@ function ProfessorSignIn() {
                   </select>
                 </div>
               </div>
+              <div className="field">
+                <label htmlFor="courseMode">Course version</label>
+                <select
+                  id="courseMode"
+                  className="input"
+                  value={form.courseMode}
+                  onChange={(e) => setForm({ ...form, courseMode: e.target.value })}
+                  data-testid="create-course-mode"
+                >
+                  <option value="605">605 — one valuation model, no operating decisions (default)</option>
+                  <option value="310">
+                    310 — valuation + vacancy + rent, with per-building management
+                  </option>
+                  <option value="220">220 — simplified regression, operating costs at standard</option>
+                </select>
+                <p className="help" style={{ marginBottom: 0 }}>
+                  {form.courseMode === "310"
+                    ? "Each round, funds choose how to manage every building they own."
+                    : form.courseMode === "220"
+                      ? "Buildings still run a year each round, but funds do not choose a posture."
+                      : "Acquired buildings are marked to market each round and carry no management decision."}
+                </p>
+              </div>
               <button className="btn btn-primary btn-block" disabled={busy} data-testid="create-session-submit">
                 {busy ? "Creating…" : "Create session"}
               </button>
@@ -546,9 +591,35 @@ interface GridRow {
   submitted: boolean;
   bidsAboveOwnCeiling: number;
   ltvAboveOwnTarget: number;
+  /** The professor's one-line summary: a posture tally, "waiting", or "not used". */
+  managementSummary: string;
 }
 
-function rowsFor(grid: SubmissionGridRow[] | null, funds: FundView[]): GridRow[] {
+/**
+ * The professor's one-line answer to "did management decisions arrive, and what did
+ * each fund choose": counts of postures, never amounts.
+ *
+ * `"not used"` means the course version has no management decision at all, which is a
+ * different fact from "the fund has not chosen yet" and is labelled differently on
+ * screen — otherwise a 605 room would appear to be full of funds that are stuck.
+ */
+function managementSummaryFor(row: SubmissionGridRow, managementLive: boolean): string {
+  if (!managementLive) return "not used";
+  if (!row.submitted) return "waiting";
+  if (row.stancesSet === 0) {
+    return row.bids > 0 || row.passes > 0 ? "none set" : "waiting";
+  }
+  const parts = Object.entries(row.stanceTally)
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([stance, count]) => `${count} × ${stance.toLowerCase()}`);
+  return `${row.stancesSet} building${row.stancesSet === 1 ? "" : "s"} · ${parts.join(", ")}`;
+}
+
+function rowsFor(
+  grid: SubmissionGridRow[] | null,
+  funds: FundView[],
+  managementLive: boolean,
+): GridRow[] {
   if (grid && grid.length > 0) {
     return grid.map((row) => ({
       fundId: row.fundId,
@@ -558,6 +629,7 @@ function rowsFor(grid: SubmissionGridRow[] | null, funds: FundView[]): GridRow[]
       submitted: row.submitted,
       bidsAboveOwnCeiling: row.bidsAboveOwnCeiling,
       ltvAboveOwnTarget: row.ltvAboveOwnTarget,
+      managementSummary: managementSummaryFor(row, managementLive),
     }));
   }
   return funds.map((f) => ({
@@ -568,5 +640,6 @@ function rowsFor(grid: SubmissionGridRow[] | null, funds: FundView[]): GridRow[]
     submitted: false,
     bidsAboveOwnCeiling: 0,
     ltvAboveOwnTarget: 0,
+    managementSummary: managementLive ? "waiting" : "not used",
   }));
 }

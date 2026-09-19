@@ -35,7 +35,7 @@ import { beginCheckIn, closeRound, demoAdvance, finalizeGame, openRound, pauseTi
 import { assertSafeView } from "./views.js";
 import { buildExport, zipStore } from "./export.js";
 import { decodeState } from "./engineClient.js";
-import type { DecisionItem } from "./domain.js";
+import type { DecisionItem, StanceItem } from "./domain.js";
 import type { ServiceConfig } from "./config.js";
 
 interface Deps {
@@ -261,6 +261,7 @@ export function buildServer(deps: Deps): FastifyInstance {
     const body = (req.body ?? {}) as {
       name?: string;
       bundleId?: string;
+      courseMode?: string;
       professorPasscode?: string;
       professorName?: string;
       fundNames?: string[];
@@ -273,6 +274,7 @@ export function buildServer(deps: Deps): FastifyInstance {
     const result = await createSession(context, {
       name: body.name ?? "",
       bundleId: body.bundleId,
+      courseMode: body.courseMode,
       professorPasscode: body.professorPasscode ?? "",
       professorName: body.professorName,
       fundNames: body.fundNames,
@@ -629,11 +631,15 @@ export function buildServer(deps: Deps): FastifyInstance {
     const body = (req.body ?? {}) as {
       fundId?: string;
       items?: DecisionItem[];
+      stances?: StanceItem[];
       expectedRevision?: number;
     };
     const fundId = body.fundId ?? grant.fundId;
     if (!fundId) throw badRequest("fundId is required");
     if (!Array.isArray(body.items)) throw badRequest("items must be an array");
+    if (body.stances !== undefined && !Array.isArray(body.stances)) {
+      throw badRequest("stances must be an array when present");
+    }
 
     const result = await idempotent(req, params.sessionId, grant.memberId, "rounds/decision", async () => {
       const decision = await submitDecision(context, {
@@ -641,6 +647,7 @@ export function buildServer(deps: Deps): FastifyInstance {
         fundId,
         grant,
         items: body.items!,
+        stances: body.stances,
         expectedRevision: ifMatch(req) ?? body.expectedRevision ?? null,
       });
       return { status: 200, body: { decision } };

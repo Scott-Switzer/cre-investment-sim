@@ -498,6 +498,11 @@ describe("the professor's grid", () => {
     expect(row.submitted).toBe(true);
     expect(row.bids).toBe(1);
     expect(row.bidsAboveOwnCeiling).toBe(1);
+    // The management summary is two counts and a tally of postures, never an amount,
+    // so the grid stays safe to project. It is asserted here in full so a field added
+    // to this row has to be considered on purpose.
+    expect(row.stancesSet).toBe(0);
+    expect(row.stanceTally).toEqual({});
     expect(Object.keys(row).sort()).toEqual([
       "bids",
       "bidsAboveOwnCeiling",
@@ -505,6 +510,8 @@ describe("the professor's grid", () => {
       "fundName",
       "ltvAboveOwnTarget",
       "passes",
+      "stanceTally",
+      "stancesSet",
       "submitted",
       "submittedAt",
     ]);

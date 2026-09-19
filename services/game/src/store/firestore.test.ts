@@ -251,6 +251,7 @@ describeEmulator("FirestoreStore", () => {
         broadcast: { round_number: 0, deals: [{ property_id: "P1" }] },
         results: null,
         rejected: [],
+        rejectedStances: [],
       });
       tx.putDecision({
         sessionId: id,
@@ -310,6 +311,7 @@ describeEmulator("FirestoreStore", () => {
         broadcast: { round_number: -1, deals: [] },
         results: null,
         rejected: [],
+        rejectedStances: [],
       });
     });
     expect(roundKey(-1)).toBe("practice");

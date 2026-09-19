@@ -1,5 +1,9 @@
 # V2 sprint report — September 18, 2026
 
+> **Later the same day:** the management layer was wired into the classroom UI and
+> verified end to end against the real stack — see §9. Priorities 1 and the
+> professor-facing wording in §8 were superseded by that pass.
+
 Branch `feat/cre-management-v2`, branched from `c88e848` ("allow classroom play
 without model CSV"). Everything below is measured on this branch, on the machine
 that built it. Anything not measured says so.
@@ -211,3 +215,77 @@ real-world test, 310 as the target run) rather than invented dates.
    building the images once a Docker daemon is available.
 3. **Validate the 605 tier in front of the class**, then decide from that evidence
    whether 605 should show a light stance surface or stay management-free.
+
+## 9. Professor delivery pass (later on September 18)
+
+The gap §8 called out first — engine-complete but not playable — is closed on the
+branch. The 310 tier now plays through the existing React/Fastify classroom UI; no
+second management app, no parallel API.
+
+**What was wired**
+
+- `client/src/screens/Practice.tsx` — the deal board's management section: one row
+  per owned building (id, type, submarket, income, marked value, market vacancy) and
+  a three-way stance control (`RUN LEAN` / `STANDARD` / `INVEST & PROTECT`) whose
+  values come from the round's published `management.stances`, never hard-coded. The
+  chosen stances travel with the round's decisions through the existing
+  `/rounds/decision` call, and the review dialog shows them before locking.
+- `client/src/screens/Results.tsx` — per-building operating feedback after the
+  year resolves: approach used, tenant interruption, upkeep paid, rent effect, net
+  on cash — only fields the engine already publishes.
+- `client/src/screens/Professor.tsx` — course-version selection at session
+  creation, and a management column in the round grid: submitted vs waiting, stances
+  set, and the mix per approach.
+- `src/rounds.ts`, `src/views.ts`, `src/engineClient.ts`, `src/export.ts`,
+  `src/server.ts` — stance validation and forwarding, rejection surfacing, and the
+  per-round stance sheet in the export.
+- One copy defect fixed while testing: the shared review dialog labelled its confirm
+  button "Lock practice decisions" in scored rounds; it is now phase-aware.
+
+**How it was verified (not just unit tests)**
+
+A real stack was run locally without Docker — the Python engine on `:8081` and the
+Fastify service on `:8080` with `STORE=memory` — and driven through the browser:
+
+1. Professor signed in, created a **310** session (course selector shows the tier).
+2. Student joined, locked a model with "skip file — use on-screen inputs".
+3. Round 1: bid on two listings through the UI, locked the decisions, the round
+   resolved, and the fund acquired both buildings. Results showed the NAV bridge
+   reconciling to the cent with no unexplained residual.
+4. Round 2: the management section listed both owned buildings with income, marked
+   value and market vacancy, and a segmented stance control each. Choosing
+   `INVEST & PROTECT` on one and `RUN LEAN` on the other, then locking, produced in
+   the professor's grid: `stancesSet 2`, tally `{INVEST & PROTECT: 1, RUN LEAN: 1}`.
+5. Round 1's result screen carried the per-building table with real numbers
+   (upkeep −$0.22M on the industrial, −$0.36M net on the multifamily).
+6. An illegal stance (`MAX PROTECTION`) was rejected with
+   "'MAX PROTECTION' is not a management stance this session accepts. Available:
+   RUN LEAN, STANDARD, INVEST & PROTECT."
+7. The export archive contains `round_management_stances.csv`
+   (`round,fund,property_id,stance`).
+8. **605**, same stack: the round board renders no management surface at all — no
+   panel, no rows, no "310 course" label — and the confirm button reads "Lock
+   decisions". **220** publishes `enabled: true, hasStanceChoice: false`: the
+   operating year runs at the standard approach with no posture UI.
+
+**Gates run on the final code state**
+
+| Gate | Result |
+| --- | --- |
+| `npm run typecheck` (server + client tsconfigs) | pass |
+| `npx vitest run` (service) | 140 passed, 15 skipped (Firestore emulator down) |
+| `npm run test:client` | 29 passed |
+| `npm run build` (server + client bundle) | pass |
+| Python engine + frozen contract suite | pass (unchanged by this pass) |
+| Docker-backed E2E / load | NOT RUN — no Docker daemon in this environment |
+
+**Updated next three** (replacing §8 for the next working session)
+
+1. Deploy the branch to a preview environment (Cloudflare stage or a Cloud Run
+   service) and run the burst load plus the reconnect drill against it, so the
+   classroom-resilience claims rest on a deployed stack rather than localhost.
+2. Run the 605 tier in front of the class, then decide from that evidence whether
+   605 stays management-free or gains a light stance surface.
+3. Ship the vacancy and rent model check-ins as real, decision-linked model types
+   for 310 — the ladder is designed and the engine reads predictions, but the
+   310 round still plays with neutral forecasts when a team skips the file.

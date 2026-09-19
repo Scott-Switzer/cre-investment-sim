@@ -39,6 +39,8 @@ export interface SessionView {
   candidatePoolHash: string;
   nextStep: string;
   demo: boolean;
+  /** The course tier recorded at creation, or null when the engine did not say. */
+  courseMode: string | null;
   roundDeadlineAt: number | null;
   timerPausedAt: number | null;
   roundDurationSeconds: number;
@@ -92,6 +94,27 @@ export interface DecisionItem {
   ltv: number | null;
 }
 
+/**
+ * The engine's own management postures. Mirrored here so the UI cannot invent a
+ * fourth one; which of them a session accepts comes from the engine's published
+ * course-tier config on every round (`RoundManagement.stances`).
+ */
+export type ManagementStance = "RUN LEAN" | "STANDARD" | "INVEST & PROTECT";
+
+export interface StanceItem {
+  propertyId: string;
+  stance: ManagementStance;
+}
+
+/** The management rules this round is played under, as the engine published them. */
+export interface RoundManagement {
+  enabled: boolean;
+  hasStanceChoice: boolean;
+  courseMode: string | null;
+  stances: string[];
+  defaultStance: string;
+}
+
 export interface RoundView {
   round: number;
   roundLabel: string;
@@ -102,12 +125,15 @@ export interface RoundView {
   isOpenForSubmissions: boolean;
   public: RoundPublic;
   myForecast: ForecastRow[];
-  myDecision: { items: DecisionItem[]; submittedAt: string } | null;
+  myDecision: { items: DecisionItem[]; stances: StanceItem[]; submittedAt: string } | null;
   submittedFunds: number;
   totalFunds: number;
   results: RoundResults | null;
   analytics: unknown[] | null;
   rejected: { fundId: string; propertyId: string; reason: string }[];
+  /** Management stances the engine refused at resolution, for the fund that sent them. */
+  rejectedStances: { fundId: string; propertyId: string; reason: string }[];
+  management: RoundManagement;
 }
 
 export interface Deal {
@@ -167,6 +193,14 @@ export interface RoundPublic {
   economics: {
     acquisition_cost_rate: number;
     capital_reserve_rate: Record<string, number>;
+    /** Present once the engine publishes course tiers; absent on an older engine. */
+    management?: {
+      enabled: boolean;
+      course_mode: string | null;
+      has_stance_choice: boolean;
+      stances: string[];
+      default_stance: string;
+    };
   };
 }
 
@@ -225,6 +259,10 @@ export interface SubmissionGridRow {
   passes: number;
   bidsAboveOwnCeiling: number;
   ltvAboveOwnTarget: number;
+  /** How many buildings this fund set a stance for this round. */
+  stancesSet: number;
+  /** Counts of postures chosen, by the engine's stance names. Never an amount. */
+  stanceTally: Record<string, number>;
 }
 
 export interface StateView {
@@ -397,8 +435,10 @@ export const api = {
     return fetch(`/v1/sessions/${sessionId}/funds/${fundId}/model`).then(handle) as Promise<ModelRead>;
   },
 
-  submitDecision(sessionId: string, items: DecisionItem[]) {
-    return post(`/v1/sessions/${sessionId}/rounds/decision`, { items }) as Promise<{ decision: unknown }>;
+  submitDecision(sessionId: string, items: DecisionItem[], stances: StanceItem[] = []) {
+    return post(`/v1/sessions/${sessionId}/rounds/decision`, { items, stances }) as Promise<{
+      decision: unknown;
+    }>;
   },
 
   // Professor actions. `expectedRevision` becomes If-Match: acting on the version
@@ -427,6 +467,8 @@ export const api = {
     totalRounds: number;
     practiceEnabled: boolean;
     roundTimerSeconds: number;
+    /** 605 (default) / 310 / 220. The engine validates and records it. */
+    courseMode: string;
   }) {
     return post("/v1/sessions", input) as Promise<{
       sessionId: string;

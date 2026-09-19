@@ -31,6 +31,12 @@ import type { BundleSummary } from "./engineClient.js";
 export interface CreateSessionInput {
   name: string;
   bundleId?: string;
+  /**
+   * The instructional tier to play: "605" (the default the bundles ship), "310" for
+   * the full management layer, or "220" for the simplified one. Validated by the
+   * engine, which refuses an unknown tier rather than defaulting it.
+   */
+  courseMode?: string;
   professorPasscode: string;
   professorName?: string;
   /** Funds the professor pre-creates. Students may also create their own. */
@@ -106,6 +112,7 @@ export async function createSession(
     joinCode: newJoinCode(),
     bundleId,
     bundleDisplayName: chosen.display_name,
+    courseMode: input.courseMode ?? null,
     candidatePoolHash: poolResponse.candidate_pool_hash,
     poolCount: poolResponse.pool_count,
     mode: input.mode === "individual" ? "individual" : "team",
@@ -500,6 +507,9 @@ export async function createDemoSession(
     joinCode: newJoinCode(),
     bundleId,
     bundleDisplayName: available[0]!.display_name,
+    // The demo plays the bundle's own tier: a demonstration should show what a class
+    // would see, not a special case invented for the demo.
+    courseMode: null,
     candidatePoolHash: poolResponse.candidate_pool_hash,
     poolCount: poolResponse.pool_count,
     mode: "individual",
